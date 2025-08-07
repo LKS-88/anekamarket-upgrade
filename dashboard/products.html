@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Produk | ANEKAMARKET</title>
+    <!-- Favicon -->
+    <link rel="icon" href="../assets/images/favicon.ico">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar (Sama dengan dashboard/index.html) -->
+        <aside class="dashboard-sidebar">
+            <!-- ... Isi sidebar sama persis dengan dashboard/index.html ... -->
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Top Navigation (Sama dengan dashboard/index.html) -->
+            <header class="dashboard-header">
+                <!-- ... Isi header sama persis dengan dashboard/index.html ... -->
+            </header>
+
+            <!-- Products Content -->
+            <div class="dashboard-content">
+                <div class="page-header">
+                    <h1>Manajemen Produk</h1>
+                    <div class="page-actions">
+                        <button class="btn btn-primary" id="addProductBtn">
+                            <i class="fas fa-plus"></i> Tambah Produk
+                        </button>
+                        <button class="btn btn-export">
+                            <i class="fas fa-file-export"></i> Export
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Product Filters -->
+                <div class="filters-card">
+                    <div class="filter-group">
+                        <label for="productCategory">Kategori:</label>
+                        <select id="productCategory" class="filter-select">
+                            <option value="">Semua Kategori</option>
+                            <option value="food">Makanan & Minuman</option>
+                            <option value="livestock">Peternakan</option>
+                            <option value="agriculture">Pertanian</option>
+                            <option value="electronics">Elektronik</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="productStatus">Status:</label>
+                        <select id="productStatus" class="filter-select">
+                            <option value="">Semua Status</option>
+                            <option value="active">Aktif</option>
+                            <option value="inactive">Nonaktif</option>
+                            <option value="outofstock">Habis</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="searchProduct">Cari:</label>
+                        <input type="text" id="searchProduct" class="filter-input" placeholder="Nama Produk/SKU">
+                    </div>
+                    <button class="btn btn-filter">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="btn btn-reset">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Products Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="productsTable" class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Gambar</th>
+                                        <th>Nama Produk</th>
+                                        <th>SKU</th>
+                                        <th>Kategori</th>
+                                        <th>Harga</th>
+                                        <th>Stok</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data akan diisi oleh JavaScript atau backend -->
+                                    <tr>
+                                        <td>
+                                            <img src="../assets/images/produk/ayam1.jpg" alt="DOC Ayam" class="product-thumbnail">
+                                        </td>
+                                        <td>DOC Ayam Pedaging</td>
+                                        <td>PRD-AYAM-001</td>
+                                        <td>Peternakan</td>
+                                        <td>Rp 8.000</td>
+                                        <td>
+                                            <span class="stock-badge in-stock">120</span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge active">Aktif</span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn edit" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="action-btn delete" title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <button class="action-btn view" title="Detail">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Contoh data lainnya -->
+                                    <tr>
+                                        <td>
+                                            <img src="../assets/images/produk/telur2.jpg" alt="Telur Ayam" class="product-thumbnail">
+                                        </td>
+                                        <td>Telur Ayam Kampung</td>
+                                        <td>PRD-TELUR-002</td>
+                                        <td>Peternakan</td>
+                                        <td>Rp 2.500</td>
+                                        <td>
+                                            <span class="stock-badge in-stock">85</span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge active">Aktif</span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn edit" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="action-btn delete" title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <button class="action-btn view" title="Detail">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- 10+ contoh data lainnya -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Tambah Produk Baru</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="productName">Nama Produk</label>
+                                <input type="text" class="form-control" id="productName" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="productSKU">SKU</label>
+                                <input type="text" class="form-control" id="productSKU" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="productCategory">Kategori</label>
+                                <select class="form-control" id="productCategory" required>
+                                    <option value="">Pilih Kategori</option>
+                                    <option value="food">Makanan & Minuman</option>
+                                    <option value="livestock">Peternakan</option>
+                                    <option value="agriculture">Pertanian</option>
+                                    <option value="electronics">Elektronik</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="productStatus">Status</label>
+                                <select class="form-control" id="productStatus" required>
+                                    <option value="active">Aktif</option>
+                                    <option value="inactive">Nonaktif</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="productPrice">Harga (Rp)</label>
+                                <input type="number" class="form-control" id="productPrice" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="productStock">Stok</label>
+                                <input type="number" class="form-control" id="productStock" required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="productWeight">Berat (gram)</label>
+                                <input type="number" class="form-control" id="productWeight" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productDescription">Deskripsi</label>
+                            <textarea class="form-control" id="productDescription" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Gambar Produk</label>
+                            <div class="product-images-upload">
+                                <div class="upload-area" id="uploadArea">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Seret & lepas gambar atau klik untuk memilih</p>
+                                    <input type="file" id="productImages" multiple accept="image/*" style="display: none;">
+                                </div>
+                                <div class="image-preview" id="imagePreview"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveProductBtn">
+                        <i class="fas fa-save"></i> Simpan Produk
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
+    <script src="../assets/js/products.js"></script>
+</body>
+</html>
