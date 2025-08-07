@@ -57,6 +57,158 @@
             color: var(--dark);
         }
         
+        /* Dashboard Header */
+        .dashboard-header {
+            background: white;
+            box-shadow: var(--shadow-md);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        
+        .dashboard-logo img {
+            height: 40px;
+            width: auto;
+        }
+        
+        .dashboard-logo span {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .dashboard-nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .dashboard-menu {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .dashboard-menu a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+        
+        .dashboard-menu a:hover {
+            color: var(--accent);
+        }
+        
+        .dashboard-menu a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--accent);
+            transition: var(--transition);
+        }
+        
+        .dashboard-menu a:hover::after {
+            width: 100%;
+        }
+        
+        .dashboard-menu a i {
+            font-size: 1.1rem;
+        }
+        
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        .user-btn img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            min-width: 200px;
+            padding: 1rem 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            transform: translateY(10px);
+        }
+        
+        .user-menu:hover .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .user-dropdown a {
+            display: block;
+            padding: 0.7rem 1.5rem;
+            color: var(--text);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .user-dropdown a:hover {
+            background: rgba(230, 126, 34, 0.1);
+            color: var(--accent);
+        }
+        
+        .user-dropdown a i {
+            margin-right: 0.7rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .mobile-dashboard-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
         /* Loading Screen */
         .loading-screen {
             position: fixed;
@@ -143,6 +295,7 @@
             align-items: center;
             justify-content: center;
             isolation: isolate;
+            margin-top: 70px; /* To account for fixed dashboard header */
         }
         
         .header-overlay {
@@ -381,7 +534,7 @@
             background-color: rgba(255, 255, 255, 0.98);
             box-shadow: 0 2px 30px rgba(0, 0, 0, 0.1);
             position: sticky;
-            top: 0;
+            top: 70px; /* Below dashboard header */
             z-index: 1000;
             backdrop-filter: blur(8px);
             transition: var(--transition);
@@ -1624,316 +1777,6 @@
             background: linear-gradient(135deg, var(--success), #2f855a);
         }
         
-        /* PREMIUM FOOTER DESIGN */
-         footer {
-            background: linear-gradient(135deg, var(--primary), var(--dark));
-            color: white;
-            padding: 4rem 0 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png') center/cover fixed;
-            opacity: 0.03;
-            z-index: 0;
-        }
-        
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1.5rem 3rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2.5rem;
-            position: relative;
-            z-index: 1;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .footer-col {
-            padding: 0 1rem;
-        }
-        
-        .footer-col h3 {
-            font-size: 1.4rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 0.8rem;
-            font-family: 'Playfair Display', serif;
-            color: white;
-        }
-        
-        .footer-col h3::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 50px;
-            height: 3px;
-            background: var(--gold);
-            border-radius: 2px;
-        }
-        
-        .footer-about {
-            grid-column: 1 / -1;
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto 2rem;
-        }
-        
-        .footer-about h3::after {
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .footer-about p {
-            margin-bottom: 1.5rem;
-            line-height: 1.7;
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .footer-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 1.5rem;
-        }
-        
-        .footer-logo img {
-            height: 45px;
-            width: auto;
-            filter: brightness(0) invert(1);
-        }
-        
-        .footer-logo span {
-            font-size: 1.6rem;
-            font-weight: 700;
-            font-family: 'Playfair Display', serif;
-            color: white;
-        }
-        
-        /* Updated Footer Links */
-        .footer-links {
-            list-style: none;
-            padding-left: 0;
-        }
-        
-        .footer-links li {
-            margin-bottom: 1rem;
-            position: relative;
-            padding-left: 20px;
-        }
-        
-        .footer-links li::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 8px;
-            background-color: var(--gold);
-            border-radius: 50%;
-            transition: var(--transition);
-        }
-        
-        .footer-links li:hover::before {
-            transform: translateY(-50%) scale(1.3);
-            background-color: white;
-        }
-        
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: var(--transition);
-            display: inline-block;
-            padding: 0.3rem 0;
-            font-size: 1rem;
-            position: relative;
-        }
-        
-        .footer-links a:hover {
-            color: white;
-            transform: translateX(8px);
-        }
-        
-        .newsletter-form {
-            margin-top: 1.2rem;
-        }
-        
-        .newsletter-form input {
-            width: 100%;
-            padding: 0.9rem 1rem;
-            border: none;
-            border-radius: 8px;
-            margin-bottom: 1.2rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 0.95rem;
-            transition: var(--transition);
-        }
-        
-        .newsletter-form input:focus {
-            outline: none;
-            background-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2);
-        }
-        
-        .newsletter-form input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.95rem;
-        }
-        
-        .newsletter-form button {
-            width: 100%;
-            padding: 0.9rem;
-            font-size: 0.95rem;
-        }
-        
-        .copyright {
-            text-align: center;
-            padding: 1.5rem 0;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .copyright a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: var(--transition);
-            position: relative;
-        }
-        
-        .copyright a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 1px;
-            bottom: -2px;
-            left: 0;
-            background-color: var(--gold);
-            transition: var(--transition);
-        }
-        
-        .copyright a:hover {
-            color: white;
-        }
-        
-        .copyright a:hover::after {
-            width: 100%;
-        }
-        
-        /* Responsive Footer */
-        @media (max-width: 992px) {
-            .footer-container {
-                grid-template-columns: 1fr 1fr;
-                gap: 2rem;
-            }
-            
-            .footer-about {
-                grid-column: 1 / -1;
-            }
-            
-            .footer-col {
-                padding: 0 0.5rem;
-            }
-            
-            .footer-col h3 {
-                font-size: 1.3rem;
-                margin-bottom: 1.2rem;
-            }
-            
-            .footer-about p {
-                font-size: 0.95rem;
-            }
-            
-            .footer-logo img {
-                height: 40px;
-            }
-            
-            .footer-logo span {
-                font-size: 1.5rem;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            footer {
-                padding: 3rem 0 0;
-            }
-            
-            .footer-container {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-                padding: 0 1rem 2rem;
-            }
-            
-            .footer-col {
-                text-align: center;
-                padding: 0;
-            }
-            
-            .footer-col h3 {
-                font-size: 1.3rem;
-            }
-            
-            .footer-col h3::after {
-                left: 50%;
-                transform: translateX(-50%);
-            }
-            
-            .footer-links li {
-                padding-left: 0;
-                margin-bottom: 0.8rem;
-            }
-            
-            .footer-links li::before {
-                display: none;
-            }
-            
-            .footer-links a {
-                padding: 0.5rem 1rem;
-                display: inline-block;
-            }
-            
-            .footer-links a:hover {
-                transform: none;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 4px;
-            }
-            
-            .newsletter-form {
-                max-width: 350px;
-                margin: 1.2rem auto 0;
-            }
-            
-            .copyright {
-                padding: 1rem;
-                font-size: 0.85rem;
-            }
-        }
-        
-        @media (max-width: 400px) {
-            .footer-logo {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .footer-logo span {
-                font-size: 1.4rem;
-            }
-        }
-        
         /* Modal */
         .modal {
             display: none;
@@ -2280,11 +2123,11 @@
             /* Improved Mobile Navigation */
             .nav-links {
                 position: fixed;
-                top: 0;
+                top: 70px; /* Below dashboard header */
                 right: -100%;
                 width: 80%;
                 max-width: 400px;
-                height: 100vh;
+                height: calc(100vh - 70px);
                 background: white;
                 flex-direction: column;
                 align-items: center;
@@ -2293,7 +2136,7 @@
                 transition: var(--transition);
                 box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
                 z-index: 1000;
-                padding-top: 80px;
+                padding-top: 30px;
                 overflow-y: auto;
             }
             
@@ -2327,6 +2170,36 @@
             .contact-bar {
                 bottom: 2rem;
                 right: 2rem;
+            }
+            
+            /* Dashboard header responsive */
+            .dashboard-header {
+                padding: 0.8rem 1.5rem;
+            }
+            
+            .dashboard-menu {
+                display: none;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                padding: 1.5rem;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+            }
+            
+            .dashboard-menu.active {
+                display: flex;
+            }
+            
+            .mobile-dashboard-toggle {
+                display: block;
+            }
+            
+            .user-menu .user-dropdown {
+                right: 1rem;
             }
         }
         
@@ -2402,18 +2275,6 @@
                 height: 60px;
                 font-size: 1.8rem;
             }
-            
-            .footer-container {
-                grid-template-columns: 1fr 1fr;
-            }
-            
-            .footer-about {
-                grid-column: 1 / -1;
-            }
-            
-            .modal-content {
-                padding: 3rem;
-            }
         }
         
         @media (max-width: 576px) {
@@ -2479,10 +2340,6 @@
                 font-size: 1.6rem;
             }
             
-            .footer-container {
-                grid-template-columns: 1fr;
-            }
-            
             .modal-content {
                 padding: 2.5rem 2rem;
             }
@@ -2522,6 +2379,44 @@
         <div class="loading-spinner"></div>
         <h2 style="color: white; font-family: 'Playfair Display', serif; margin-top: 1.5rem;">ANEKAMARKET</h2>
     </div>
+    
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <a href="#" class="dashboard-logo">
+            <img src="https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png" alt="ANEKAMARKET Logo">
+            <span>ANEKAMARKET</span>
+        </a>
+        
+        <nav class="dashboard-nav">
+            <div class="dashboard-menu" id="dashboardMenu">
+                <a href="#home"><i class="fas fa-home"></i> Beranda</a>
+                <a href="#services"><i class="fas fa-concierge-bell"></i> Layanan</a>
+                <a href="#gallery"><i class="fas fa-images"></i> Galeri</a>
+                <a href="#contact"><i class="fas fa-envelope"></i> Kontak</a>
+                <a href="#"><i class="fas fa-chart-line"></i> Dashboard</a>
+                <a href="#"><i class="fas fa-shopping-cart"></i> Pesanan</a>
+                <a href="#"><i class="fas fa-cog"></i> Pengaturan</a>
+            </div>
+            
+            <div class="user-menu">
+                <button class="user-btn">
+                    <img src="https://via.placeholder.com/36" alt="User Profile">
+                    <span>Admin</span>
+                </button>
+                <div class="user-dropdown">
+                    <a href="#"><i class="fas fa-user"></i> Profil Saya</a>
+                    <a href="#"><i class="fas fa-shopping-bag"></i> Pesanan Saya</a>
+                    <a href="#"><i class="fas fa-heart"></i> Favorit</a>
+                    <a href="#"><i class="fas fa-cog"></i> Pengaturan</a>
+                    <a href="#"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+                </div>
+            </div>
+            
+            <button class="mobile-dashboard-toggle" id="mobileDashboardToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
     
     <!-- Background Music - Autoplay and Loop -->
     <audio id="bgMusic" loop autoplay>
@@ -3086,44 +2981,6 @@
         </button>
     </div>
     
-    <!-- UPDATED FOOTER - MORE PROFESSIONAL AND PREMIUM -->
-     <footer>
-        <div class="footer-container">
-            <div class="footer-col footer-about">
-                <div class="footer-logo">
-                    <img src="https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png" alt="ANEKAMARKET Logo">
-                    <span>ANEKAMARKET</span>
-                </div>
-                <p>Menyediakan produk kerajinan tangan berkualitas tinggi, jasa sewa, dan solusi promosi sejak tahun 2025. Komitmen kami adalah memberikan pengalaman berbelanja online yang menyenangkan dan memuaskan.</p>
-            </div>
-            
-            <div class="footer-col">
-                <h3>Tautan Cepat</h3>
-                <ul class="footer-links">
-                    <li><a href="#home">Beranda</a></li>
-                    <li><a href="#services">Layanan</a></li>
-                    <li><a href="#gallery">Galeri</a></li>
-                    <li><a href="#contact">Kontak</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-col">
-                <h3>Newsletter</h3>
-                <p>Berlangganan newsletter kami untuk mendapatkan update produk terbaru dan penawaran spesial.</p>
-                <form class="newsletter-form">
-                    <input type="email" placeholder="Alamat email Anda" required>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-envelope"></i> Berlangganan
-                    </button>
-                </form>
-            </div>
-        </div>
-        
-        <div class="copyright">
-            &copy; 2025 ANEKAMARKET. Semua hak dilindungi. | <a href="#">Kebijakan Privasi</a> | <a href="#">Syarat & Ketentuan</a>
-        </div>
-    </footer>
-    
     <!-- Order Modal -->
     <div class="modal" id="orderModal">
         <div class="modal-content">
@@ -3222,6 +3079,17 @@
         mobileMenuToggle.addEventListener('click', function() {
             navLinks.classList.toggle('active');
             this.innerHTML = navLinks.classList.contains('active') ? 
+                '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+            playButtonSound();
+        });
+        
+        // Dashboard Menu Toggle
+        const mobileDashboardToggle = document.getElementById('mobileDashboardToggle');
+        const dashboardMenu = document.getElementById('dashboardMenu');
+        
+        mobileDashboardToggle.addEventListener('click', function() {
+            dashboardMenu.classList.toggle('active');
+            this.innerHTML = dashboardMenu.classList.contains('active') ? 
                 '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
             playButtonSound();
         });
@@ -3850,45 +3718,6 @@
             })
             .finally(() => {
                 // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            });
-            
-            playButtonSound();
-        });
-        
-        // Newsletter form submission
-        document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = this.querySelector('input').value;
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
-            
-            // Kirim ke FormSubmit.co (email)
-            fetch('https://formsubmit.co/ajax/lenterakaryasitubondo@gmail.com', {
-                method: 'POST',
-                body: JSON.stringify({
-                    email: email,
-                    _subject: 'Berlangganan Newsletter'
-                }),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(`Terima kasih telah berlangganan dengan ${email}!`);
-                this.reset();
-            })
-            .catch(error => {
-                alert('Terjadi kesalahan. Silakan coba lagi nanti.');
-            })
-            .finally(() => {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
             });
