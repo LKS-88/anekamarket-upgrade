@@ -57,7 +57,7 @@
             color: var(--dark);
         }
         
-        /* Dashboard Header */
+        /* ==================== IMPROVED DASHBOARD HEADER ==================== */
         .dashboard-header {
             background: white;
             box-shadow: var(--shadow-md);
@@ -71,6 +71,7 @@
             align-items: center;
             padding: 0.8rem 2rem;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            height: 70px;
         }
         
         .dashboard-logo {
@@ -83,6 +84,7 @@
         .dashboard-logo img {
             height: 40px;
             width: auto;
+            transition: var(--transition);
         }
         
         .dashboard-logo span {
@@ -90,6 +92,7 @@
             font-weight: 700;
             color: var(--primary);
             font-family: 'Playfair Display', serif;
+            transition: var(--transition);
         }
         
         .dashboard-nav {
@@ -113,6 +116,7 @@
             gap: 0.5rem;
             padding: 0.5rem 0;
             position: relative;
+            font-size: 0.95rem;
         }
         
         .dashboard-menu a:hover {
@@ -151,6 +155,11 @@
             cursor: pointer;
             color: var(--text);
             font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .user-btn:hover {
+            color: var(--accent);
         }
         
         .user-btn img {
@@ -158,6 +167,11 @@
             height: 36px;
             border-radius: 50%;
             object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .user-btn:hover img {
+            transform: scale(1.05);
         }
         
         .user-dropdown {
@@ -173,6 +187,7 @@
             visibility: hidden;
             transition: var(--transition);
             transform: translateY(10px);
+            z-index: 1000;
         }
         
         .user-menu:hover .user-dropdown {
@@ -182,11 +197,13 @@
         }
         
         .user-dropdown a {
-            display: block;
+            display: flex;
+            align-items: center;
             padding: 0.7rem 1.5rem;
             color: var(--text);
             text-decoration: none;
             transition: var(--transition);
+            font-size: 0.9rem;
         }
         
         .user-dropdown a:hover {
@@ -198,6 +215,7 @@
             margin-right: 0.7rem;
             width: 20px;
             text-align: center;
+            font-size: 0.9rem;
         }
         
         .mobile-dashboard-toggle {
@@ -207,6 +225,59 @@
             color: var(--primary);
             font-size: 1.5rem;
             cursor: pointer;
+            transition: var(--transition);
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .mobile-dashboard-toggle:hover {
+            background-color: rgba(66, 153, 225, 0.1);
+        }
+        
+        /* Dashboard Mobile Menu */
+        .dashboard-mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: var(--shadow-md);
+            padding: 1rem 0;
+            z-index: 1000;
+            transform: translateY(-100%);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .dashboard-mobile-menu.active {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .dashboard-mobile-menu a {
+            display: flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            color: var(--text);
+            text-decoration: none;
+            transition: var(--transition);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .dashboard-mobile-menu a:hover {
+            background-color: rgba(66, 153, 225, 0.05);
+            color: var(--accent);
+        }
+        
+        .dashboard-mobile-menu a i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
         }
         
         /* Loading Screen */
@@ -2179,27 +2250,23 @@
             
             .dashboard-menu {
                 display: none;
-                position: fixed;
-                top: 70px;
-                left: 0;
-                width: 100%;
-                background: white;
-                flex-direction: column;
-                padding: 1.5rem;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-                z-index: 1000;
-            }
-            
-            .dashboard-menu.active {
-                display: flex;
             }
             
             .mobile-dashboard-toggle {
-                display: block;
+                display: flex;
             }
             
             .user-menu .user-dropdown {
                 right: 1rem;
+            }
+            
+            /* Dashboard Mobile Menu */
+            .dashboard-mobile-menu {
+                display: none;
+            }
+            
+            .dashboard-mobile-menu.active {
+                display: block;
             }
         }
         
@@ -2380,7 +2447,7 @@
         <h2 style="color: white; font-family: 'Playfair Display', serif; margin-top: 1.5rem;">ANEKAMARKET</h2>
     </div>
     
-    <!-- Dashboard Header -->
+    <!-- Improved Dashboard Header -->
     <header class="dashboard-header">
         <a href="#" class="dashboard-logo">
             <img src="https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png" alt="ANEKAMARKET Logo">
@@ -2416,6 +2483,17 @@
                 <i class="fas fa-bars"></i>
             </button>
         </nav>
+        
+        <!-- Mobile Dashboard Menu -->
+        <div class="dashboard-mobile-menu" id="dashboardMobileMenu">
+            <a href="#home"><i class="fas fa-home"></i> Beranda</a>
+            <a href="#services"><i class="fas fa-concierge-bell"></i> Layanan</a>
+            <a href="#gallery"><i class="fas fa-images"></i> Galeri</a>
+            <a href="#contact"><i class="fas fa-envelope"></i> Kontak</a>
+            <a href="#"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="#"><i class="fas fa-shopping-cart"></i> Pesanan</a>
+            <a href="#"><i class="fas fa-cog"></i> Pengaturan</a>
+        </div>
     </header>
     
     <!-- Background Music - Autoplay and Loop -->
@@ -3085,11 +3163,11 @@
         
         // Dashboard Menu Toggle
         const mobileDashboardToggle = document.getElementById('mobileDashboardToggle');
-        const dashboardMenu = document.getElementById('dashboardMenu');
+        const dashboardMobileMenu = document.getElementById('dashboardMobileMenu');
         
         mobileDashboardToggle.addEventListener('click', function() {
-            dashboardMenu.classList.toggle('active');
-            this.innerHTML = dashboardMenu.classList.contains('active') ? 
+            dashboardMobileMenu.classList.toggle('active');
+            this.innerHTML = dashboardMobileMenu.classList.contains('active') ? 
                 '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
             playButtonSound();
         });
