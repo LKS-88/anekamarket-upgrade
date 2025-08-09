@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TourTick - Sistem Karcis Pariwisata</title>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Hotel Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
             --accent-color: #e74c3c;
             --light-color: #ecf0f1;
             --dark-color: #2c3e50;
@@ -20,37 +19,33 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
-            color: #333;
+            color: var(--dark-color);
         }
         
         .sidebar {
-            background-color: var(--dark-color);
+            background-color: var(--primary-color);
             color: white;
-            height: 100vh;
-            position: fixed;
+            min-height: 100vh;
             transition: all 0.3s;
         }
         
         .sidebar .nav-link {
             color: rgba(255, 255, 255, 0.8);
             border-radius: 5px;
-            margin: 5px 0;
+            margin-bottom: 5px;
         }
         
-        .sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: var(--secondary-color);
             color: white;
         }
         
-        .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: white;
+        .sidebar .nav-link i {
+            margin-right: 10px;
         }
         
         .main-content {
-            margin-left: 250px;
             padding: 20px;
-            transition: all 0.3s;
         }
         
         .card {
@@ -67,11 +62,6 @@
         }
         
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-primary:hover {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
         }
@@ -81,2014 +71,1641 @@
             border-color: var(--accent-color);
         }
         
-        .ticket {
-            border: 2px dashed #ccc;
-            padding: 15px;
-            margin: 10px 0;
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .nota-container {
             background-color: white;
+            border: 1px solid #ddd;
             border-radius: 10px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .nota-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px dashed #ddd;
+            padding-bottom: 20px;
+        }
+        
+        .nota-footer {
+            margin-top: 20px;
+            border-top: 2px dashed #ddd;
+            padding-top: 20px;
+            text-align: center;
         }
         
         .barcode-container {
             text-align: center;
-            margin: 15px 0;
+            margin: 20px 0;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .nota-container, .nota-container * {
+                visibility: visible;
+            }
+            .nota-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+            }
+            .no-print {
+                display: none !important;
+            }
         }
         
         @media (max-width: 768px) {
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
+                min-height: auto;
+                margin-bottom: 20px;
             }
             .main-content {
-                margin-left: 0;
+                padding: 10px;
             }
-        }
-        
-        .search-box {
-            position: relative;
-        }
-        
-        .search-box i {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: #aaa;
-        }
-        
-        .search-box input {
-            padding-left: 35px;
-        }
-        
-        .ticket-preview {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar p-3" style="width: 250px;">
-            <div class="text-center mb-4">
-                <h4>TourTick</h4>
-                <p class="text-muted">Sistem Karcis Pariwisata</p>
-            </div>
-            <hr>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#" onclick="showSection('dashboard')">
-                        <i class="fas fa-home me-2"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('ticket-sales')">
-                        <i class="fas fa-ticket-alt me-2"></i> Penjualan Karcis
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('generate-ticket')">
-                        <i class="fas fa-barcode me-2"></i> Generate Karcis
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('ticket-list')">
-                        <i class="fas fa-list me-2"></i> Daftar Karcis
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('reports')">
-                        <i class="fas fa-chart-bar me-2"></i> Laporan
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('products')">
-                        <i class="fas fa-map-marked-alt me-2"></i> Produk Wisata
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('users')">
-                        <i class="fas fa-users me-2"></i> Pengguna
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('settings')">
-                        <i class="fas fa-cog me-2"></i> Pengaturan
-                    </a>
-                </li>
-            </ul>
-            <div class="mt-auto pt-3">
-                <div class="d-flex align-items-center">
-                    <div class="user-avatar me-2">AD</div>
-                    <div>
-                        <small class="d-block">Admin</small>
-                        <small class="text-muted">Super User</small>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse no-print" id="sidebarMenu">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4><i class="fas fa-hotel"></i> Hotel System</h4>
                     </div>
-                </div>
-                <button class="btn btn-sm btn-danger w-100 mt-3">
-                    <i class="fas fa-sign-out-alt me-1"></i> Logout
-                </button>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Dashboard Section -->
-            <div id="dashboard-section">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Dashboard</h3>
-                    <div class="d-flex">
-                        <div class="search-box me-2">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Cari...">
-                        </div>
-                        <button class="btn btn-primary">
-                            <i class="fas fa-sync-alt me-1"></i> Refresh
-                        </button>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="text-muted">Penjualan Hari Ini</h6>
-                                        <h3>142</h3>
-                                        <span class="text-success"><i class="fas fa-arrow-up me-1"></i> 12%</span>
-                                    </div>
-                                    <div class="bg-primary bg-opacity-10 p-3 rounded">
-                                        <i class="fas fa-shopping-cart text-primary"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="text-muted">Pendapatan Hari Ini</h6>
-                                        <h3>Rp8.750.000</h3>
-                                        <span class="text-success"><i class="fas fa-arrow-up me-1"></i> 5%</span>
-                                    </div>
-                                    <div class="bg-success bg-opacity-10 p-3 rounded">
-                                        <i class="fas fa-wallet text-success"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="text-muted">Pengunjung Hari Ini</h6>
-                                        <h3>87</h3>
-                                        <span class="text-danger"><i class="fas fa-arrow-down me-1"></i> 3%</span>
-                                    </div>
-                                    <div class="bg-info bg-opacity-10 p-3 rounded">
-                                        <i class="fas fa-users text-info"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="text-muted">Karcis Tersedia</h6>
-                                        <h3>15</h3>
-                                        <span class="text-warning"><i class="fas fa-exclamation-circle me-1"></i> Low</span>
-                                    </div>
-                                    <div class="bg-warning bg-opacity-10 p-3 rounded">
-                                        <i class="fas fa-ticket-alt text-warning"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-4">
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Statistik Penjualan 7 Hari Terakhir</h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="salesChart" height="250"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Produk Terlaris</h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="topProductsChart" height="250"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Transaksi Terakhir</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Tanggal</th>
-                                                <th>Jumlah</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>#TRX-001</td>
-                                                <td>10 Jun 2023</td>
-                                                <td>Rp250.000</td>
-                                                <td><span class="badge bg-success">Sukses</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>#TRX-002</td>
-                                                <td>10 Jun 2023</td>
-                                                <td>Rp150.000</td>
-                                                <td><span class="badge bg-success">Sukses</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>#TRX-003</td>
-                                                <td>9 Jun 2023</td>
-                                                <td>Rp500.000</td>
-                                                <td><span class="badge bg-success">Sukses</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>#TRX-004</td>
-                                                <td>9 Jun 2023</td>
-                                                <td>Rp350.000</td>
-                                                <td><span class="badge bg-warning">Pending</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>#TRX-005</td>
-                                                <td>8 Jun 2023</td>
-                                                <td>Rp200.000</td>
-                                                <td><span class="badge bg-success">Sukses</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Aktivitas Terkini</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="list-group list-group-flush">
-                                    <div class="list-group-item">
-                                        <div class="d-flex">
-                                            <div class="user-avatar me-3">AD</div>
-                                            <div>
-                                                <h6 class="mb-1">Admin membuat karcis baru</h6>
-                                                <small class="text-muted">5 menit yang lalu</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="d-flex">
-                                            <div class="user-avatar me-3" style="background-color: #e74c3c;">KS</div>
-                                            <div>
-                                                <h6 class="mb-1">Kasir melakukan transaksi #TRX-001</h6>
-                                                <small class="text-muted">1 jam yang lalu</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="d-flex">
-                                            <div class="user-avatar me-3">AD</div>
-                                            <div>
-                                                <h6 class="mb-1">Admin menambahkan produk baru</h6>
-                                                <small class="text-muted">3 jam yang lalu</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="d-flex">
-                                            <div class="user-avatar me-3" style="background-color: #e74c3c;">KS</div>
-                                            <div>
-                                                <h6 class="mb-1">Kasir mencetak karcis #TKT-045</h6>
-                                                <small class="text-muted">5 jam yang lalu</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="list-group-item">
-                                        <div class="d-flex">
-                                            <div class="user-avatar me-3">AD</div>
-                                            <div>
-                                                <h6 class="mb-1">Admin memperbarui sistem</h6>
-                                                <small class="text-muted">1 hari yang lalu</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" id="dashboard-tab">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="checkin-tab">
+                                <i class="fas fa-sign-in-alt"></i> Check-In
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="transaksi-tab">
+                                <i class="fas fa-cash-register"></i> Transaksi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="nota-tab">
+                                <i class="fas fa-receipt"></i> Buat Nota
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="kamar-tab">
+                                <i class="fas fa-bed"></i> Manajemen Kamar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="tamu-tab">
+                                <i class="fas fa-users"></i> Data Tamu
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="laporan-tab">
+                                <i class="fas fa-chart-bar"></i> Laporan
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- Ticket Sales Section -->
-            <div id="ticket-sales-section" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Penjualan Karcis</h3>
-                    <div>
-                        <button class="btn btn-primary me-2" onclick="printTicket()">
-                            <i class="fas fa-print me-1"></i> Cetak
-                        </button>
-                        <button class="btn btn-success" onclick="completeTransaction()">
-                            <i class="fas fa-check me-1"></i> Selesaikan Transaksi
-                        </button>
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Dashboard Section -->
+                <div class="tab-content" id="dashboard-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card text-white bg-primary mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title">Tamu Hari Ini</h5>
+                                            <h2 class="card-text" id="today-guests">0</h2>
+                                        </div>
+                                        <i class="fas fa-users fa-3x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-white bg-success mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title">Kamar Terisi</h5>
+                                            <h2 class="card-text" id="occupied-rooms">0</h2>/<span id="total-rooms">0</span>
+                                        </div>
+                                        <i class="fas fa-bed fa-3x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-white bg-warning mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title">Pendapatan Hari Ini</h5>
+                                            <h2 class="card-text" id="today-income">Rp 0</h2>
+                                        </div>
+                                        <i class="fas fa-money-bill-wave fa-3x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-line"></i> Statistik Bulan Ini</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="monthlyChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-bell"></i> Notifikasi</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group" id="notification-list">
+                                        <a href="#" class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">Selamat datang di sistem</h6>
+                                                <small>Baru saja</small>
+                                            </div>
+                                            <p class="mb-1">Sistem siap digunakan</p>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title mb-0">Produk Wisata</h5>
-                                    <div class="search-box">
-                                        <i class="fas fa-search"></i>
-                                        <input type="text" class="form-control form-control-sm" placeholder="Cari produk..." id="productSearch">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row" id="productList">
-                                    <!-- Products will be loaded here -->
-                                </div>
-                            </div>
+                <!-- Check-In Section -->
+                <div class="tab-content d-none" id="checkin-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-sign-in-alt"></i> Check-In Tamu</h1>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Form Check-In</h5>
                         </div>
-
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Preview Karcis</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="ticket-preview text-center">
-                                    <h4>Taman Wisata Alam</h4>
-                                    <p>Jl. Raya Wisata No. 123, Kota Pariwisata</p>
-                                    <hr>
-                                    <div class="barcode-container">
-                                        <svg id="barcode-preview"></svg>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <div class="text-start">
-                                            <small class="text-muted">Kode Karcis</small>
-                                            <p class="mb-0 fw-bold">TWA-001</p>
+                        <div class="card-body">
+                            <form id="checkin-form">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="checkin-name" class="form-label">Nama Tamu</label>
+                                            <input type="text" class="form-control" id="checkin-name" required>
                                         </div>
-                                        <div class="text-end">
-                                            <small class="text-muted">Tanggal</small>
-                                            <p class="mb-0 fw-bold">10 Jun 2023</p>
+                                        <div class="mb-3">
+                                            <label for="checkin-phone" class="form-label">No. Telepon</label>
+                                            <input type="tel" class="form-control" id="checkin-phone" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="checkin-identity" class="form-label">No. KTP/Identitas</label>
+                                            <input type="text" class="form-control" id="checkin-identity" required>
                                         </div>
                                     </div>
-                                    <hr>
-                                    <div class="d-flex justify-content-between">
-                                        <div class="text-start">
-                                            <small class="text-muted">Harga</small>
-                                            <p class="mb-0 fw-bold">Rp50.000</p>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="checkin-room" class="form-label">Kamar</label>
+                                            <select class="form-select" id="checkin-room" required>
+                                                <option value="">Pilih Kamar</option>
+                                            </select>
                                         </div>
-                                        <div class="text-end">
-                                            <small class="text-muted">Status</small>
-                                            <p class="mb-0 fw-bold text-success">Valid</p>
+                                        <div class="mb-3">
+                                            <label for="checkin-duration" class="form-label">Durasi Menginap (hari)</label>
+                                            <input type="number" class="form-control" id="checkin-duration" min="1" value="1" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="checkin-notes" class="form-label">Catatan</label>
+                                            <textarea class="form-control" id="checkin-notes" rows="2"></textarea>
                                         </div>
                                     </div>
                                 </div>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Check-In</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5>Daftar Tamu Check-In Hari Ini</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Nama Tamu</th>
+                                            <th>No. Kamar</th>
+                                            <th>Check-In</th>
+                                            <th>Check-Out</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="today-guests-list">
+                                        <!-- Data tamu akan dimuat di sini -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Keranjang Belanja</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Produk</th>
-                                                <th>Qty</th>
-                                                <th>Harga</th>
-                                                <th>Total</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="cartItems">
-                                            <!-- Cart items will be loaded here -->
-                                        </tbody>
-                                    </table>
+                <!-- Transaksi Section -->
+                <div class="tab-content d-none" id="transaksi-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-cash-register"></i> Transaksi</h1>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Buat Transaksi Baru</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="transaction-form">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="transaction-guest" class="form-label">Tamu</label>
+                                            <select class="form-select" id="transaction-guest" required>
+                                                <option value="">Pilih Tamu</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="transaction-type" class="form-label">Jenis Transaksi</label>
+                                            <select class="form-select" id="transaction-type" required>
+                                                <option value="">Pilih Jenis</option>
+                                                <option value="room">Biaya Kamar</option>
+                                                <option value="food">Makanan & Minuman</option>
+                                                <option value="laundry">Laundry</option>
+                                                <option value="other">Lainnya</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="transaction-amount" class="form-label">Jumlah</label>
+                                            <input type="number" class="form-control" id="transaction-amount" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="transaction-notes" class="form-label">Keterangan</label>
+                                            <textarea class="form-control" id="transaction-notes" rows="2"></textarea>
+                                        </div>
+                                    </div>
                                 </div>
-                                <hr>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Subtotal:</span>
-                                    <span id="subtotal">Rp0</span>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Transaksi</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5>Riwayat Transaksi</h5>
+                            <div class="row mt-2">
+                                <div class="col-md-4">
+                                    <input type="date" class="form-control" id="transaction-date-filter">
                                 </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Diskon:</span>
-                                    <span id="discount">Rp0</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-3 fw-bold">
-                                    <span>Total:</span>
-                                    <span id="total">Rp0</span>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Diskon (%)</label>
-                                    <input type="number" class="form-control" id="discountInput" min="0" max="100" value="0">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Pembayaran</label>
-                                    <select class="form-select" id="paymentMethod">
-                                        <option value="cash">Tunai</option>
-                                        <option value="transfer">Transfer Bank</option>
-                                        <option value="qris">QRIS</option>
-                                        <option value="debit">Kartu Debit</option>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="transaction-type-filter">
+                                        <option value="">Semua Jenis</option>
+                                        <option value="room">Biaya Kamar</option>
+                                        <option value="food">Makanan & Minuman</option>
+                                        <option value="laundry">Laundry</option>
+                                        <option value="other">Lainnya</option>
                                     </select>
                                 </div>
-                                <div class="mb-3" id="cashInputContainer">
-                                    <label class="form-label">Uang Diterima</label>
-                                    <input type="number" class="form-control" id="cashReceived" min="0" value="0">
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary w-100" id="filter-transactions"><i class="fas fa-filter"></i> Filter</button>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Kembalian</label>
-                                    <input type="text" class="form-control" id="changeAmount" readonly value="Rp0">
-                                </div>
-                                <button class="btn btn-danger w-100 mb-2" onclick="clearCart()">
-                                    <i class="fas fa-trash me-1"></i> Kosongkan Keranjang
-                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Tanggal</th>
+                                            <th>Tamu</th>
+                                            <th>Jenis</th>
+                                            <th>Keterangan</th>
+                                            <th>Jumlah</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transactions-list">
+                                        <!-- Data transaksi akan dimuat di sini -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Generate Ticket Section -->
-            <div id="generate-ticket-section" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Generate Karcis</h3>
-                    <div>
-                        <button class="btn btn-primary me-2" onclick="generateBarcode()">
-                            <i class="fas fa-barcode me-1"></i> Generate Barcode
-                        </button>
-                        <button class="btn btn-success" onclick="printGeneratedTicket()">
-                            <i class="fas fa-print me-1"></i> Cetak Karcis
-                        </button>
+                <!-- Nota Section -->
+                <div class="tab-content d-none" id="nota-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-receipt"></i> Buat Nota</h1>
                     </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Form Karcis</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="ticketForm">
+                    
+                    <div class="card no-print">
+                        <div class="card-header">
+                            <h5>Pilih Tamu untuk Nota</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Jenis Karcis</label>
-                                        <select class="form-select" id="ticketType" required>
-                                            <option value="">Pilih Jenis Karcis</option>
-                                            <option value="regular">Reguler</option>
-                                            <option value="vip">VIP</option>
-                                            <option value="group">Grup</option>
-                                            <option value="student">Pelajar/Mahasiswa</option>
-                                            <option value="foreigner">Warga Asing</option>
+                                        <label for="invoice-guest" class="form-label">Tamu</label>
+                                        <select class="form-select" id="invoice-guest" required>
+                                            <option value="">Pilih Tamu</option>
                                         </select>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Destinasi Wisata</label>
-                                        <select class="form-select" id="destination" required>
-                                            <option value="">Pilih Destinasi</option>
-                                            <option value="taman-wisata">Taman Wisata Alam</option>
-                                            <option value="museum">Museum Sejarah</option>
-                                            <option value="waterpark">Waterpark</option>
-                                            <option value="candi">Candi Kuno</option>
-                                            <option value="pantai">Pantai Indah</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Harga</label>
-                                        <input type="number" class="form-control" id="ticketPrice" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Jumlah Karcis</label>
-                                        <input type="number" class="form-control" id="ticketQuantity" min="1" value="1" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Tanggal Berlaku</label>
-                                        <input type="date" class="form-control" id="validDate" required>
-                                    </div>
-                                    <div class="mb-3 form-check">
-                                        <input type="checkbox" class="form-check-input" id="includeTax">
-                                        <label class="form-check-label" for="includeTax">Termasuk Pajak</label>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-save me-1"></i> Simpan Karcis
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Preview Karcis</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="ticket-preview text-center" id="ticketPreview">
-                                    <h4 id="previewDestination">Taman Wisata Alam</h4>
-                                    <p id="previewAddress">Jl. Raya Wisata No. 123, Kota Pariwisata</p>
-                                    <hr>
-                                    <div class="barcode-container">
-                                        <svg id="barcode"></svg>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <div class="text-start">
-                                            <small class="text-muted">Jenis</small>
-                                            <p class="mb-0 fw-bold" id="previewType">Reguler</p>
-                                        </div>
-                                        <div class="text-end">
-                                            <small class="text-muted">Kode</small>
-                                            <p class="mb-0 fw-bold" id="previewCode">TWA-001</p>
-                                        </div>
-                                    </div>
-                                    <hr>
-                                    <div class="d-flex justify-content-between">
-                                        <div class="text-start">
-                                            <small class="text-muted">Tanggal</small>
-                                            <p class="mb-0 fw-bold" id="previewDate">10 Jun 2023</p>
-                                        </div>
-                                        <div class="text-end">
-                                            <small class="text-muted">Harga</small>
-                                            <p class="mb-0 fw-bold" id="previewPrice">Rp50.000</p>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3">
-                                        <small class="text-muted">Status</small>
-                                        <p class="mb-0 fw-bold text-success" id="previewStatus">Belum Digunakan</p>
-                                    </div>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button class="btn btn-primary" id="generate-invoice"><i class="fas fa-file-invoice"></i> Buat Nota</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Ticket List Section -->
-            <div id="ticket-list-section" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Daftar Karcis</h3>
-                    <div>
-                        <button class="btn btn-primary me-2" onclick="exportTickets()">
-                            <i class="fas fa-file-export me-1"></i> Export
-                        </button>
-                        <button class="btn btn-success" onclick="showImportModal()">
-                            <i class="fas fa-file-import me-1"></i> Import
-                        </button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Daftar Karcis</h5>
-                            <div class="d-flex">
-                                <div class="search-box me-2">
-                                    <i class="fas fa-search"></i>
-                                    <input type="text" class="form-control form-control-sm" placeholder="Cari karcis..." id="ticketSearch">
-                                </div>
-                                <select class="form-select form-select-sm" style="width: 150px;" id="ticketFilter">
-                                    <option value="all">Semua Status</option>
-                                    <option value="valid">Valid</option>
-                                    <option value="used">Digunakan</option>
-                                    <option value="expired">Kadaluarsa</option>
-                                </select>
+                    
+                    <div class="nota-container d-none" id="invoice-container">
+                        <div class="nota-header">
+                            <h2>HOTEL MEWAH</h2>
+                            <p>Jl. Raya No. 123, Kota Anda</p>
+                            <p>Telp: (021) 1234567 | Email: info@hotelmewah.com</p>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p><strong>No. Nota:</strong> <span id="invoice-number">INV-20230001</span></p>
+                                <p><strong>Tanggal:</strong> <span id="invoice-date">01 Januari 2023</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Nama Tamu:</strong> <span id="invoice-guest-name">John Doe</span></p>
+                                <p><strong>No. Kamar:</strong> <span id="invoice-room-number">101</span></p>
                             </div>
                         </div>
-                    </div>
-                    <div class="card-body">
+                        
+                        <div class="barcode-container">
+                            <svg id="invoice-barcode"></svg>
+                        </div>
+                        
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>Kode</th>
-                                        <th>Destinasi</th>
-                                        <th>Jenis</th>
-                                        <th>Harga</th>
-                                        <th>Tanggal</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ticketTableBody">
-                                    <!-- Tickets will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <nav aria-label="Page navigation" class="mt-3">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Reports Section -->
-            <div id="reports-section" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Laporan</h3>
-                    <div>
-                        <button class="btn btn-primary me-2" onclick="generateDailyReport()">
-                            <i class="fas fa-file-pdf me-1"></i> Cetak Laporan
-                        </button>
-                        <button class="btn btn-success" onclick="exportReportData()">
-                            <i class="fas fa-file-excel me-1"></i> Export Data
-                        </button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Filter Laporan</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Mulai</label>
-                                    <input type="date" class="form-control" id="reportStartDate">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Akhir</label>
-                                    <input type="date" class="form-control" id="reportEndDate">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label class="form-label">Jenis Karcis</label>
-                                    <select class="form-select" id="reportTicketType">
-                                        <option value="all">Semua Jenis</option>
-                                        <option value="regular">Reguler</option>
-                                        <option value="vip">VIP</option>
-                                        <option value="group">Grup</option>
-                                        <option value="student">Pelajar/Mahasiswa</option>
-                                        <option value="foreigner">Warga Asing</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label class="form-label">Destinasi</label>
-                                    <select class="form-select" id="reportDestination">
-                                        <option value="all">Semua Destinasi</option>
-                                        <option value="taman-wisata">Taman Wisata Alam</option>
-                                        <option value="museum">Museum Sejarah</option>
-                                        <option value="waterpark">Waterpark</option>
-                                        <option value="candi">Candi Kuno</option>
-                                        <option value="pantai">Pantai Indah</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary" onclick="loadReportData()">
-                            <i class="fas fa-filter me-1"></i> Filter Data
-                        </button>
-                    </div>
-                </div>
-
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Statistik Penjualan</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="reportChart" height="300"></canvas>
-                    </div>
-                </div>
-
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Detail Transaksi</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID Transaksi</th>
-                                        <th>Tanggal</th>
-                                        <th>Karcis</th>
+                                        <th>No.</th>
+                                        <th>Deskripsi</th>
                                         <th>Jumlah</th>
                                         <th>Harga</th>
                                         <th>Total</th>
-                                        <th>Kasir</th>
                                     </tr>
                                 </thead>
-                                <tbody id="reportTableBody">
-                                    <!-- Report data will be loaded here -->
+                                <tbody id="invoice-items">
+                                    <!-- Item nota akan dimuat di sini -->
                                 </tbody>
-                            </table>
-                        </div>
-                        <nav aria-label="Page navigation" class="mt-3">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Products Section -->
-            <div id="products-section" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Produk Wisata</h3>
-                    <button class="btn btn-primary" onclick="showAddProductModal()">
-                        <i class="fas fa-plus me-1"></i> Tambah Produk
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Daftar Produk</h5>
-                            <div class="search-box">
-                                <i class="fas fa-search"></i>
-                                <input type="text" class="form-control form-control-sm" placeholder="Cari produk..." id="productListSearch">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
+                                <tfoot>
                                     <tr>
-                                        <th>Nama</th>
-                                        <th>Kategori</th>
-                                        <th>Harga Reguler</th>
-                                        <th>Harga Weekend</th>
-                                        <th>Stok</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
+                                        <th colspan="4" class="text-end">Subtotal</th>
+                                        <th id="invoice-subtotal">Rp 0</th>
                                     </tr>
-                                </thead>
-                                <tbody id="productTableBody">
-                                    <!-- Products will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <nav aria-label="Page navigation" class="mt-3">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Users Section -->
-            <div id="users-section" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Manajemen Pengguna</h3>
-                    <button class="btn btn-primary" onclick="showAddUserModal()">
-                        <i class="fas fa-user-plus me-1"></i> Tambah Pengguna
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Daftar Pengguna</h5>
-                            <div class="search-box">
-                                <i class="fas fa-search"></i>
-                                <input type="text" class="form-control form-control-sm" placeholder="Cari pengguna..." id="userSearch">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
                                     <tr>
-                                        <th>Nama</th>
-                                        <th>Username</th>
-                                        <th>Role</th>
-                                        <th>Terakhir Login</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
+                                        <th colspan="4" class="text-end">Pajak (10%)</th>
+                                        <th id="invoice-tax">Rp 0</th>
                                     </tr>
-                                </thead>
-                                <tbody id="userTableBody">
-                                    <!-- Users will be loaded here -->
-                                </tbody>
+                                    <tr>
+                                        <th colspan="4" class="text-end">Total</th>
+                                        <th id="invoice-total">Rp 0</th>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
-                        <nav aria-label="Page navigation" class="mt-3">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Section -->
-            <div id="settings-section" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3>Pengaturan Sistem</h3>
-                    <button class="btn btn-primary" onclick="saveSettings()">
-                        <i class="fas fa-save me-1"></i> Simpan Pengaturan
-                    </button>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Pengaturan Umum</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Nama Bisnis</label>
-                                    <input type="text" class="form-control" id="businessName" value="TourTick">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Alamat</label>
-                                    <textarea class="form-control" id="businessAddress" rows="2">Jl. Raya Wisata No. 123, Kota Pariwisata</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Telepon</label>
-                                    <input type="text" class="form-control" id="businessPhone" value="(021) 1234567">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="businessEmail" value="info@tourtick.com">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Logo</label>
-                                    <input type="file" class="form-control" id="businessLogo">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Pengaturan Karcis</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Format Kode Karcis</label>
-                                    <input type="text" class="form-control" id="ticketFormat" value="TICK-{NUM}">
-                                    <small class="text-muted">Gunakan {NUM} untuk nomor urut</small>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Masa Berlaku Karcis (hari)</label>
-                                    <input type="number" class="form-control" id="ticketValidity" value="30">
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="autoPrint" checked>
-                                    <label class="form-check-label" for="autoPrint">Cetak otomatis setelah transaksi</label>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="showBarcode" checked>
-                                    <label class="form-check-label" for="showBarcode">Tampilkan barcode di karcis</label>
-                                </div>
+                        
+                        <div class="nota-footer">
+                            <p>Terima kasih atas kunjungan Anda</p>
+                            <p>Nota ini sah tanpa tanda tangan dan stempel</p>
+                            <div class="mt-3 no-print">
+                                <button class="btn btn-primary me-2" id="print-invoice"><i class="fas fa-print"></i> Cetak Nota</button>
+                                <button class="btn btn-success" id="save-invoice"><i class="fas fa-save"></i> Simpan Nota</button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Pengaturan Pembayaran</h5>
+                <!-- Kamar Section -->
+                <div class="tab-content d-none" id="kamar-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-bed"></i> Manajemen Kamar</h1>
+                        <button class="btn btn-primary" id="add-room-btn"><i class="fas fa-plus"></i> Tambah Kamar</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Daftar Kamar</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Nomor Kamar</th>
+                                            <th>Tipe</th>
+                                            <th>Harga/Hari</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rooms-list">
+                                        <!-- Data kamar akan dimuat di sini -->
+                                    </tbody>
+                                </table>
                             </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Mata Uang</label>
-                                    <select class="form-select" id="currency">
-                                        <option value="IDR" selected>Rupiah (IDR)</option>
-                                        <option value="USD">Dollar AS (USD)</option>
-                                        <option value="EUR">Euro (EUR)</option>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Tambah/Ubah Kamar -->
+                    <div class="modal fade" id="roomModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="roomModalTitle">Tambah Kamar Baru</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="room-form">
+                                        <input type="hidden" id="room-id">
+                                        <div class="mb-3">
+                                            <label for="room-number" class="form-label">Nomor Kamar</label>
+                                            <input type="text" class="form-control" id="room-number" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="room-type" class="form-label">Tipe Kamar</label>
+                                            <select class="form-select" id="room-type" required>
+                                                <option value="standard">Standard</option>
+                                                <option value="deluxe">Deluxe</option>
+                                                <option value="suite">Suite</option>
+                                                <option value="family">Family</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="room-price" class="form-label">Harga per Hari</label>
+                                            <input type="number" class="form-control" id="room-price" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="room-status" class="form-label">Status</label>
+                                            <select class="form-select" id="room-status" required>
+                                                <option value="available">Tersedia</option>
+                                                <option value="occupied">Terisi</option>
+                                                <option value="maintenance">Perbaikan</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="room-notes" class="form-label">Catatan</label>
+                                            <textarea class="form-control" id="room-notes" rows="3"></textarea>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-primary" id="save-room">Simpan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tamu Section -->
+                <div class="tab-content d-none" id="tamu-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-users"></i> Data Tamu</h1>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Daftar Tamu</h5>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="guest-search" placeholder="Cari nama tamu...">
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="guest-status-filter">
+                                        <option value="">Semua Status</option>
+                                        <option value="checked-in">Check-In</option>
+                                        <option value="checked-out">Check-Out</option>
                                     </select>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Pajak (%)</label>
-                                    <input type="number" class="form-control" id="taxRate" value="10">
+                                <div class="col-md-3">
+                                    <button class="btn btn-primary w-100" id="filter-guests"><i class="fas fa-filter"></i> Filter</button>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Metode Pembayaran</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="cashPayment" checked>
-                                        <label class="form-check-label" for="cashPayment">Tunai</label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Nama Tamu</th>
+                                            <th>No. Identitas</th>
+                                            <th>No. Telepon</th>
+                                            <th>No. Kamar</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="guests-list">
+                                        <!-- Data tamu akan dimuat di sini -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laporan Section -->
+                <div class="tab-content d-none" id="laporan-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-chart-bar"></i> Laporan</h1>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Filter Laporan</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="report-type" class="form-label">Jenis Laporan</label>
+                                        <select class="form-select" id="report-type">
+                                            <option value="daily">Harian</option>
+                                            <option value="weekly">Mingguan</option>
+                                            <option value="monthly">Bulanan</option>
+                                            <option value="custom">Custom</option>
+                                        </select>
                                     </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="transferPayment" checked>
-                                        <label class="form-check-label" for="transferPayment">Transfer Bank</label>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3" id="report-date-container">
+                                        <label for="report-date" class="form-label">Tanggal</label>
+                                        <input type="date" class="form-control" id="report-date">
                                     </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="qrisPayment" checked>
-                                        <label class="form-check-label" for="qrisPayment">QRIS</label>
+                                    <div class="mb-3 d-none" id="report-week-container">
+                                        <label for="report-week" class="form-label">Minggu</label>
+                                        <input type="week" class="form-control" id="report-week">
                                     </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="debitPayment">
-                                        <label class="form-check-label" for="debitPayment">Kartu Debit</label>
+                                    <div class="mb-3 d-none" id="report-month-container">
+                                        <label for="report-month" class="form-label">Bulan</label>
+                                        <input type="month" class="form-control" id="report-month">
+                                    </div>
+                                    <div class="row d-none" id="report-custom-container">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="report-start-date" class="form-label">Dari</label>
+                                                <input type="date" class="form-control" id="report-start-date">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="report-end-date" class="form-label">Sampai</label>
+                                                <input type="date" class="form-control" id="report-end-date">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Backup & Pemulihan</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Backup Data</label>
-                                    <button class="btn btn-secondary w-100" onclick="backupData()">
-                                        <i class="fas fa-database me-1"></i> Buat Backup
-                                    </button>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="report-category" class="form-label">Kategori</label>
+                                        <select class="form-select" id="report-category">
+                                            <option value="all">Semua</option>
+                                            <option value="room">Kamar</option>
+                                            <option value="food">Makanan & Minuman</option>
+                                            <option value="laundry">Laundry</option>
+                                            <option value="other">Lainnya</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Pemulihan Data</label>
-                                    <input type="file" class="form-control mb-2" id="restoreFile">
-                                    <button class="btn btn-warning w-100" onclick="restoreData()">
-                                        <i class="fas fa-undo me-1"></i> Pulihkan Data
-                                    </button>
-                                </div>
-                                <div class="alert alert-warning">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    Pemulihan data akan menimpa semua data yang ada. Pastikan Anda telah membuat backup terlebih dahulu.
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" id="generate-report"><i class="fas fa-file-alt"></i> Buat Laporan</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Product Modal -->
-    <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Produk Wisata</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="productForm">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Nama Produk</label>
-                                    <input type="text" class="form-control" id="productName" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Kategori</label>
-                                    <select class="form-select" id="productCategory" required>
-                                        <option value="">Pilih Kategori</option>
-                                        <option value="nature">Alam</option>
-                                        <option value="history">Sejarah</option>
-                                        <option value="waterpark">Waterpark</option>
-                                        <option value="adventure">Petualangan</option>
-                                        <option value="beach">Pantai</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Deskripsi</label>
-                                    <textarea class="form-control" id="productDescription" rows="3"></textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Harga Reguler</label>
-                                    <input type="number" class="form-control" id="productRegularPrice" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Harga Weekend</label>
-                                    <input type="number" class="form-control" id="productWeekendPrice" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Stok Awal</label>
-                                    <input type="number" class="form-control" id="productStock" value="0">
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="productStatus" checked>
-                                    <label class="form-check-label" for="productStatus">Aktif</label>
-                                </div>
+                    
+                    <div class="card mt-4 d-none" id="report-result">
+                        <div class="card-header">
+                            <h5>Hasil Laporan</h5>
+                            <button class="btn btn-sm btn-success no-print" id="print-report"><i class="fas fa-print"></i> Cetak Laporan</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="report-content">
+                                <!-- Konten laporan akan dimuat di sini -->
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Gambar Produk</label>
-                            <input type="file" class="form-control" id="productImage">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Simpan</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add User Modal -->
-    <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Pengguna</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="userForm">
-                        <div class="mb-3">
-                            <label class="form-label">Nama Lengkap</label>
-                            <input type="text" class="form-control" id="userFullName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" id="userUsername" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-control" id="userPassword" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Role</label>
-                            <select class="form-select" id="userRole" required>
-                                <option value="">Pilih Role</option>
-                                <option value="admin">Admin</option>
-                                <option value="cashier">Kasir</option>
-                                <option value="manager">Manajer</option>
-                            </select>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="userStatus" checked>
-                            <label class="form-check-label" for="userStatus">Aktif</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="saveUser()">Simpan</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Import Modal -->
-    <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Import Data</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Pilih File Excel</label>
-                        <input type="file" class="form-control" id="importFile" accept=".xlsx, .xls, .csv">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Jenis Data</label>
-                        <select class="form-select" id="importType">
-                            <option value="tickets">Karcis</option>
-                            <option value="products">Produk</option>
-                            <option value="users">Pengguna</option>
-                        </select>
-                    </div>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Pastikan format file sesuai dengan template yang disediakan.
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="importData()">Import</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Transaction Receipt Modal -->
-    <div class="modal fade" id="receiptModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Struk Transaksi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <h4>TourTick</h4>
-                        <p class="mb-1">Jl. Raya Wisata No. 123, Kota Pariwisata</p>
-                        <p class="mb-1">Telp: (021) 1234567</p>
-                        <p>================================</p>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>No. Transaksi:</span>
-                            <span class="fw-bold">#TRX-001</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Tanggal:</span>
-                            <span>10 Jun 2023 14:30</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Kasir:</span>
-                            <span>Admin</span>
-                        </div>
-                    </div>
-                    <p>================================</p>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>1. Taman Wisata Alam</span>
-                            <span>Rp50.000</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>2. Museum Sejarah</span>
-                            <span>Rp30.000</span>
-                        </div>
-                    </div>
-                    <p>================================</p>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <span>Subtotal:</span>
-                            <span>Rp80.000</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Diskon:</span>
-                            <span>Rp0</span>
-                        </div>
-                        <div class="d-flex justify-content-between fw-bold">
-                            <span>Total:</span>
-                            <span>Rp80.000</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Tunai:</span>
-                            <span>Rp100.000</span>
-                        </div>
-                        <div class="d-flex justify-content-between fw-bold">
-                            <span>Kembalian:</span>
-                            <span>Rp20.000</span>
-                        </div>
-                    </div>
-                    <p>================================</p>
-                    <div class="text-center">
-                        <p class="mb-2">Terima kasih atas kunjungan Anda</p>
-                        <p>www.tourtick.com</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary" onclick="printReceipt()">
-                        <i class="fas fa-print me-1"></i> Cetak
-                    </button>
-                </div>
-            </div>
+            </main>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Sample data
-        const products = [
-            { id: 1, name: "Taman Wisata Alam", category: "nature", regularPrice: 50000, weekendPrice: 75000, stock: 100, status: "active" },
-            { id: 2, name: "Museum Sejarah", category: "history", regularPrice: 30000, weekendPrice: 40000, stock: 50, status: "active" },
-            { id: 3, name: "Waterpark", category: "waterpark", regularPrice: 80000, weekendPrice: 100000, stock: 200, status: "active" },
-            { id: 4, name: "Candi Kuno", category: "history", regularPrice: 25000, weekendPrice: 35000, stock: 75, status: "active" },
-            { id: 5, name: "Pantai Indah", category: "beach", regularPrice: 40000, weekendPrice: 60000, stock: 150, status: "inactive" }
-        ];
-
-        const tickets = [
-            { code: "TWA-001", destination: "Taman Wisata Alam", type: "regular", price: 50000, date: "2023-06-10", status: "valid" },
-            { code: "MS-001", destination: "Museum Sejarah", type: "student", price: 20000, date: "2023-06-09", status: "used" },
-            { code: "WP-001", destination: "Waterpark", type: "vip", price: 100000, date: "2023-06-08", status: "valid" },
-            { code: "CK-001", destination: "Candi Kuno", type: "regular", price: 25000, date: "2023-06-07", status: "expired" },
-            { code: "PI-001", destination: "Pantai Indah", type: "group", price: 30000, date: "2023-06-06", status: "valid" }
-        ];
-
-        const users = [
-            { name: "Admin", username: "admin", role: "admin", lastLogin: "2023-06-10 14:30", status: "active" },
-            { name: "Kasir 1", username: "kasir1", role: "cashier", lastLogin: "2023-06-10 12:15", status: "active" },
-            { name: "Manajer", username: "manager", role: "manager", lastLogin: "2023-06-09 09:45", status: "active" },
-            { name: "Kasir 2", username: "kasir2", role: "cashier", lastLogin: "2023-06-08 16:20", status: "inactive" }
-        ];
-
-        const transactions = [
-            { id: "TRX-001", date: "2023-06-10 14:30", items: ["Taman Wisata Alam", "Museum Sejarah"], amounts: [1, 1], prices: [50000, 30000], total: 80000, cashier: "Admin" },
-            { id: "TRX-002", date: "2023-06-10 12:15", items: ["Waterpark"], amounts: [2], prices: [80000], total: 160000, cashier: "Kasir 1" },
-            { id: "TRX-003", date: "2023-06-09 11:30", items: ["Pantai Indah", "Candi Kuno"], amounts: [3, 2], prices: [40000, 25000], total: 170000, cashier: "Manajer" },
-            { id: "TRX-004", date: "2023-06-08 16:20", items: ["Taman Wisata Alam"], amounts: [5], prices: [50000], total: 250000, cashier: "Kasir 2" },
-            { id: "TRX-005", date: "2023-06-08 10:45", items: ["Museum Sejarah", "Waterpark"], amounts: [2, 1], prices: [30000, 80000], total: 140000, cashier: "Kasir 1" }
-        ];
-
-        // Cart data
-        let cart = [];
-        let discount = 0;
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            // Generate initial barcode
-            generateBarcode();
+        // Inisialisasi data
+        let guests = JSON.parse(localStorage.getItem('hotel_guests')) || [];
+        let rooms = JSON.parse(localStorage.getItem('hotel_rooms')) || [];
+        let transactions = JSON.parse(localStorage.getItem('hotel_transactions')) || [];
+        let invoices = JSON.parse(localStorage.getItem('hotel_invoices')) || [];
+        
+        // Inisialisasi data contoh jika kosong
+        if (rooms.length === 0) {
+            rooms = [
+                { id: 1, number: '101', type: 'standard', price: 300000, status: 'available', notes: '' },
+                { id: 2, number: '102', type: 'standard', price: 300000, status: 'available', notes: '' },
+                { id: 3, number: '201', type: 'deluxe', price: 500000, status: 'available', notes: '' },
+                { id: 4, number: '202', type: 'deluxe', price: 500000, status: 'available', notes: '' },
+                { id: 5, number: '301', type: 'suite', price: 800000, status: 'available', notes: '' }
+            ];
+            localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+        }
+        
+        if (guests.length === 0) {
+            const today = new Date();
+            const tomorrow = new Date();
+            tomorrow.setDate(today.getDate() + 1);
             
-            // Load products
-            loadProducts();
-            
-            // Load tickets
-            loadTickets();
-            
-            // Load users
-            loadUsers();
-            
-            // Load reports
-            loadReports();
-            
-            // Initialize charts
-            initCharts();
-            
-            // Set today's date as default for valid date
-            document.getElementById('validDate').valueAsDate = new Date();
-            
-            // Payment method change handler
-            document.getElementById('paymentMethod').addEventListener('change', function() {
-                const method = this.value;
-                const cashInput = document.getElementById('cashInputContainer');
-                
-                if (method === 'cash') {
-                    cashInput.style.display = 'block';
-                } else {
-                    cashInput.style.display = 'none';
+            guests = [
+                { 
+                    id: 1, 
+                    name: 'John Doe', 
+                    identity: '1234567890123456', 
+                    phone: '081234567890', 
+                    roomId: 1, 
+                    checkIn: today.toISOString(), 
+                    checkOut: tomorrow.toISOString(), 
+                    status: 'checked-in', 
+                    notes: 'Tamu VIP' 
                 }
-            });
+            ];
+            localStorage.setItem('hotel_guests', JSON.stringify(guests));
             
-            // Discount input handler
-            document.getElementById('discountInput').addEventListener('change', function() {
-                discount = parseInt(this.value) || 0;
-                updateCartTotal();
-            });
-            
-            // Cash received input handler
-            document.getElementById('cashReceived').addEventListener('input', function() {
-                updateChangeAmount();
-            });
-            
-            // Ticket form submit handler
-            document.getElementById('ticketForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                saveTicket();
-            });
-        });
-
-        // Show section based on menu click
-        function showSection(section) {
-            // Hide all sections
-            document.getElementById('dashboard-section').style.display = 'none';
-            document.getElementById('ticket-sales-section').style.display = 'none';
-            document.getElementById('generate-ticket-section').style.display = 'none';
-            document.getElementById('ticket-list-section').style.display = 'none';
-            document.getElementById('reports-section').style.display = 'none';
-            document.getElementById('products-section').style.display = 'none';
-            document.getElementById('users-section').style.display = 'none';
-            document.getElementById('settings-section').style.display = 'none';
-            
-            // Show selected section
-            document.getElementById(section + '-section').style.display = 'block';
-            
-            // Update active menu item
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => link.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Refresh data if needed
-            if (section === 'ticket-list') {
-                loadTickets();
-            } else if (section === 'products') {
-                loadProducts();
-            } else if (section === 'users') {
-                loadUsers();
-            } else if (section === 'reports') {
-                loadReports();
+            // Update status kamar
+            const roomIndex = rooms.findIndex(r => r.id === 1);
+            if (roomIndex !== -1) {
+                rooms[roomIndex].status = 'occupied';
+                localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
             }
         }
-
-        // Generate barcode for ticket
-        function generateBarcode() {
-            const randomCode = 'TICK-' + Math.floor(1000 + Math.random() * 9000);
-            JsBarcode("#barcode", randomCode, {
-                format: "CODE128",
-                lineColor: "#000",
-                width: 2,
-                height: 50,
-                displayValue: true
-            });
-            
-            // Update preview
-            document.getElementById('previewCode').textContent = randomCode;
-            
-            // Also generate for sales preview
-            JsBarcode("#barcode-preview", randomCode, {
-                format: "CODE128",
-                lineColor: "#000",
-                width: 2,
-                height: 50,
-                displayValue: true
-            });
-        }
-
-        // Save ticket to database
-        function saveTicket() {
-            const type = document.getElementById('ticketType').value;
-            const destination = document.getElementById('destination').value;
-            const price = document.getElementById('ticketPrice').value;
-            const quantity = document.getElementById('ticketQuantity').value;
-            const validDate = document.getElementById('validDate').value;
-            const includeTax = document.getElementById('includeTax').checked;
-            
-            // Generate ticket codes
-            const ticketCodes = [];
-            for (let i = 0; i < quantity; i++) {
-                ticketCodes.push('TICK-' + Math.floor(1000 + Math.random() * 9000));
-            }
-            
-            // In a real app, you would save to database
-            alert(`Berhasil membuat ${quantity} karcis dengan jenis ${type} untuk destinasi ${destination}`);
-            
-            // Reset form
-            document.getElementById('ticketForm').reset();
-            document.getElementById('validDate').valueAsDate = new Date();
-            
-            // Generate new barcode
-            generateBarcode();
-        }
-
-        // Print generated ticket
-        function printGeneratedTicket() {
-            const printContent = document.getElementById('ticketPreview').innerHTML;
-            const originalContent = document.body.innerHTML;
-            
-            document.body.innerHTML = printContent;
-            window.print();
-            document.body.innerHTML = originalContent;
-            
-            // Restore the active section
-            showSection('generate-ticket');
-        }
-
-        // Load products to sales page
-        function loadProducts() {
-            const productList = document.getElementById('productList');
-            productList.innerHTML = '';
-            
-            products.forEach(product => {
-                if (product.status === 'active') {
-                    const col = document.createElement('div');
-                    col.className = 'col-md-4 mb-3';
-                    
-                    col.innerHTML = `
-                        <div class="card h-100">
-                            <div class="card-body text-center">
-                                <h5 class="card-title">${product.name}</h5>
-                                <p class="card-text text-muted">${formatPrice(product.regularPrice)}</p>
-                                <button class="btn btn-sm btn-primary" onclick="addToCart(${product.id})">
-                                    <i class="fas fa-cart-plus me-1"></i> Tambah
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    productList.appendChild(col);
+        
+        if (transactions.length === 0) {
+            transactions = [
+                { 
+                    id: 1, 
+                    guestId: 1, 
+                    date: new Date().toISOString(), 
+                    type: 'room', 
+                    amount: 300000, 
+                    notes: 'Pembayaran kamar 101 untuk 1 hari', 
+                    invoiceId: null 
                 }
-            });
-            
-            // Also load to product management table
-            const productTableBody = document.getElementById('productTableBody');
-            productTableBody.innerHTML = '';
-            
-            products.forEach(product => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td>${product.name}</td>
-                    <td>${product.category}</td>
-                    <td>${formatPrice(product.regularPrice)}</td>
-                    <td>${formatPrice(product.weekendPrice)}</td>
-                    <td>${product.stock}</td>
-                    <td>
-                        <span class="badge ${product.status === 'active' ? 'bg-success' : 'bg-secondary'}">
-                            ${product.status === 'active' ? 'Aktif' : 'Nonaktif'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editProduct(${product.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${product.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                
-                productTableBody.appendChild(row);
-            });
+            ];
+            localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
         }
-
-        // Load tickets to ticket list
-        function loadTickets() {
-            const ticketTableBody = document.getElementById('ticketTableBody');
-            ticketTableBody.innerHTML = '';
-            
-            tickets.forEach(ticket => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td>${ticket.code}</td>
-                    <td>${ticket.destination}</td>
-                    <td>${ticket.type}</td>
-                    <td>${formatPrice(ticket.price)}</td>
-                    <td>${formatDate(ticket.date)}</td>
-                    <td>
-                        <span class="badge ${getStatusBadge(ticket.status)}">
-                            ${getStatusText(ticket.status)}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="viewTicket('${ticket.code}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="voidTicket('${ticket.code}')">
-                            <i class="fas fa-ban"></i>
-                        </button>
-                    </td>
-                `;
-                
-                ticketTableBody.appendChild(row);
-            });
+        
+        // Fungsi utilitas
+        function formatDate(dateString) {
+            const options = { day: '2-digit', month: 'long', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
         }
-
-        // Load users to user management
-        function loadUsers() {
-            const userTableBody = document.getElementById('userTableBody');
-            userTableBody.innerHTML = '';
-            
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td>${user.name}</td>
-                    <td>${user.username}</td>
-                    <td>${user.role}</td>
-                    <td>${user.lastLogin}</td>
-                    <td>
-                        <span class="badge ${user.status === 'active' ? 'bg-success' : 'bg-secondary'}">
-                            ${user.status === 'active' ? 'Aktif' : 'Nonaktif'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser('${user.username}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${user.username}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                
-                userTableBody.appendChild(row);
-            });
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
         }
-
-        // Load reports data
-        function loadReports() {
-            const reportTableBody = document.getElementById('reportTableBody');
-            reportTableBody.innerHTML = '';
-            
-            transactions.forEach(transaction => {
-                const row = document.createElement('tr');
-                
-                // Format items
-                let itemsHtml = '';
-                transaction.items.forEach((item, index) => {
-                    itemsHtml += `${item} (${transaction.amounts[index]}x)<br>`;
-                });
-                
-                row.innerHTML = `
-                    <td>${transaction.id}</td>
-                    <td>${transaction.date}</td>
-                    <td>${itemsHtml}</td>
-                    <td>${transaction.amounts.reduce((a, b) => a + b, 0)}</td>
-                    <td>${formatPrice(transaction.prices[0])}</td>
-                    <td>${formatPrice(transaction.total)}</td>
-                    <td>${transaction.cashier}</td>
-                `;
-                
-                reportTableBody.appendChild(row);
-            });
+        
+        function generateId() {
+            return '_' + Math.random().toString(36).substr(2, 9);
         }
-
-        // Initialize charts
-        function initCharts() {
-            // Sales chart
-            const salesCtx = document.getElementById('salesChart').getContext('2d');
-            const salesChart = new Chart(salesCtx, {
-                type: 'line',
+        
+        function getTodayGuests() {
+            const today = new Date().toISOString().split('T')[0];
+            return guests.filter(guest => guest.checkIn.split('T')[0] === today);
+        }
+        
+        function getOccupiedRooms() {
+            return rooms.filter(room => room.status === 'occupied').length;
+        }
+        
+        function getTodayIncome() {
+            const today = new Date().toISOString().split('T')[0];
+            return transactions
+                .filter(t => t.date.split('T')[0] === today)
+                .reduce((sum, t) => sum + t.amount, 0);
+        }
+        
+        // Inisialisasi dashboard
+        function initDashboard() {
+            document.getElementById('today-guests').textContent = getTodayGuests().length;
+            document.getElementById('occupied-rooms').textContent = getOccupiedRooms();
+            document.getElementById('total-rooms').textContent = rooms.length;
+            document.getElementById('today-income').textContent = formatCurrency(getTodayIncome());
+            
+            // Inisialisasi chart
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            const monthlyChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+                    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'],
                     datasets: [{
-                        label: 'Penjualan',
-                        data: [12, 19, 8, 15, 22, 35, 28],
-                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        label: 'Pendapatan Harian',
+                        data: Array(31).fill(0).map(() => Math.floor(Math.random() * 5000000)),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
                         borderColor: 'rgba(52, 152, 219, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            // Top products chart
-            const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
-            const topProductsChart = new Chart(topProductsCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Taman Wisata', 'Waterpark', 'Museum', 'Pantai', 'Candi'],
-                    datasets: [{
-                        data: [35, 25, 20, 15, 5],
-                        backgroundColor: [
-                            'rgba(52, 152, 219, 0.7)',
-                            'rgba(46, 204, 113, 0.7)',
-                            'rgba(155, 89, 182, 0.7)',
-                            'rgba(241, 196, 15, 0.7)',
-                            'rgba(231, 76, 60, 0.7)'
-                        ],
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            // Report chart
-            const reportCtx = document.getElementById('reportChart').getContext('2d');
-            const reportChart = new Chart(reportCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Taman Wisata', 'Museum', 'Waterpark', 'Pantai', 'Candi'],
-                    datasets: [{
-                        label: 'Penjualan',
-                        data: [65, 40, 55, 30, 20],
-                        backgroundColor: 'rgba(52, 152, 219, 0.7)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value).replace('Rp', '');
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.raw);
+                                }
+                            }
                         }
                     }
                 }
             });
         }
-
-        // Add product to cart
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
+        
+        // Inisialisasi check-in
+        function initCheckIn() {
+            // Load kamar yang tersedia
+            const roomSelect = document.getElementById('checkin-room');
+            roomSelect.innerHTML = '<option value="">Pilih Kamar</option>';
             
-            if (product) {
-                // Check if product already in cart
-                const existingItem = cart.find(item => item.id === productId);
-                
-                if (existingItem) {
-                    existingItem.quantity++;
-                } else {
-                    cart.push({
-                        id: product.id,
-                        name: product.name,
-                        price: product.regularPrice,
-                        quantity: 1
-                    });
-                }
-                
-                updateCartDisplay();
-            }
-        }
-
-        // Update cart display
-        function updateCartDisplay() {
-            const cartItems = document.getElementById('cartItems');
-            cartItems.innerHTML = '';
+            const availableRooms = rooms.filter(room => room.status === 'available');
+            availableRooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.id;
+                option.textContent = `${room.number} (${room.type} - ${formatCurrency(room.price)}/hari)`;
+                roomSelect.appendChild(option);
+            });
             
-            cart.forEach(item => {
+            // Load tamu hari ini
+            const todayGuestsList = document.getElementById('today-guests-list');
+            todayGuestsList.innerHTML = '';
+            
+            const todayGuests = getTodayGuests();
+            todayGuests.forEach((guest, index) => {
+                const room = rooms.find(r => r.id === guest.roomId);
                 const row = document.createElement('tr');
-                
                 row.innerHTML = `
-                    <td>${item.name}</td>
+                    <td>${index + 1}</td>
+                    <td>${guest.name}</td>
+                    <td>${room ? room.number : '-'}</td>
+                    <td>${formatDate(guest.checkIn)}</td>
+                    <td>${formatDate(guest.checkOut)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.id}, -1)">-</button>
-                        <span class="mx-2">${item.quantity}</span>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.id}, 1)">+</button>
-                    </td>
-                    <td>${formatPrice(item.price)}</td>
-                    <td>${formatPrice(item.price * item.quantity)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${item.id})">
-                            <i class="fas fa-times"></i>
+                        <button class="btn btn-sm btn-danger checkout-btn" data-id="${guest.id}">
+                            <i class="fas fa-sign-out-alt"></i> Check-Out
                         </button>
                     </td>
                 `;
-                
-                cartItems.appendChild(row);
+                todayGuestsList.appendChild(row);
             });
             
-            updateCartTotal();
-        }
-
-        // Update item quantity in cart
-        function updateQuantity(productId, change) {
-            const item = cart.find(item => item.id === productId);
+            // Event listener untuk check-out
+            document.querySelectorAll('.checkout-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    checkoutGuest(guestId);
+                });
+            });
             
-            if (item) {
-                item.quantity += change;
+            // Event listener form check-in
+            document.getElementById('checkin-form').addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                if (item.quantity <= 0) {
-                    cart = cart.filter(item => item.id !== productId);
+                const name = document.getElementById('checkin-name').value;
+                const phone = document.getElementById('checkin-phone').value;
+                const identity = document.getElementById('checkin-identity').value;
+                const roomId = parseInt(document.getElementById('checkin-room').value);
+                const duration = parseInt(document.getElementById('checkin-duration').value);
+                const notes = document.getElementById('checkin-notes').value;
+                
+                const checkInDate = new Date();
+                const checkOutDate = new Date();
+                checkOutDate.setDate(checkInDate.getDate() + duration);
+                
+                const newGuest = {
+                    id: generateId(),
+                    name,
+                    identity,
+                    phone,
+                    roomId,
+                    checkIn: checkInDate.toISOString(),
+                    checkOut: checkOutDate.toISOString(),
+                    status: 'checked-in',
+                    notes
+                };
+                
+                guests.push(newGuest);
+                localStorage.setItem('hotel_guests', JSON.stringify(guests));
+                
+                // Update status kamar
+                const roomIndex = rooms.findIndex(r => r.id === roomId);
+                if (roomIndex !== -1) {
+                    rooms[roomIndex].status = 'occupied';
+                    localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
                 }
                 
-                updateCartDisplay();
+                // Buat transaksi untuk kamar
+                const room = rooms.find(r => r.id === roomId);
+                if (room) {
+                    const newTransaction = {
+                        id: generateId(),
+                        guestId: newGuest.id,
+                        date: new Date().toISOString(),
+                        type: 'room',
+                        amount: room.price * duration,
+                        notes: `Pembayaran kamar ${room.number} untuk ${duration} hari`,
+                        invoiceId: null
+                    };
+                    
+                    transactions.push(newTransaction);
+                    localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+                }
+                
+                alert('Check-in berhasil!');
+                this.reset();
+                initCheckIn();
+                initDashboard();
+            });
+        }
+        
+        function checkoutGuest(guestId) {
+            const guestIndex = guests.findIndex(g => g.id === guestId);
+            if (guestIndex !== -1) {
+                guests[guestIndex].status = 'checked-out';
+                localStorage.setItem('hotel_guests', JSON.stringify(guests));
+                
+                // Update status kamar
+                const roomId = guests[guestIndex].roomId;
+                const roomIndex = rooms.findIndex(r => r.id === roomId);
+                if (roomIndex !== -1) {
+                    rooms[roomIndex].status = 'available';
+                    localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                }
+                
+                alert('Check-out berhasil!');
+                initCheckIn();
+                initDashboard();
             }
         }
-
-        // Remove item from cart
-        function removeFromCart(productId) {
-            cart = cart.filter(item => item.id !== productId);
-            updateCartDisplay();
+        
+        // Inisialisasi transaksi
+        function initTransactions() {
+            // Load daftar tamu
+            const guestSelect = document.getElementById('transaction-guest');
+            guestSelect.innerHTML = '<option value="">Pilih Tamu</option>';
+            
+            const checkedInGuests = guests.filter(guest => guest.status === 'checked-in');
+            checkedInGuests.forEach(guest => {
+                const option = document.createElement('option');
+                option.value = guest.id;
+                option.textContent = `${guest.name} (${guest.identity})`;
+                guestSelect.appendChild(option);
+            });
+            
+            // Event listener form transaksi
+            document.getElementById('transaction-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const guestId = document.getElementById('transaction-guest').value;
+                const type = document.getElementById('transaction-type').value;
+                const amount = parseInt(document.getElementById('transaction-amount').value);
+                const notes = document.getElementById('transaction-notes').value;
+                
+                const newTransaction = {
+                    id: generateId(),
+                    guestId,
+                    date: new Date().toISOString(),
+                    type,
+                    amount,
+                    notes,
+                    invoiceId: null
+                };
+                
+                transactions.push(newTransaction);
+                localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+                
+                alert('Transaksi berhasil disimpan!');
+                this.reset();
+                loadTransactions();
+                initDashboard();
+            });
+            
+            // Load transaksi
+            loadTransactions();
+            
+            // Event listener filter transaksi
+            document.getElementById('filter-transactions').addEventListener('click', loadTransactions);
         }
-
-        // Clear cart
-        function clearCart() {
-            if (confirm('Apakah Anda yakin ingin mengosongkan keranjang?')) {
-                cart = [];
-                discount = 0;
-                document.getElementById('discountInput').value = 0;
-                updateCartDisplay();
+        
+        function loadTransactions() {
+            const dateFilter = document.getElementById('transaction-date-filter').value;
+            const typeFilter = document.getElementById('transaction-type-filter').value;
+            
+            let filteredTransactions = [...transactions];
+            
+            if (dateFilter) {
+                filteredTransactions = filteredTransactions.filter(t => t.date.split('T')[0] === dateFilter);
             }
-        }
-
-        // Update cart totals
-        function updateCartTotal() {
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const discountAmount = subtotal * (discount / 100);
-            const total = subtotal - discountAmount;
             
-            document.getElementById('subtotal').textContent = formatPrice(subtotal);
-            document.getElementById('discount').textContent = formatPrice(discountAmount);
-            document.getElementById('total').textContent = formatPrice(total);
+            if (typeFilter) {
+                filteredTransactions = filteredTransactions.filter(t => t.type === typeFilter);
+            }
             
-            // Update change amount if cash payment
-            updateChangeAmount();
-        }
-
-        // Update change amount
-        function updateChangeAmount() {
-            const total = parseFloat(document.getElementById('total').textContent.replace(/[^0-9]/g, '')) || 0;
-            const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
-            const change = cashReceived - total;
+            const transactionsList = document.getElementById('transactions-list');
+            transactionsList.innerHTML = '';
             
-            document.getElementById('changeAmount').value = formatPrice(change > 0 ? change : 0);
+            filteredTransactions.forEach((transaction, index) => {
+                const guest = guests.find(g => g.id === transaction.guestId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${formatDate(transaction.date)}</td>
+                    <td>${guest ? guest.name : 'Tamu tidak ditemukan'}</td>
+                    <td>${getTransactionTypeLabel(transaction.type)}</td>
+                    <td>${transaction.notes}</td>
+                    <td>${formatCurrency(transaction.amount)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger delete-transaction" data-id="${transaction.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                transactionsList.appendChild(row);
+            });
+            
+            // Event listener untuk hapus transaksi
+            document.querySelectorAll('.delete-transaction').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+                        const transactionId = this.getAttribute('data-id');
+                        deleteTransaction(transactionId);
+                    }
+                });
+            });
         }
-
-        // Complete transaction
-        function completeTransaction() {
-            if (cart.length === 0) {
-                alert('Keranjang belanja kosong!');
+        
+        function getTransactionTypeLabel(type) {
+            const types = {
+                'room': 'Biaya Kamar',
+                'food': 'Makanan & Minuman',
+                'laundry': 'Laundry',
+                'other': 'Lainnya'
+            };
+            return types[type] || type;
+        }
+        
+        function deleteTransaction(transactionId) {
+            transactions = transactions.filter(t => t.id !== transactionId);
+            localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+            loadTransactions();
+            initDashboard();
+        }
+        
+        // Inisialisasi nota
+        function initNota() {
+            // Load daftar tamu
+            const guestSelect = document.getElementById('invoice-guest');
+            guestSelect.innerHTML = '<option value="">Pilih Tamu</option>';
+            
+            const checkedInGuests = guests.filter(guest => guest.status === 'checked-in');
+            checkedInGuests.forEach(guest => {
+                const option = document.createElement('option');
+                option.value = guest.id;
+                option.textContent = `${guest.name} (${guest.identity})`;
+                guestSelect.appendChild(option);
+            });
+            
+            // Event listener generate nota
+            document.getElementById('generate-invoice').addEventListener('click', function() {
+                const guestId = document.getElementById('invoice-guest').value;
+                if (!guestId) {
+                    alert('Pilih tamu terlebih dahulu!');
+                    return;
+                }
+                
+                generateInvoice(guestId);
+            });
+            
+            // Event listener cetak nota
+            document.getElementById('print-invoice').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Event listener simpan nota
+            document.getElementById('save-invoice').addEventListener('click', function() {
+                const invoiceContainer = document.getElementById('invoice-container');
+                const invoiceNumber = document.getElementById('invoice-number').textContent;
+                
+                // Cek apakah nota sudah ada
+                const existingInvoice = invoices.find(inv => inv.number === invoiceNumber);
+                if (existingInvoice) {
+                    alert('Nota sudah disimpan sebelumnya!');
+                    return;
+                }
+                
+                // Simpan nota
+                const newInvoice = {
+                    id: generateId(),
+                    number: invoiceNumber,
+                    date: new Date().toISOString(),
+                    guestId: document.getElementById('invoice-guest').value,
+                    items: Array.from(document.querySelectorAll('#invoice-items tr')).map(row => ({
+                        description: row.cells[1].textContent,
+                        quantity: row.cells[2].textContent,
+                        price: row.cells[3].textContent,
+                        total: row.cells[4].textContent
+                    })),
+                    subtotal: document.getElementById('invoice-subtotal').textContent,
+                    tax: document.getElementById('invoice-tax').textContent,
+                    total: document.getElementById('invoice-total').textContent
+                };
+                
+                invoices.push(newInvoice);
+                localStorage.setItem('hotel_invoices', JSON.stringify(invoices));
+                
+                // Update transaksi dengan invoiceId
+                const guestTransactions = transactions.filter(t => t.guestId === newInvoice.guestId && !t.invoiceId);
+                guestTransactions.forEach(t => {
+                    t.invoiceId = newInvoice.id;
+                });
+                localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+                
+                alert('Nota berhasil disimpan!');
+            });
+        }
+        
+        function generateInvoice(guestId) {
+            const guest = guests.find(g => g.id === guestId);
+            if (!guest) {
+                alert('Data tamu tidak ditemukan!');
                 return;
             }
             
-            const total = parseFloat(document.getElementById('total').textContent.replace(/[^0-9]/g, '')) || 0;
-            const paymentMethod = document.getElementById('paymentMethod').value;
+            const room = rooms.find(r => r.id === guest.roomId);
+            if (!room) {
+                alert('Data kamar tidak ditemukan!');
+                return;
+            }
             
-            if (paymentMethod === 'cash') {
-                const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+            // Hitung durasi menginap
+            const checkInDate = new Date(guest.checkIn);
+            const checkOutDate = new Date(guest.checkOut);
+            const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+            
+            // Set data nota
+            document.getElementById('invoice-number').textContent = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(invoices.length + 1).padStart(4, '0')}`;
+            document.getElementById('invoice-date').textContent = formatDate(new Date().toISOString());
+            document.getElementById('invoice-guest-name').textContent = guest.name;
+            document.getElementById('invoice-room-number').textContent = room.number;
+            
+            // Generate barcode
+            JsBarcode("#invoice-barcode", document.getElementById('invoice-number').textContent, {
+                format: "CODE128",
+                lineColor: "#000",
+                width: 2,
+                height: 50,
+                displayValue: true
+            });
+            
+            // Set item nota
+            const invoiceItems = document.getElementById('invoice-items');
+            invoiceItems.innerHTML = '';
+            
+            // Tambahkan biaya kamar
+            const roomRow = document.createElement('tr');
+            roomRow.innerHTML = `
+                <td>1</td>
+                <td>Kamar ${room.number} (${duration} hari)</td>
+                <td>${duration}</td>
+                <td>${formatCurrency(room.price)}</td>
+                <td>${formatCurrency(room.price * duration)}</td>
+            `;
+            invoiceItems.appendChild(roomRow);
+            
+            // Tambahkan transaksi lainnya yang belum masuk nota
+            const guestTransactions = transactions.filter(t => t.guestId === guestId && !t.invoiceId);
+            guestTransactions.forEach((t, i) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 2}</td>
+                    <td>${getTransactionTypeLabel(t.type)} - ${t.notes}</td>
+                    <td>1</td>
+                    <td>${formatCurrency(t.amount)}</td>
+                    <td>${formatCurrency(t.amount)}</td>
+                `;
+                invoiceItems.appendChild(row);
+            });
+            
+            // Hitung total
+            const roomTotal = room.price * duration;
+            const otherTotal = guestTransactions.reduce((sum, t) => sum + t.amount, 0);
+            const subtotal = roomTotal + otherTotal;
+            const tax = subtotal * 0.1; // Pajak 10%
+            const total = subtotal + tax;
+            
+            document.getElementById('invoice-subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('invoice-tax').textContent = formatCurrency(tax);
+            document.getElementById('invoice-total').textContent = formatCurrency(total);
+            
+            // Tampilkan nota
+            document.getElementById('invoice-container').classList.remove('d-none');
+        }
+        
+        // Inisialisasi kamar
+        function initKamar() {
+            loadRooms();
+            
+            // Event listener tambah kamar
+            document.getElementById('add-room-btn').addEventListener('click', function() {
+                document.getElementById('roomModalTitle').textContent = 'Tambah Kamar Baru';
+                document.getElementById('room-form').reset();
+                document.getElementById('room-id').value = '';
                 
-                if (cashReceived < total) {
-                    alert('Uang yang diterima kurang dari total pembayaran!');
+                const modal = new bootstrap.Modal(document.getElementById('roomModal'));
+                modal.show();
+            });
+            
+            // Event listener simpan kamar
+            document.getElementById('save-room').addEventListener('click', function() {
+                const id = document.getElementById('room-id').value;
+                const number = document.getElementById('room-number').value;
+                const type = document.getElementById('room-type').value;
+                const price = parseInt(document.getElementById('room-price').value);
+                const status = document.getElementById('room-status').value;
+                const notes = document.getElementById('room-notes').value;
+                
+                if (!number || !type || isNaN(price)) {
+                    alert('Harap isi semua field yang diperlukan!');
                     return;
                 }
+                
+                if (id) {
+                    // Edit kamar
+                    const roomIndex = rooms.findIndex(r => r.id === id);
+                    if (roomIndex !== -1) {
+                        rooms[roomIndex] = {
+                            ...rooms[roomIndex],
+                            number,
+                            type,
+                            price,
+                            status,
+                            notes
+                        };
+                    }
+                } else {
+                    // Tambah kamar baru
+                    const newRoom = {
+                        id: generateId(),
+                        number,
+                        type,
+                        price,
+                        status,
+                        notes
+                    };
+                    rooms.push(newRoom);
+                }
+                
+                localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                loadRooms();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('roomModal'));
+                modal.hide();
+            });
+        }
+        
+        function loadRooms() {
+            const roomsList = document.getElementById('rooms-list');
+            roomsList.innerHTML = '';
+            
+            rooms.forEach((room, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${room.number}</td>
+                    <td>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</td>
+                    <td>${formatCurrency(room.price)}</td>
+                    <td>
+                        <span class="badge ${getRoomStatusBadge(room.status)}">
+                            ${getRoomStatusLabel(room.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary edit-room" data-id="${room.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-room" data-id="${room.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                roomsList.appendChild(row);
+            });
+            
+            // Event listener untuk edit kamar
+            document.querySelectorAll('.edit-room').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const roomId = this.getAttribute('data-id');
+                    const room = rooms.find(r => r.id === roomId);
+                    
+                    if (room) {
+                        document.getElementById('roomModalTitle').textContent = 'Edit Kamar';
+                        document.getElementById('room-id').value = room.id;
+                        document.getElementById('room-number').value = room.number;
+                        document.getElementById('room-type').value = room.type;
+                        document.getElementById('room-price').value = room.price;
+                        document.getElementById('room-status').value = room.status;
+                        document.getElementById('room-notes').value = room.notes || '';
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('roomModal'));
+                        modal.show();
+                    }
+                });
+            });
+            
+            // Event listener untuk hapus kamar
+            document.querySelectorAll('.delete-room').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const roomId = this.getAttribute('data-id');
+                    
+                    // Cek apakah kamar sedang digunakan
+                    const isOccupied = guests.some(g => g.roomId === roomId && g.status === 'checked-in');
+                    if (isOccupied) {
+                        alert('Kamar tidak dapat dihapus karena sedang digunakan tamu!');
+                        return;
+                    }
+                    
+                    if (confirm('Apakah Anda yakin ingin menghapus kamar ini?')) {
+                        rooms = rooms.filter(r => r.id !== roomId);
+                        localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                        loadRooms();
+                        initDashboard();
+                    }
+                });
+            });
+        }
+        
+        function getRoomStatusLabel(status) {
+            const statuses = {
+                'available': 'Tersedia',
+                'occupied': 'Terisi',
+                'maintenance': 'Perbaikan'
+            };
+            return statuses[status] || status;
+        }
+        
+        function getRoomStatusBadge(status) {
+            const badges = {
+                'available': 'bg-success',
+                'occupied': 'bg-danger',
+                'maintenance': 'bg-warning text-dark'
+            };
+            return badges[status] || 'bg-secondary';
+        }
+        
+        // Inisialisasi tamu
+        function initTamu() {
+            loadGuests();
+            
+            // Event listener filter tamu
+            document.getElementById('filter-guests').addEventListener('click', loadGuests);
+        }
+        
+        function loadGuests() {
+            const searchQuery = document.getElementById('guest-search').value.toLowerCase();
+            const statusFilter = document.getElementById('guest-status-filter').value;
+            
+            let filteredGuests = [...guests];
+            
+            if (searchQuery) {
+                filteredGuests = filteredGuests.filter(g => g.name.toLowerCase().includes(searchQuery));
             }
             
-            // In a real app, you would save the transaction to database
-            const transactionId = 'TRX-' + Math.floor(1000 + Math.random() * 9000);
-            
-            // Show receipt
-            const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
-            receiptModal.show();
-            
-            // Clear cart after transaction
-            cart = [];
-            discount = 0;
-            document.getElementById('discountInput').value = 0;
-            document.getElementById('cashReceived').value = 0;
-            updateCartDisplay();
-            
-            // Generate new barcode for next ticket
-            generateBarcode();
-        }
-
-        // Print ticket
-        function printTicket() {
-            const printContent = document.getElementById('ticket-preview').innerHTML;
-            const originalContent = document.body.innerHTML;
-            
-            document.body.innerHTML = printContent;
-            window.print();
-            document.body.innerHTML = originalContent;
-            
-            // Restore the active section
-            showSection('ticket-sales');
-        }
-
-        // Print receipt
-        function printReceipt() {
-            const printContent = document.querySelector('.modal-body').innerHTML;
-            const originalContent = document.body.innerHTML;
-            
-            document.body.innerHTML = printContent;
-            window.print();
-            document.body.innerHTML = originalContent;
-            
-            // Close modal
-            const receiptModal = bootstrap.Modal.getInstance(document.getElementById('receiptModal'));
-            receiptModal.hide();
-        }
-
-        // Show add product modal
-        function showAddProductModal() {
-            const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
-            modal.show();
-        }
-
-        // Save product
-        function saveProduct() {
-            // In a real app, you would save to database
-            alert('Produk berhasil disimpan!');
-            
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
-            modal.hide();
-            
-            // Refresh product list
-            loadProducts();
-        }
-
-        // Edit product
-        function editProduct(productId) {
-            // In a real app, you would load product data and show in modal
-            alert(`Edit produk dengan ID: ${productId}`);
-        }
-
-        // Delete product
-        function deleteProduct(productId) {
-            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-                // In a real app, you would delete from database
-                alert('Produk berhasil dihapus!');
-                loadProducts();
+            if (statusFilter) {
+                filteredGuests = filteredGuests.filter(g => g.status === statusFilter);
             }
-        }
-
-        // Show add user modal
-        function showAddUserModal() {
-            const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
-            modal.show();
-        }
-
-        // Save user
-        function saveUser() {
-            // In a real app, you would save to database
-            alert('Pengguna berhasil disimpan!');
             
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
-            modal.hide();
+            const guestsList = document.getElementById('guests-list');
+            guestsList.innerHTML = '';
             
-            // Refresh user list
-            loadUsers();
-        }
-
-        // Edit user
-        function editUser(username) {
-            // In a real app, you would load user data and show in modal
-            alert(`Edit pengguna dengan username: ${username}`);
-        }
-
-        // Delete user
-        function deleteUser(username) {
-            if (confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) {
-                // In a real app, you would delete from database
-                alert('Pengguna berhasil dihapus!');
-                loadUsers();
-            }
-        }
-
-        // View ticket details
-        function viewTicket(ticketCode) {
-            // In a real app, you would show ticket details
-            alert(`Lihat detail karcis dengan kode: ${ticketCode}`);
-        }
-
-        // Void ticket
-        function voidTicket(ticketCode) {
-            if (confirm('Apakah Anda yakin ingin membatalkan karcis ini?')) {
-                // In a real app, you would update ticket status in database
-                alert(`Karcis ${ticketCode} berhasil dibatalkan!`);
-                loadTickets();
-            }
-        }
-
-        // Show import modal
-        function showImportModal() {
-            const modal = new bootstrap.Modal(document.getElementById('importModal'));
-            modal.show();
-        }
-
-        // Import data
-        function importData() {
-            // In a real app, you would process the imported file
-            alert('Data berhasil diimport!');
+            filteredGuests.forEach((guest, index) => {
+                const room = rooms.find(r => r.id === guest.roomId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${guest.name}</td>
+                    <td>${guest.identity}</td>
+                    <td>${guest.phone}</td>
+                    <td>${room ? room.number : '-'}</td>
+                    <td>
+                        <span class="badge ${guest.status === 'checked-in' ? 'bg-success' : 'bg-secondary'}">
+                            ${guest.status === 'checked-in' ? 'Check-In' : 'Check-Out'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info view-guest" data-id="${guest.id}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary edit-guest" data-id="${guest.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-guest" data-id="${guest.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                guestsList.appendChild(row);
+            });
             
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
-            modal.hide();
+            // TODO: Tambahkan event listener untuk view, edit, dan hapus tamu
+        }
+        
+        // Inisialisasi laporan
+        function initLaporan() {
+            // Set tanggal default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('report-date').value = today;
             
-            // Refresh data
-            loadTickets();
+            // Event listener perubahan jenis laporan
+            document.getElementById('report-type').addEventListener('change', function() {
+                document.getElementById('report-date-container').classList.add('d-none');
+                document.getElementById('report-week-container').classList.add('d-none');
+                document.getElementById('report-month-container').classList.add('d-none');
+                document.getElementById('report-custom-container').classList.add('d-none');
+                
+                switch(this.value) {
+                    case 'daily':
+                        document.getElementById('report-date-container').classList.remove('d-none');
+                        break;
+                    case 'weekly':
+                        document.getElementById('report-week-container').classList.remove('d-none');
+                        break;
+                    case 'monthly':
+                        document.getElementById('report-month-container').classList.remove('d-none');
+                        break;
+                    case 'custom':
+                        document.getElementById('report-custom-container').classList.remove('d-none');
+                        break;
+                }
+            });
+            
+            // Event listener generate laporan
+            document.getElementById('generate-report').addEventListener('click', function() {
+                const type = document.getElementById('report-type').value;
+                const category = document.getElementById('report-category').value;
+                
+                let startDate, endDate;
+                
+                switch(type) {
+                    case 'daily':
+                        startDate = endDate = document.getElementById('report-date').value;
+                        break;
+                    case 'weekly':
+                        const weekInput = document.getElementById('report-week').value;
+                        startDate = new Date(weekInput);
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 6);
+                        startDate = startDate.toISOString().split('T')[0];
+                        endDate = endDate.toISOString().split('T')[0];
+                        break;
+                    case 'monthly':
+                        const monthInput = document.getElementById('report-month').value;
+                        startDate = new Date(monthInput);
+                        endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+                        startDate = startDate.toISOString().split('T')[0];
+                        endDate = endDate.toISOString().split('T')[0];
+                        break;
+                    case 'custom':
+                        startDate = document.getElementById('report-start-date').value;
+                        endDate = document.getElementById('report-end-date').value;
+                        break;
+                }
+                
+                generateReport(startDate, endDate, category);
+            });
+            
+            // Event listener cetak laporan
+            document.getElementById('print-report').addEventListener('click', function() {
+                window.print();
+            });
         }
-
-        // Export tickets
-        function exportTickets() {
-            // In a real app, you would generate and download export file
-            alert('Data karcis berhasil diexport!');
-        }
-
-        // Generate daily report
-        function generateDailyReport() {
-            // In a real app, you would generate PDF report
-            alert('Laporan harian berhasil dibuat!');
-        }
-
-        // Export report data
-        function exportReportData() {
-            // In a real app, you would generate and download export file
-            alert('Data laporan berhasil diexport!');
-        }
-
-        // Save settings
-        function saveSettings() {
-            // In a real app, you would save settings to database
-            alert('Pengaturan berhasil disimpan!');
-        }
-
-        // Backup data
-        function backupData() {
-            // In a real app, you would generate and download backup file
-            alert('Backup data berhasil dibuat!');
-        }
-
-        // Restore data
-        function restoreData() {
-            if (confirm('Apakah Anda yakin ingin memulihkan data? Semua data saat ini akan diganti.')) {
-                // In a real app, you would process the restore file
-                alert('Data berhasil dipulihkan!');
+        
+        function generateReport(startDate, endDate, category) {
+            let filteredTransactions = transactions.filter(t => {
+                const tDate = t.date.split('T')[0];
+                return tDate >= startDate && tDate <= endDate;
+            });
+            
+            if (category !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => t.type === category);
             }
+            
+            // Hitung total per kategori
+            const categories = {
+                'room': { label: 'Biaya Kamar', total: 0 },
+                'food': { label: 'Makanan & Minuman', total: 0 },
+                'laundry': { label: 'Laundry', total: 0 },
+                'other': { label: 'Lainnya', total: 0 }
+            };
+            
+            filteredTransactions.forEach(t => {
+                if (categories[t.type]) {
+                    categories[t.type].total += t.amount;
+                }
+            });
+            
+            // Hitung total keseluruhan
+            const grandTotal = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
+            
+            // Format tanggal untuk tampilan
+            const formatDateDisplay = (dateStr) => {
+                const options = { day: '2-digit', month: 'long', year: 'numeric' };
+                return new Date(dateStr).toLocaleDateString('id-ID', options);
+            };
+            
+            // Buat konten laporan
+            const reportContent = document.getElementById('report-content');
+            reportContent.innerHTML = `
+                <h4 class="text-center">Laporan Transaksi</h4>
+                <p class="text-center">
+                    Periode: ${formatDateDisplay(startDate)} - ${formatDateDisplay(endDate)}
+                </p>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Tanggal</th>
+                                <th>Tamu</th>
+                                <th>Jenis</th>
+                                <th>Keterangan</th>
+                                <th>Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredTransactions.map((t, i) => {
+                                const guest = guests.find(g => g.id === t.guestId);
+                                return `
+                                    <tr>
+                                        <td>${i + 1}</td>
+                                        <td>${formatDate(t.date)}</td>
+                                        <td>${guest ? guest.name : 'Tamu tidak ditemukan'}</td>
+                                        <td>${getTransactionTypeLabel(t.type)}</td>
+                                        <td>${t.notes}</td>
+                                        <td>${formatCurrency(t.amount)}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Ringkasan per Kategori</h5>
+                        <ul class="list-group">
+                            ${Object.entries(categories).map(([key, cat]) => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${cat.label}
+                                    <span class="badge bg-primary rounded-pill">${formatCurrency(cat.total)}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Pendapatan</h5>
+                                <h2 class="card-text text-success">${formatCurrency(grandTotal)}</h2>
+                                <p class="card-text">Dari ${filteredTransactions.length} transaksi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Tampilkan laporan
+            document.getElementById('report-result').classList.remove('d-none');
         }
-
-        // Format price with currency
-        function formatPrice(amount) {
-            return 'Rp' + amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        
+        // Inisialisasi tab
+        function initTabs() {
+            const tabs = ['dashboard', 'checkin', 'transaksi', 'nota', 'kamar', 'tamu', 'laporan'];
+            
+            tabs.forEach(tab => {
+                document.getElementById(`${tab}-tab`).addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Sembunyikan semua konten
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('d-none');
+                    });
+                    
+                    // Tampilkan konten yang dipilih
+                    document.getElementById(`${tab}-content`).classList.remove('d-none');
+                    
+                    // Update tab aktif
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Inisialisasi konten jika diperlukan
+                    switch(tab) {
+                        case 'dashboard':
+                            initDashboard();
+                            break;
+                        case 'checkin':
+                            initCheckIn();
+                            break;
+                        case 'transaksi':
+                            initTransactions();
+                            break;
+                        case 'nota':
+                            initNota();
+                            break;
+                        case 'kamar':
+                            initKamar();
+                            break;
+                        case 'tamu':
+                            initTamu();
+                            break;
+                        case 'laporan':
+                            initLaporan();
+                            break;
+                    }
+                });
+            });
         }
-
-        // Format date
-        function formatDate(dateString) {
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString('id-ID', options);
+        
+        // Inisialisasi aplikasi
+        function initApp() {
+            initTabs();
+            
+            // Tampilkan dashboard secara default
+            document.getElementById('dashboard-tab').click();
         }
-
-        // Get status badge class
-        function getStatusBadge(status) {
-            switch (status) {
-                case 'valid': return 'bg-success';
-                case 'used': return 'bg-primary';
-                case 'expired': return 'bg-danger';
-                default: return 'bg-secondary';
-            }
-        }
-
-        // Get status text
-        function getStatusText(status) {
-            switch (status) {
-                case 'valid': return 'Valid';
-                case 'used': return 'Digunakan';
-                case 'expired': return 'Kadaluarsa';
-                default: return 'Tidak Valid';
-            }
-        }
+        
+        // Jalankan aplikasi ketika DOM siap
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
