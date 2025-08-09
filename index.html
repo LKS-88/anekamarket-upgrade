@@ -49,6 +49,7 @@
             line-height: 1.7;
             overflow-x: hidden;
             scroll-behavior: smooth;
+            padding-top: 70px; /* Space for fixed header */
         }
         
         h1, h2, h3, h4 {
@@ -354,7 +355,7 @@
         }
         
         /* Premium Header with Gradient and 3D Effect */
-        header {
+        .hero-header {
             background: linear-gradient(135deg, var(--primary), var(--dark));
             color: white;
             padding: 0;
@@ -366,7 +367,7 @@
             align-items: center;
             justify-content: center;
             isolation: isolate;
-            margin-top: 70px; /* To account for fixed dashboard header */
+            margin-top: -70px; /* Offset fixed header */
         }
         
         .header-overlay {
@@ -2271,7 +2272,7 @@
         }
         
         @media (max-width: 768px) {
-            header {
+            .hero-header {
                 min-height: auto;
                 padding: 0;
             }
@@ -2504,8 +2505,8 @@
     <!-- Partikel Animasi -->
     <div class="particles" id="particles"></div>
     
-    <!-- Header Modern -->
-    <header id="home">
+    <!-- Hero Header Modern -->
+    <header class="hero-header" id="home">
         <div class="header-overlay"></div>
         <div class="header-content">
             <div class="logo">
@@ -3339,7 +3340,6 @@
             document.body.style.overflow = '';
         });
         
-        // Close modal when clicking outside the content
         window.addEventListener('click', function(e) {
             if (e.target === document.getElementById('imageModal')) {
                 document.getElementById('imageModal').classList.remove('show');
@@ -3585,6 +3585,7 @@
         document.getElementById('quickOrderForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const form = this;
+            const formStatus = document.getElementById('formStatus');
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
             
