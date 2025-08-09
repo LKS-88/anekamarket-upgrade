@@ -156,6 +156,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="#" id="checkout-tab">
+                                <i class="fas fa-sign-out-alt"></i> Check-Out
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="#" id="transaksi-tab">
                                 <i class="fas fa-cash-register"></i> Transaksi
                             </a>
@@ -168,6 +173,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="#" id="kamar-tab">
                                 <i class="fas fa-bed"></i> Manajemen Kamar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="fasilitas-tab">
+                                <i class="fas fa-utensils"></i> Fasilitas
                             </a>
                         </li>
                         <li class="nav-item">
@@ -341,6 +351,39 @@
                     </div>
                 </div>
 
+                <!-- Check-Out Section -->
+                <div class="tab-content d-none" id="checkout-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-sign-out-alt"></i> Check-Out Tamu</h1>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Daftar Tamu yang Belum Check-Out</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Nama Tamu</th>
+                                            <th>No. Identitas</th>
+                                            <th>No. Kamar</th>
+                                            <th>Check-In</th>
+                                            <th>Check-Out</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="checkout-guests-list">
+                                        <!-- Data tamu akan dimuat di sini -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Transaksi Section -->
                 <div class="tab-content d-none" id="transaksi-content">
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -368,7 +411,14 @@
                                                 <option value="room">Biaya Kamar</option>
                                                 <option value="food">Makanan & Minuman</option>
                                                 <option value="laundry">Laundry</option>
+                                                <option value="facility">Fasilitas</option>
                                                 <option value="other">Lainnya</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3 d-none" id="facility-select-container">
+                                            <label for="transaction-facility" class="form-label">Pilih Fasilitas</label>
+                                            <select class="form-select" id="transaction-facility">
+                                                <option value="">Pilih Fasilitas</option>
                                             </select>
                                         </div>
                                     </div>
@@ -376,6 +426,10 @@
                                         <div class="mb-3">
                                             <label for="transaction-amount" class="form-label">Jumlah</label>
                                             <input type="number" class="form-control" id="transaction-amount" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="transaction-quantity" class="form-label">Kuantitas</label>
+                                            <input type="number" class="form-control" id="transaction-quantity" min="1" value="1">
                                         </div>
                                         <div class="mb-3">
                                             <label for="transaction-notes" class="form-label">Keterangan</label>
@@ -401,6 +455,7 @@
                                         <option value="room">Biaya Kamar</option>
                                         <option value="food">Makanan & Minuman</option>
                                         <option value="laundry">Laundry</option>
+                                        <option value="facility">Fasilitas</option>
                                         <option value="other">Lainnya</option>
                                     </select>
                                 </div>
@@ -606,6 +661,81 @@
                     </div>
                 </div>
 
+                <!-- Fasilitas Section -->
+                <div class="tab-content d-none" id="fasilitas-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="fas fa-utensils"></i> Manajemen Fasilitas</h1>
+                        <button class="btn btn-primary" id="add-facility-btn"><i class="fas fa-plus"></i> Tambah Fasilitas</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Daftar Fasilitas</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Nama Fasilitas</th>
+                                            <th>Kategori</th>
+                                            <th>Harga</th>
+                                            <th>Deskripsi</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="facilities-list">
+                                        <!-- Data fasilitas akan dimuat di sini -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Tambah/Ubah Fasilitas -->
+                    <div class="modal fade" id="facilityModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="facilityModalTitle">Tambah Fasilitas Baru</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="facility-form">
+                                        <input type="hidden" id="facility-id">
+                                        <div class="mb-3">
+                                            <label for="facility-name" class="form-label">Nama Fasilitas</label>
+                                            <input type="text" class="form-control" id="facility-name" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="facility-category" class="form-label">Kategori</label>
+                                            <select class="form-select" id="facility-category" required>
+                                                <option value="food">Makanan</option>
+                                                <option value="beverage">Minuman</option>
+                                                <option value="service">Layanan</option>
+                                                <option value="other">Lainnya</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="facility-price" class="form-label">Harga</label>
+                                            <input type="number" class="form-control" id="facility-price" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="facility-description" class="form-label">Deskripsi</label>
+                                            <textarea class="form-control" id="facility-description" rows="3"></textarea>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-primary" id="save-facility">Simpan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tamu Section -->
                 <div class="tab-content d-none" id="tamu-content">
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -713,6 +843,7 @@
                                             <option value="room">Kamar</option>
                                             <option value="food">Makanan & Minuman</option>
                                             <option value="laundry">Laundry</option>
+                                            <option value="facility">Fasilitas</option>
                                             <option value="other">Lainnya</option>
                                         </select>
                                     </div>
@@ -748,6 +879,7 @@
         let rooms = JSON.parse(localStorage.getItem('hotel_rooms')) || [];
         let transactions = JSON.parse(localStorage.getItem('hotel_transactions')) || [];
         let invoices = JSON.parse(localStorage.getItem('hotel_invoices')) || [];
+        let facilities = JSON.parse(localStorage.getItem('hotel_facilities')) || [];
         
         // Inisialisasi data contoh jika kosong
         if (rooms.length === 0) {
@@ -759,6 +891,18 @@
                 { id: 5, number: '301', type: 'suite', price: 800000, status: 'available', notes: '' }
             ];
             localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+        }
+        
+        if (facilities.length === 0) {
+            facilities = [
+                { id: 1, name: 'Sarapan Pagi', category: 'food', price: 50000, description: 'Menu sarapan pagi untuk 1 orang' },
+                { id: 2, name: 'Makan Siang', category: 'food', price: 75000, description: 'Menu makan siang untuk 1 orang' },
+                { id: 3, name: 'Makan Malam', category: 'food', price: 80000, description: 'Menu makan malam untuk 1 orang' },
+                { id: 4, name: 'Minuman Ringan', category: 'beverage', price: 25000, description: 'Soft drink kaleng' },
+                { id: 5, name: 'Laundry Kiloan', category: 'service', price: 40000, description: 'Laundry per kilo' },
+                { id: 6, name: 'Pijat', category: 'service', price: 150000, description: 'Pijat relaksasi 1 jam' }
+            ];
+            localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
         }
         
         if (guests.length === 0) {
@@ -806,7 +950,7 @@
         
         // Fungsi utilitas
         function formatDate(dateString) {
-            const options = { day: '2-digit', month: 'long', year: 'numeric' };
+            const options = { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
             return new Date(dateString).toLocaleDateString('id-ID', options);
         }
         
@@ -832,6 +976,18 @@
             return transactions
                 .filter(t => t.date.split('T')[0] === today)
                 .reduce((sum, t) => sum + t.amount, 0);
+        }
+        
+        // Cek apakah tamu sudah check-in dalam 24 jam terakhir
+        function isGuestAlreadyCheckedIn(identity) {
+            const twentyFourHoursAgo = new Date();
+            twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+            
+            return guests.some(guest => 
+                guest.identity === identity && 
+                new Date(guest.checkIn) > twentyFourHoursAgo &&
+                guest.status === 'checked-in'
+            );
         }
         
         // Inisialisasi dashboard
@@ -936,6 +1092,12 @@
                 const duration = parseInt(document.getElementById('checkin-duration').value);
                 const notes = document.getElementById('checkin-notes').value;
                 
+                // Validasi no. identitas
+                if (isGuestAlreadyCheckedIn(identity)) {
+                    alert('Tamu dengan identitas ini sudah check-in dalam 24 jam terakhir dan belum check-out!');
+                    return;
+                }
+                
                 const checkInDate = new Date();
                 const checkOutDate = new Date();
                 checkOutDate.setDate(checkInDate.getDate() + duration);
@@ -986,10 +1148,54 @@
             });
         }
         
+        // Inisialisasi check-out
+        function initCheckOut() {
+            loadCheckOutGuests();
+        }
+        
+        function loadCheckOutGuests() {
+            const checkoutGuestsList = document.getElementById('checkout-guests-list');
+            checkoutGuestsList.innerHTML = '';
+            
+            const checkedInGuests = guests.filter(guest => guest.status === 'checked-in');
+            
+            checkedInGuests.forEach((guest, index) => {
+                const room = rooms.find(r => r.id === guest.roomId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${guest.name}</td>
+                    <td>${guest.identity}</td>
+                    <td>${room ? room.number : '-'}</td>
+                    <td>${formatDate(guest.checkIn)}</td>
+                    <td>${formatDate(guest.checkOut)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger checkout-btn" data-id="${guest.id}">
+                            <i class="fas fa-sign-out-alt"></i> Check-Out
+                        </button>
+                    </td>
+                `;
+                checkoutGuestsList.appendChild(row);
+            });
+            
+            // Event listener untuk check-out
+            document.querySelectorAll('.checkout-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    checkoutGuest(guestId);
+                });
+            });
+        }
+        
         function checkoutGuest(guestId) {
+            if (!confirm('Apakah Anda yakin ingin melakukan check-out tamu ini?')) {
+                return;
+            }
+            
             const guestIndex = guests.findIndex(g => g.id === guestId);
             if (guestIndex !== -1) {
                 guests[guestIndex].status = 'checked-out';
+                guests[guestIndex].actualCheckOut = new Date().toISOString();
                 localStorage.setItem('hotel_guests', JSON.stringify(guests));
                 
                 // Update status kamar
@@ -1000,9 +1206,59 @@
                     localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
                 }
                 
+                // Hitung durasi sebenarnya
+                const checkInDate = new Date(guests[guestIndex].checkIn);
+                const actualCheckOutDate = new Date(guests[guestIndex].actualCheckOut);
+                const plannedCheckOutDate = new Date(guests[guestIndex].checkOut);
+                
+                const actualDuration = Math.ceil((actualCheckOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+                const plannedDuration = Math.ceil((plannedCheckOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+                
+                // Jika check-out lebih awal, buat transaksi pengembalian (jika ada)
+                if (actualDuration < plannedDuration) {
+                    const room = rooms.find(r => r.id === roomId);
+                    if (room) {
+                        const refundAmount = room.price * (plannedDuration - actualDuration);
+                        
+                        const newTransaction = {
+                            id: generateId(),
+                            guestId: guestId,
+                            date: new Date().toISOString(),
+                            type: 'room',
+                            amount: -refundAmount,
+                            notes: `Pengembalian karena check-out lebih awal (${plannedDuration - actualDuration} hari)`,
+                            invoiceId: null
+                        };
+                        
+                        transactions.push(newTransaction);
+                        localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+                    }
+                }
+                // Jika check-out terlambat, buat transaksi tambahan
+                else if (actualDuration > plannedDuration) {
+                    const room = rooms.find(r => r.id === roomId);
+                    if (room) {
+                        const additionalAmount = room.price * (actualDuration - plannedDuration);
+                        
+                        const newTransaction = {
+                            id: generateId(),
+                            guestId: guestId,
+                            date: new Date().toISOString(),
+                            type: 'room',
+                            amount: additionalAmount,
+                            notes: `Biaya tambahan karena check-out terlambat (${actualDuration - plannedDuration} hari)`,
+                            invoiceId: null
+                        };
+                        
+                        transactions.push(newTransaction);
+                        localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+                    }
+                }
+                
                 alert('Check-out berhasil!');
-                initCheckIn();
+                loadCheckOutGuests();
                 initDashboard();
+                initCheckIn();
             }
         }
         
@@ -1020,6 +1276,40 @@
                 guestSelect.appendChild(option);
             });
             
+            // Load fasilitas
+            const facilitySelect = document.getElementById('transaction-facility');
+            facilitySelect.innerHTML = '<option value="">Pilih Fasilitas</option>';
+            
+            facilities.forEach(facility => {
+                const option = document.createElement('option');
+                option.value = facility.id;
+                option.textContent = `${facility.name} - ${formatCurrency(facility.price)}`;
+                option.setAttribute('data-price', facility.price);
+                facilitySelect.appendChild(option);
+            });
+            
+            // Event listener untuk jenis transaksi
+            document.getElementById('transaction-type').addEventListener('change', function() {
+                const facilityContainer = document.getElementById('facility-select-container');
+                if (this.value === 'facility') {
+                    facilityContainer.classList.remove('d-none');
+                    document.getElementById('transaction-amount').value = '';
+                    document.getElementById('transaction-amount').readOnly = true;
+                } else {
+                    facilityContainer.classList.add('d-none');
+                    document.getElementById('transaction-amount').readOnly = false;
+                }
+            });
+            
+            // Event listener untuk pilihan fasilitas
+            document.getElementById('transaction-facility').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    document.getElementById('transaction-amount').value = selectedOption.getAttribute('data-price');
+                    document.getElementById('transaction-notes').value = selectedOption.text;
+                }
+            });
+            
             // Event listener form transaksi
             document.getElementById('transaction-form').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -1027,14 +1317,23 @@
                 const guestId = document.getElementById('transaction-guest').value;
                 const type = document.getElementById('transaction-type').value;
                 const amount = parseInt(document.getElementById('transaction-amount').value);
-                const notes = document.getElementById('transaction-notes').value;
+                const quantity = parseInt(document.getElementById('transaction-quantity').value) || 1;
+                let notes = document.getElementById('transaction-notes').value;
+                
+                if (type === 'facility') {
+                    const facilityId = document.getElementById('transaction-facility').value;
+                    const facility = facilities.find(f => f.id === facilityId);
+                    if (facility) {
+                        notes = `Pembelian fasilitas: ${facility.name} (${quantity}x)`;
+                    }
+                }
                 
                 const newTransaction = {
                     id: generateId(),
                     guestId,
                     date: new Date().toISOString(),
                     type,
-                    amount,
+                    amount: amount * quantity,
                     notes,
                     invoiceId: null
                 };
@@ -1107,6 +1406,7 @@
                 'room': 'Biaya Kamar',
                 'food': 'Makanan & Minuman',
                 'laundry': 'Laundry',
+                'facility': 'Fasilitas',
                 'other': 'Lainnya'
             };
             return types[type] || type;
@@ -1207,7 +1507,8 @@
             
             // Hitung durasi menginap
             const checkInDate = new Date(guest.checkIn);
-            const checkOutDate = new Date(guest.checkOut);
+            const checkOutDate = guest.status === 'checked-out' && guest.actualCheckOut ? 
+                new Date(guest.actualCheckOut) : new Date(guest.checkOut);
             const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
             
             // Set data nota
@@ -1297,7 +1598,15 @@
                     return;
                 }
                 
+                // Validasi nomor kamar unik
                 if (id) {
+                    // Edit kamar - cek apakah nomor kamar sudah digunakan oleh kamar lain
+                    const existingRoom = rooms.find(r => r.number === number && r.id !== id);
+                    if (existingRoom) {
+                        alert('Nomor kamar sudah digunakan!');
+                        return;
+                    }
+                    
                     // Edit kamar
                     const roomIndex = rooms.findIndex(r => r.id === id);
                     if (roomIndex !== -1) {
@@ -1311,7 +1620,13 @@
                         };
                     }
                 } else {
-                    // Tambah kamar baru
+                    // Tambah kamar baru - cek apakah nomor kamar sudah ada
+                    const existingRoom = rooms.find(r => r.number === number);
+                    if (existingRoom) {
+                        alert('Nomor kamar sudah digunakan!');
+                        return;
+                    }
+                    
                     const newRoom = {
                         id: generateId(),
                         number,
@@ -1420,6 +1735,140 @@
             return badges[status] || 'bg-secondary';
         }
         
+        // Inisialisasi fasilitas
+        function initFasilitas() {
+            loadFacilities();
+            
+            // Event listener tambah fasilitas
+            document.getElementById('add-facility-btn').addEventListener('click', function() {
+                document.getElementById('facilityModalTitle').textContent = 'Tambah Fasilitas Baru';
+                document.getElementById('facility-form').reset();
+                document.getElementById('facility-id').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('facilityModal'));
+                modal.show();
+            });
+            
+            // Event listener simpan fasilitas
+            document.getElementById('save-facility').addEventListener('click', function() {
+                const id = document.getElementById('facility-id').value;
+                const name = document.getElementById('facility-name').value;
+                const category = document.getElementById('facility-category').value;
+                const price = parseInt(document.getElementById('facility-price').value);
+                const description = document.getElementById('facility-description').value;
+                
+                if (!name || !category || isNaN(price)) {
+                    alert('Harap isi semua field yang diperlukan!');
+                    return;
+                }
+                
+                if (id) {
+                    // Edit fasilitas
+                    const facilityIndex = facilities.findIndex(f => f.id === id);
+                    if (facilityIndex !== -1) {
+                        facilities[facilityIndex] = {
+                            ...facilities[facilityIndex],
+                            name,
+                            category,
+                            price,
+                            description
+                        };
+                    }
+                } else {
+                    // Tambah fasilitas baru
+                    const newFacility = {
+                        id: generateId(),
+                        name,
+                        category,
+                        price,
+                        description
+                    };
+                    facilities.push(newFacility);
+                }
+                
+                localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
+                loadFacilities();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('facilityModal'));
+                modal.hide();
+            });
+        }
+        
+        function loadFacilities() {
+            const facilitiesList = document.getElementById('facilities-list');
+            facilitiesList.innerHTML = '';
+            
+            facilities.forEach((facility, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${facility.name}</td>
+                    <td>${getFacilityCategoryLabel(facility.category)}</td>
+                    <td>${formatCurrency(facility.price)}</td>
+                    <td>${facility.description || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary edit-facility" data-id="${facility.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-facility" data-id="${facility.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                facilitiesList.appendChild(row);
+            });
+            
+            // Event listener untuk edit fasilitas
+            document.querySelectorAll('.edit-facility').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const facilityId = this.getAttribute('data-id');
+                    const facility = facilities.find(f => f.id === facilityId);
+                    
+                    if (facility) {
+                        document.getElementById('facilityModalTitle').textContent = 'Edit Fasilitas';
+                        document.getElementById('facility-id').value = facility.id;
+                        document.getElementById('facility-name').value = facility.name;
+                        document.getElementById('facility-category').value = facility.category;
+                        document.getElementById('facility-price').value = facility.price;
+                        document.getElementById('facility-description').value = facility.description || '';
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('facilityModal'));
+                        modal.show();
+                    }
+                });
+            });
+            
+            // Event listener untuk hapus fasilitas
+            document.querySelectorAll('.delete-facility').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const facilityId = this.getAttribute('data-id');
+                    
+                    // Cek apakah fasilitas digunakan dalam transaksi
+                    const isUsed = transactions.some(t => t.type === 'facility' && t.notes.includes(facilityId));
+                    if (isUsed) {
+                        alert('Fasilitas tidak dapat dihapus karena sudah digunakan dalam transaksi!');
+                        return;
+                    }
+                    
+                    if (confirm('Apakah Anda yakin ingin menghapus fasilitas ini?')) {
+                        facilities = facilities.filter(f => f.id !== facilityId);
+                        localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
+                        loadFacilities();
+                    }
+                });
+            });
+        }
+        
+        function getFacilityCategoryLabel(category) {
+            const categories = {
+                'food': 'Makanan',
+                'beverage': 'Minuman',
+                'service': 'Layanan',
+                'other': 'Lainnya'
+            };
+            return categories[category] || category;
+        }
+        
         // Inisialisasi tamu
         function initTamu() {
             loadGuests();
@@ -1474,7 +1923,109 @@
                 guestsList.appendChild(row);
             });
             
-            // TODO: Tambahkan event listener untuk view, edit, dan hapus tamu
+            // Event listener untuk view tamu
+            document.querySelectorAll('.view-guest').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    viewGuestDetails(guestId);
+                });
+            });
+            
+            // Event listener untuk edit tamu
+            document.querySelectorAll('.edit-guest').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    editGuest(guestId);
+                });
+            });
+            
+            // Event listener untuk hapus tamu
+            document.querySelectorAll('.delete-guest').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    deleteGuest(guestId);
+                });
+            });
+        }
+        
+        function viewGuestDetails(guestId) {
+            const guest = guests.find(g => g.id === guestId);
+            if (!guest) return;
+            
+            const room = rooms.find(r => r.id === guest.roomId);
+            
+            let details = `
+                <h5>Detail Tamu</h5>
+                <hr>
+                <p><strong>Nama:</strong> ${guest.name}</p>
+                <p><strong>No. Identitas:</strong> ${guest.identity}</p>
+                <p><strong>No. Telepon:</strong> ${guest.phone}</p>
+                <p><strong>No. Kamar:</strong> ${room ? room.number : '-'}</p>
+                <p><strong>Tipe Kamar:</strong> ${room ? room.type : '-'}</p>
+                <p><strong>Check-In:</strong> ${formatDate(guest.checkIn)}</p>
+                <p><strong>Check-Out:</strong> ${formatDate(guest.checkOut)}</p>
+                <p><strong>Status:</strong> ${guest.status === 'checked-in' ? 'Check-In' : 'Check-Out'}</p>
+                <p><strong>Catatan:</strong> ${guest.notes || '-'}</p>
+            `;
+            
+            alert(details);
+        }
+        
+        function editGuest(guestId) {
+            const guest = guests.find(g => g.id === guestId);
+            if (!guest) return;
+            
+            // Isi form dengan data tamu
+            document.getElementById('checkin-name').value = guest.name;
+            document.getElementById('checkin-phone').value = guest.phone;
+            document.getElementById('checkin-identity').value = guest.identity;
+            document.getElementById('checkin-notes').value = guest.notes || '';
+            
+            // Hitung durasi menginap
+            const checkInDate = new Date(guest.checkIn);
+            const checkOutDate = new Date(guest.checkOut);
+            const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+            document.getElementById('checkin-duration').value = duration;
+            
+            // Set kamar
+            const roomSelect = document.getElementById('checkin-room');
+            roomSelect.innerHTML = '<option value="">Pilih Kamar</option>';
+            
+            rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.id;
+                option.textContent = `${room.number} (${room.type} - ${formatCurrency(room.price)}/hari)`;
+                if (room.id === guest.roomId) {
+                    option.selected = true;
+                }
+                roomSelect.appendChild(option);
+            });
+            
+            // Scroll ke form check-in
+            document.getElementById('checkin-form').scrollIntoView();
+            
+            // Hapus tamu lama
+            guests = guests.filter(g => g.id !== guestId);
+            localStorage.setItem('hotel_guests', JSON.stringify(guests));
+            
+            alert('Data tamu telah dimuat ke form. Silakan perbarui data dan simpan kembali.');
+        }
+        
+        function deleteGuest(guestId) {
+            const guest = guests.find(g => g.id === guestId);
+            if (!guest) return;
+            
+            if (guest.status === 'checked-in') {
+                alert('Tamu belum check-out. Silakan lakukan check-out terlebih dahulu!');
+                return;
+            }
+            
+            if (confirm(`Apakah Anda yakin ingin menghapus data tamu ${guest.name}?`)) {
+                guests = guests.filter(g => g.id !== guestId);
+                localStorage.setItem('hotel_guests', JSON.stringify(guests));
+                loadGuests();
+                initDashboard();
+            }
         }
         
         // Inisialisasi laporan
@@ -1535,6 +2086,10 @@
                     case 'custom':
                         startDate = document.getElementById('report-start-date').value;
                         endDate = document.getElementById('report-end-date').value;
+                        if (!startDate || !endDate) {
+                            alert('Harap isi tanggal mulai dan tanggal akhir!');
+                            return;
+                        }
                         break;
                 }
                 
@@ -1562,6 +2117,7 @@
                 'room': { label: 'Biaya Kamar', total: 0 },
                 'food': { label: 'Makanan & Minuman', total: 0 },
                 'laundry': { label: 'Laundry', total: 0 },
+                'facility': { label: 'Fasilitas', total: 0 },
                 'other': { label: 'Lainnya', total: 0 }
             };
             
@@ -1648,7 +2204,7 @@
         
         // Inisialisasi tab
         function initTabs() {
-            const tabs = ['dashboard', 'checkin', 'transaksi', 'nota', 'kamar', 'tamu', 'laporan'];
+            const tabs = ['dashboard', 'checkin', 'checkout', 'transaksi', 'nota', 'kamar', 'fasilitas', 'tamu', 'laporan'];
             
             tabs.forEach(tab => {
                 document.getElementById(`${tab}-tab`).addEventListener('click', function(e) {
@@ -1676,6 +2232,9 @@
                         case 'checkin':
                             initCheckIn();
                             break;
+                        case 'checkout':
+                            initCheckOut();
+                            break;
                         case 'transaksi':
                             initTransactions();
                             break;
@@ -1684,6 +2243,9 @@
                             break;
                         case 'kamar':
                             initKamar();
+                            break;
+                        case 'fasilitas':
+                            initFasilitas();
                             break;
                         case 'tamu':
                             initTamu();
