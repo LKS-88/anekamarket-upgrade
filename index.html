@@ -1693,7 +1693,8 @@
             todayGuestsList.innerHTML = '';
             
             const todayGuests = getTodayGuests();
-            todayGuests.forEach((guest, index) => {
+            todayGuests.forEach((guest, index) => 
+                {
                 const room = rooms.find(r => r.id === guest.roomId);
                 const row = document.createElement('tr');
                 
