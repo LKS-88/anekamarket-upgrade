@@ -1610,9 +1610,111 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Data initialization
-        let products = [];
-        let tickets = [];
-        let users = [];
+        let products = [
+            {
+                id: "PRD-001",
+                name: "Taman Wisata Alam",
+                category: "nature",
+                description: "Taman wisata dengan pemandangan alam yang indah",
+                regularPrice: 50000,
+                weekendPrice: 75000,
+                stock: 100,
+                status: "active",
+                createdBy: "system",
+                createdAt: "2023-01-01"
+            },
+            {
+                id: "PRD-002",
+                name: "Museum Sejarah",
+                category: "history",
+                description: "Museum yang menyimpan berbagai artefak sejarah",
+                regularPrice: 30000,
+                weekendPrice: 45000,
+                stock: 50,
+                status: "active",
+                createdBy: "system",
+                createdAt: "2023-01-01"
+            },
+            {
+                id: "PRD-003",
+                name: "Waterpark",
+                category: "waterpark",
+                description: "Wahana air dengan berbagai permainan seru",
+                regularPrice: 80000,
+                weekendPrice: 100000,
+                stock: 200,
+                status: "active",
+                createdBy: "system",
+                createdAt: "2023-01-01"
+            }
+        ];
+
+        let tickets = [
+            {
+                code: "TWA-R-001",
+                destination: "Taman Wisata Alam",
+                type: "regular",
+                price: 50000,
+                date: "2023-06-10",
+                status: "valid",
+                createdBy: "admin",
+                createdAt: "2023-06-01"
+            },
+            {
+                code: "TWA-V-001",
+                destination: "Taman Wisata Alam",
+                type: "vip",
+                price: 75000,
+                date: "2023-06-10",
+                status: "valid",
+                createdBy: "admin",
+                createdAt: "2023-06-01"
+            },
+            {
+                code: "MS-R-001",
+                destination: "Museum Sejarah",
+                type: "regular",
+                price: 30000,
+                date: "2023-06-10",
+                status: "valid",
+                createdBy: "admin",
+                createdAt: "2023-06-01"
+            }
+        ];
+
+        let users = [
+            {
+                name: "Admin",
+                username: "admin",
+                password: "admin123",
+                role: "admin",
+                lastLogin: "",
+                status: "active",
+                createdBy: "system",
+                createdAt: "2023-01-01"
+            },
+            {
+                name: "Kasir 1",
+                username: "kasir1",
+                password: "kasir123",
+                role: "cashier",
+                lastLogin: "",
+                status: "active",
+                createdBy: "admin",
+                createdAt: "2023-01-01"
+            },
+            {
+                name: "Manajer",
+                username: "manager",
+                password: "manager123",
+                role: "manager",
+                lastLogin: "",
+                status: "active",
+                createdBy: "admin",
+                createdAt: "2023-01-01"
+            }
+        ];
+
         let transactions = [];
         let currentUser = null;
         let securityCode = "Tiket.013579";
@@ -1658,20 +1760,6 @@
 
             // Set today's date as default for valid date
             document.getElementById('validDate').valueAsDate = new Date();
-            
-            // Create default admin user if no users exist
-            if (users.length === 0) {
-                users.push({
-                    name: "Admin",
-                    username: "admin",
-                    password: "admin123",
-                    role: "admin",
-                    lastLogin: "",
-                    status: "active",
-                    createdBy: "system",
-                    createdAt: new Date().toISOString()
-                });
-            }
         });
 
         // Login function
@@ -2773,7 +2861,7 @@
                 
                 // Add activity
                 if (user) {
-                    addActivity(`menghapus pengguna: ${user.name
+                    addActivity(`menghapus pengguna: ${user.name}`);
                 }
             }
         }
