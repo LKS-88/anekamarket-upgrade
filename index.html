@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hotel Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -1448,8 +1448,8 @@
         // Data user admin default jika tidak ada
         if (users.length === 0) {
             users = [
-                { id: generateId(), username: 'admin', password: 'Hotel.13579', role: 'admin' },
-                { id: generateId(), username: 'staff', password: 'Staff.123', role: 'staff' }
+                { id: generateId(), username: 'admin', password: 'admin123', role: 'admin' },
+                { id: generateId(), username: 'staff', password: 'staff123', role: 'staff' }
             ];
             localStorage.setItem('hotel_users', JSON.stringify(users));
         }
@@ -1502,22 +1502,38 @@
         let adminVerified = false;
         
         // Fungsi utilitas
-        function formatDate(dateString) {
-            const options = { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-            return new Date(dateString).toLocaleDateString('id-ID', options);
-        }
-        
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
-        }
-        
         function generateId() {
             return '_' + Math.random().toString(36).substr(2, 9);
         }
         
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '-';
+            
+            const options = { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false
+            };
+            return date.toLocaleDateString('id-ID', options);
+        }
+        
+        function formatCurrency(amount) {
+            if (isNaN(amount)) return 'Rp 0';
+            return new Intl.NumberFormat('id-ID', { 
+                style: 'currency', 
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+        
         function getTodayGuests() {
             const today = new Date().toISOString().split('T')[0];
-            return guests.filter(guest => guest.checkIn.split('T')[0] === today);
+            return guests.filter(guest => guest.checkIn && guest.checkIn.split('T')[0] === today);
         }
         
         function getOccupiedRooms() {
@@ -1527,12 +1543,11 @@
         function getTodayIncome() {
             const today = new Date().toISOString().split('T')[0];
             return transactions
-                .filter(t => t.date.split('T')[0] === today)
-                .reduce((sum, t) => sum + t.amount, 0);
+                .filter(t => t.date && t.date.split('T')[0] === today)
+                .reduce((sum, t) => sum + (t.amount || 0), 0);
         }
         
         function getActiveStaff() {
-            const today = new Date().toISOString().split('T')[0];
             return employees.filter(e => e.status === 'active').length;
         }
         
@@ -1543,25 +1558,23 @@
             return { name: 'Malam', class: 'shift-night' };
         }
         
-        // Cek apakah tamu sudah check-in dalam 24 jam terakhir
         function isGuestAlreadyCheckedIn(identity) {
             const twentyFourHoursAgo = new Date();
             twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
             
             return guests.some(guest => 
                 guest.identity === identity && 
+                guest.checkIn &&
                 new Date(guest.checkIn) > twentyFourHoursAgo &&
                 guest.status === 'checked-in'
             );
         }
         
-        // Fungsi untuk mengecek akses user
         function checkAccess(requiredRoles) {
             if (!currentUser) return false;
             return requiredRoles.includes(currentUser.role);
         }
         
-        // Fungsi untuk verifikasi admin
         function verifyAdmin(callback) {
             if (adminVerified) {
                 callback();
@@ -1585,24 +1598,19 @@
             };
         }
         
-        // Fungsi untuk update UI berdasarkan role user
         function updateUIForUser() {
             const adminTabs = document.querySelectorAll('.nav-link.admin');
             
-            // Sembunyikan semua tab admin terlebih dahulu
             adminTabs.forEach(tab => tab.style.display = 'none');
             
-            // Tampilkan tab sesuai role
             if (checkAccess(['admin'])) {
                 adminTabs.forEach(tab => tab.style.display = 'block');
             }
             
-            // Update info user
             if (currentUser) {
                 document.getElementById('current-user-role').textContent = currentUser.role.toUpperCase();
                 document.getElementById('current-user-role').className = `badge ${currentUser.role === 'admin' ? 'bg-admin' : 'bg-staff'}`;
                 
-                // Update shift saat ini
                 currentShift = getCurrentShift();
                 const shiftBadge = document.getElementById('current-shift');
                 shiftBadge.textContent = `Shift ${currentShift.name}`;
@@ -1618,17 +1626,19 @@
             document.getElementById('today-income').textContent = formatCurrency(getTodayIncome());
             document.getElementById('active-staff').textContent = getActiveStaff();
             
-            // Update harga layanan tambahan dari settings
             document.getElementById('breakfast-price').textContent = settings.breakfastPrice || 50000;
             document.getElementById('laundry-price').textContent = settings.laundryPrice || 40000;
             document.getElementById('massage-price').textContent = settings.massagePrice || 150000;
             
-            // Inisialisasi chart
             const ctx = document.getElementById('monthlyChart').getContext('2d');
-            const monthlyChart = new Chart(ctx, {
+            if (window.monthlyChart instanceof Chart) {
+                window.monthlyChart.destroy();
+            }
+            
+            window.monthlyChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'],
+                    labels: Array.from({ length: 31 }, (_, i) => (i + 1).toString()),
                     datasets: [{
                         label: 'Pendapatan Harian',
                         data: Array(31).fill(0).map(() => Math.floor(Math.random() * 5000000)),
@@ -1664,7 +1674,6 @@
         
         // Inisialisasi check-in
         function initCheckIn() {
-            // Load kamar yang tersedia
             const roomSelect = document.getElementById('checkin-room');
             roomSelect.innerHTML = '<option value="">Pilih Kamar</option>';
             
@@ -1677,14 +1686,12 @@
                 roomSelect.appendChild(option);
             });
             
-            // Event listener untuk menghitung total biaya
             document.getElementById('checkin-room').addEventListener('change', calculateCheckInTotal);
             document.getElementById('checkin-duration').addEventListener('change', calculateCheckInTotal);
             document.getElementById('checkin-breakfast').addEventListener('change', calculateCheckInTotal);
             document.getElementById('checkin-laundry').addEventListener('change', calculateCheckInTotal);
             document.getElementById('checkin-massage').addEventListener('change', calculateCheckInTotal);
             
-            // Load tamu hari ini
             loadTodayGuests();
         }
         
@@ -1697,7 +1704,6 @@
                 const room = rooms.find(r => r.id === guest.roomId);
                 const row = document.createElement('tr');
                 
-                // Tentukan tombol aksi berdasarkan status tamu
                 let actionButton = '';
                 if (guest.status === 'checked-in') {
                     actionButton = `
@@ -1715,7 +1721,7 @@
                 
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${guest.name}</td>
+                    <td>${guest.name || '-'}</td>
                     <td>${room ? room.number : '-'}</td>
                     <td>${formatDate(guest.checkIn)}</td>
                     <td>${formatDate(guest.checkOut)}</td>
@@ -1729,7 +1735,6 @@
                 todayGuestsList.appendChild(row);
             });
             
-            // Event listener untuk check-out
             document.querySelectorAll('.checkout-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const guestId = this.getAttribute('data-id');
@@ -1762,7 +1767,6 @@
             document.getElementById('checkin-total').textContent = formatCurrency(total);
         }
         
-        // Event listener form check-in
         document.getElementById('checkin-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -1781,7 +1785,6 @@
             const laundryIncluded = document.getElementById('checkin-laundry').checked;
             const massageIncluded = document.getElementById('checkin-massage').checked;
             
-            // Validasi no. identitas
             if (isGuestAlreadyCheckedIn(identity)) {
                 alert('Tamu dengan identitas ini sudah check-in dalam 24 jam terakhir dan belum check-out!');
                 return;
@@ -1809,14 +1812,12 @@
             guests.push(newGuest);
             localStorage.setItem('hotel_guests', JSON.stringify(guests));
             
-            // Update status kamar
             const roomIndex = rooms.findIndex(r => r.id === roomId);
             if (roomIndex !== -1) {
                 rooms[roomIndex].status = 'occupied';
                 localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
             }
             
-            // Buat transaksi untuk kamar
             const room = rooms.find(r => r.id === roomId);
             if (room) {
                 const roomTotal = room.price * duration;
@@ -1837,7 +1838,6 @@
                 
                 transactions.push(newTransaction);
                 
-                // Tambahkan transaksi sarapan jika dipilih
                 if (breakfastIncluded) {
                     const breakfastTransaction = {
                         id: generateId(),
@@ -1852,7 +1852,6 @@
                     transactions.push(breakfastTransaction);
                 }
                 
-                // Tambahkan transaksi laundry jika dipilih
                 if (laundryIncluded) {
                     const laundryTransaction = {
                         id: generateId(),
@@ -1867,7 +1866,6 @@
                     transactions.push(laundryTransaction);
                 }
                 
-                // Tambahkan transaksi pijat jika dipilih
                 if (massageIncluded) {
                     const massageTransaction = {
                         id: generateId(),
@@ -1907,8 +1905,8 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${guest.name}</td>
-                    <td>${guest.identity}</td>
+                    <td>${guest.name || '-'}</td>
+                    <td>${guest.identity || '-'}</td>
                     <td>${room ? room.number : '-'}</td>
                     <td>${formatDate(guest.checkIn)}</td>
                     <td>${formatDate(guest.checkOut)}</td>
@@ -1921,7 +1919,6 @@
                 checkoutGuestsList.appendChild(row);
             });
             
-            // Event listener untuk check-out
             document.querySelectorAll('.checkout-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const guestId = this.getAttribute('data-id');
@@ -1946,7 +1943,6 @@
                 guests[guestIndex].actualCheckOut = new Date().toISOString();
                 localStorage.setItem('hotel_guests', JSON.stringify(guests));
                 
-                // Update status kamar
                 const roomId = guests[guestIndex].roomId;
                 const roomIndex = rooms.findIndex(r => r.id === roomId);
                 if (roomIndex !== -1) {
@@ -1954,7 +1950,6 @@
                     localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
                 }
                 
-                // Hitung durasi sebenarnya
                 const checkInDate = new Date(guests[guestIndex].checkIn);
                 const actualCheckOutDate = new Date(guests[guestIndex].actualCheckOut);
                 const plannedCheckOutDate = new Date(guests[guestIndex].checkOut);
@@ -1962,7 +1957,6 @@
                 const actualDuration = Math.ceil((actualCheckOutDate - checkInDate) / (1000 * 60 * 60 * 24));
                 const plannedDuration = Math.ceil((plannedCheckOutDate - checkInDate) / (1000 * 60 * 60 * 24));
                 
-                // Jika check-out lebih awal, buat transaksi pengembalian (jika ada)
                 if (actualDuration < plannedDuration) {
                     const room = rooms.find(r => r.id === roomId);
                     if (room) {
@@ -1982,9 +1976,7 @@
                         transactions.push(newTransaction);
                         localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
                     }
-                }
-                // Jika check-out terlambat, buat transaksi tambahan
-                else if (actualDuration > plannedDuration) {
+                } else if (actualDuration > plannedDuration) {
                     const room = rooms.find(r => r.id === roomId);
                     if (room) {
                         const additionalAmount = room.price * (actualDuration - plannedDuration);
@@ -2014,7 +2006,6 @@
         
         // Inisialisasi transaksi
         function initTransactions() {
-            // Load daftar tamu
             const guestSelect = document.getElementById('transaction-guest');
             guestSelect.innerHTML = '<option value="">Pilih Tamu</option>';
             
@@ -2026,7 +2017,6 @@
                 guestSelect.appendChild(option);
             });
             
-            // Load fasilitas
             const facilitySelect = document.getElementById('transaction-facility');
             facilitySelect.innerHTML = '<option value="">Pilih Fasilitas</option>';
             
@@ -2038,7 +2028,6 @@
                 facilitySelect.appendChild(option);
             });
             
-            // Event listener untuk jenis transaksi
             document.getElementById('transaction-type').addEventListener('change', function() {
                 const facilityContainer = document.getElementById('facility-select-container');
                 if (this.value === 'facility') {
@@ -2051,7 +2040,6 @@
                 }
             });
             
-            // Event listener untuk pilihan fasilitas
             document.getElementById('transaction-facility').addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 if (selectedOption.value) {
@@ -2061,11 +2049,9 @@
                 }
             });
             
-            // Event listener untuk menghitung subtotal
             document.getElementById('transaction-amount').addEventListener('input', calculateTransactionSubtotal);
             document.getElementById('transaction-quantity').addEventListener('input', calculateTransactionSubtotal);
             
-            // Event listener form transaksi
             document.getElementById('transaction-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -2108,10 +2094,8 @@
                 initDashboard();
             });
             
-            // Load transaksi
             loadTransactions();
             
-            // Event listener filter transaksi
             document.getElementById('filter-transactions').addEventListener('click', loadTransactions);
         }
         
@@ -2130,7 +2114,7 @@
             let filteredTransactions = [...transactions];
             
             if (dateFilter) {
-                filteredTransactions = filteredTransactions.filter(t => t.date.split('T')[0] === dateFilter);
+                filteredTransactions = filteredTransactions.filter(t => t.date && t.date.split('T')[0] === dateFilter);
             }
             
             if (typeFilter) {
@@ -2148,7 +2132,7 @@
                     <td>${formatDate(transaction.date)}</td>
                     <td>${guest ? guest.name : 'Tamu tidak ditemukan'}</td>
                     <td>${getTransactionTypeLabel(transaction.type)}</td>
-                    <td>${transaction.notes}</td>
+                    <td>${transaction.notes || '-'}</td>
                     <td>${formatCurrency(transaction.amount)}</td>
                     <td>${transaction.cashier || '-'}</td>
                     <td>
@@ -2162,7 +2146,6 @@
                 transactionsList.appendChild(row);
             });
             
-            // Event listener untuk hapus transaksi
             document.querySelectorAll('.delete-transaction').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
@@ -2193,18 +2176,14 @@
         
         // Inisialisasi nota
         function initNota() {
-            // Load daftar tamu untuk nota
             loadInvoiceGuests();
             
-            // Update informasi hotel di nota
             document.getElementById('hotel-name-header').textContent = settings.hotelName || 'HOTEL MEWAH';
             document.getElementById('hotel-address-header').textContent = settings.hotelAddress || 'Jl. Raya No. 123, Kota Anda';
             document.getElementById('hotel-contact-header').textContent = `Telp: ${settings.hotelPhone || '(021) 1234567'} | Email: ${settings.hotelEmail || 'info@hotelmewah.com'}`;
             
-            // Event listener filter tamu untuk nota
             document.getElementById('filter-invoice-guests').addEventListener('click', loadInvoiceGuests);
             
-            // Event listener untuk pilih tamu
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('select-guest')) {
                     const guestId = e.target.getAttribute('data-id');
@@ -2212,24 +2191,20 @@
                 }
             });
             
-            // Event listener cetak nota
             document.getElementById('print-invoice').addEventListener('click', function() {
                 window.print();
             });
             
-            // Event listener simpan nota
             document.getElementById('save-invoice').addEventListener('click', function() {
                 const invoiceContainer = document.getElementById('invoice-container');
                 const invoiceNumber = document.getElementById('invoice-number').textContent;
                 
-                // Cek apakah nota sudah ada
                 const existingInvoice = invoices.find(inv => inv.number === invoiceNumber);
                 if (existingInvoice) {
                     alert('Nota sudah disimpan sebelumnya!');
                     return;
                 }
                 
-                // Simpan nota
                 const newInvoice = {
                     id: generateId(),
                     number: invoiceNumber,
@@ -2250,7 +2225,6 @@
                 invoices.push(newInvoice);
                 localStorage.setItem('hotel_invoices', JSON.stringify(invoices));
                 
-                // Update transaksi dengan invoiceId
                 const guestTransactions = transactions.filter(t => t.guestId === newInvoice.guestId && !t.invoiceId);
                 guestTransactions.forEach(t => {
                     t.invoiceId = newInvoice.id;
@@ -2260,23 +2234,19 @@
                 alert('Nota berhasil disimpan!');
             });
             
-            // Event listener download nota PDF
             document.getElementById('download-invoice-pdf').addEventListener('click', function() {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 
-                // Hotel info
                 doc.setFontSize(18);
                 doc.text(settings.hotelName || 'HOTEL MEWAH', 105, 15, { align: 'center' });
                 doc.setFontSize(12);
                 doc.text(settings.hotelAddress || 'Jl. Raya No. 123, Kota Anda', 105, 22, { align: 'center' });
                 doc.text(`Telp: ${settings.hotelPhone || '(021) 1234567'} | Email: ${settings.hotelEmail || 'info@hotelmewah.com'}`, 105, 28, { align: 'center' });
                 
-                // Invoice info
                 doc.setFontSize(14);
                 doc.text('NOTA PEMBAYARAN', 105, 38, { align: 'center' });
                 
-                // Invoice details
                 doc.setFontSize(10);
                 doc.text(`No. Nota: ${document.getElementById('invoice-number').textContent}`, 15, 45);
                 doc.text(`Tanggal: ${document.getElementById('invoice-date').textContent}`, 15, 50);
@@ -2286,7 +2256,6 @@
                 doc.text(`No. Kamar: ${document.getElementById('invoice-room-number').textContent}`, 105, 50);
                 doc.text(`No. Identitas: ${document.getElementById('invoice-guest-id').textContent}`, 105, 55);
                 
-                // Items table
                 const items = Array.from(document.querySelectorAll('#invoice-items tr')).map(row => [
                     row.cells[0].textContent,
                     row.cells[1].textContent,
@@ -2303,18 +2272,15 @@
                     headStyles: { fillColor: [44, 62, 80] }
                 });
                 
-                // Totals
                 const finalY = doc.lastAutoTable.finalY + 10;
                 doc.text(`Subtotal: ${document.getElementById('invoice-subtotal').textContent}`, 160, finalY);
                 doc.text(`Pajak (10%): ${document.getElementById('invoice-tax').textContent}`, 160, finalY + 5);
                 doc.text(`Total: ${document.getElementById('invoice-total').textContent}`, 160, finalY + 10);
                 
-                // Footer
                 doc.setFontSize(10);
                 doc.text('Terima kasih atas kunjungan Anda', 105, finalY + 20, { align: 'center' });
                 doc.text('Nota ini sah tanpa tanda tangan dan stempel', 105, finalY + 25, { align: 'center' });
                 
-                // Save the PDF
                 doc.save(`nota_${document.getElementById('invoice-number').textContent}.pdf`);
             });
         }
@@ -2327,14 +2293,14 @@
             
             if (searchQuery) {
                 filteredGuests = filteredGuests.filter(g => 
-                    g.name.toLowerCase().includes(searchQuery) || 
-                    g.identity.includes(searchQuery) ||
+                    (g.name && g.name.toLowerCase().includes(searchQuery)) || 
+                    (g.identity && g.identity.includes(searchQuery)) ||
                     (rooms.find(r => r.id === g.roomId)?.number.includes(searchQuery))
                 );
             }
             
             if (dateFilter) {
-                filteredGuests = filteredGuests.filter(g => g.checkIn.split('T')[0] === dateFilter);
+                filteredGuests = filteredGuests.filter(g => g.checkIn && g.checkIn.split('T')[0] === dateFilter);
             }
             
             const invoiceGuestsList = document.getElementById('invoice-guests-list');
@@ -2344,8 +2310,8 @@
                 const room = rooms.find(r => r.id === guest.roomId);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${guest.name}</td>
-                    <td>${guest.identity}</td>
+                    <td>${guest.name || '-'}</td>
+                    <td>${guest.identity || '-'}</td>
                     <td>${room ? room.number : '-'}</td>
                     <td>
                         <span class="badge ${guest.status === 'checked-in' ? 'bg-success' : 'bg-secondary'}">
@@ -2375,13 +2341,11 @@
                 return;
             }
             
-            // Hitung durasi menginap
             const checkInDate = new Date(guest.checkIn);
             const checkOutDate = guest.status === 'checked-out' && guest.actualCheckOut ? 
                 new Date(guest.actualCheckOut) : new Date(guest.checkOut);
             const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
             
-            // Set data nota
             document.getElementById('invoice-number').textContent = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(invoices.length + 1).padStart(4, '0')}`;
             document.getElementById('invoice-date').textContent = formatDate(new Date().toISOString());
             document.getElementById('invoice-guest-name').textContent = guest.name;
@@ -2389,7 +2353,6 @@
             document.getElementById('invoice-guest-id').textContent = guest.identity;
             document.getElementById('invoice-cashier').textContent = currentUser.username;
             
-            // Generate barcode
             JsBarcode("#invoice-barcode", document.getElementById('invoice-number').textContent, {
                 format: "CODE128",
                 lineColor: "#000",
@@ -2398,11 +2361,9 @@
                 displayValue: true
             });
             
-            // Set item nota
             const invoiceItems = document.getElementById('invoice-items');
             invoiceItems.innerHTML = '';
             
-            // Tambahkan biaya kamar
             const roomRow = document.createElement('tr');
             roomRow.innerHTML = `
                 <td>1</td>
@@ -2413,7 +2374,6 @@
             `;
             invoiceItems.appendChild(roomRow);
             
-            // Tambahkan sarapan jika ada
             if (guest.breakfastIncluded) {
                 const breakfastRow = document.createElement('tr');
                 breakfastRow.innerHTML = `
@@ -2426,7 +2386,6 @@
                 invoiceItems.appendChild(breakfastRow);
             }
             
-            // Tambahkan laundry jika ada
             if (guest.laundryIncluded) {
                 const laundryRow = document.createElement('tr');
                 laundryRow.innerHTML = `
@@ -2439,7 +2398,6 @@
                 invoiceItems.appendChild(laundryRow);
             }
             
-            // Tambahkan pijat jika ada
             if (guest.massageIncluded) {
                 const massageRow = document.createElement('tr');
                 massageRow.innerHTML = `
@@ -2452,7 +2410,6 @@
                 invoiceItems.appendChild(massageRow);
             }
             
-            // Tambahkan transaksi lainnya yang belum masuk nota
             const guestTransactions = transactions.filter(t => t.guestId === guestId && !t.invoiceId);
             guestTransactions.forEach((t, i) => {
                 let rowNumber = 4;
@@ -2471,12 +2428,11 @@
                 invoiceItems.appendChild(row);
             });
             
-            // Hitung total
             const roomTotal = room.price * duration;
             const breakfastTotal = guest.breakfastIncluded ? settings.breakfastPrice * duration : 0;
             const laundryTotal = guest.laundryIncluded ? settings.laundryPrice : 0;
             const massageTotal = guest.massageIncluded ? settings.massagePrice : 0;
-            const otherTotal = guestTransactions.reduce((sum, t) => sum + t.amount, 0);
+            const otherTotal = guestTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
             const subtotal = roomTotal + breakfastTotal + laundryTotal + massageTotal + otherTotal;
             const tax = subtotal * (settings.hotelTax / 100);
             const total = subtotal + tax;
@@ -2485,7 +2441,6 @@
             document.getElementById('invoice-tax').textContent = formatCurrency(tax);
             document.getElementById('invoice-total').textContent = formatCurrency(total);
             
-            // Tampilkan nota
             document.getElementById('invoice-container').classList.remove('d-none');
         }
         
@@ -2493,7 +2448,6 @@
         function initKamar() {
             loadRooms();
             
-            // Event listener tambah kamar
             document.getElementById('add-room-btn').addEventListener('click', function() {
                 if (!checkAccess(['admin'])) {
                     alert('Anda tidak memiliki akses untuk menambah kamar!');
@@ -2508,7 +2462,6 @@
                 modal.show();
             });
             
-            // Event listener simpan kamar
             document.getElementById('save-room').addEventListener('click', function() {
                 const id = document.getElementById('room-id').value;
                 const number = document.getElementById('room-number').value;
@@ -2522,16 +2475,13 @@
                     return;
                 }
                 
-                // Validasi nomor kamar unik
                 if (id) {
-                    // Edit kamar - cek apakah nomor kamar sudah digunakan oleh kamar lain
                     const existingRoom = rooms.find(r => r.number === number && r.id !== id);
                     if (existingRoom) {
                         alert('Nomor kamar sudah digunakan!');
                         return;
                     }
                     
-                    // Edit kamar
                     const roomIndex = rooms.findIndex(r => r.id === id);
                     if (roomIndex !== -1) {
                         rooms[roomIndex] = {
@@ -2544,7 +2494,6 @@
                         };
                     }
                 } else {
-                    // Tambah kamar baru - cek apakah nomor kamar sudah ada
                     const existingRoom = rooms.find(r => r.number === number);
                     if (existingRoom) {
                         alert('Nomor kamar sudah digunakan!');
@@ -2579,7 +2528,7 @@
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${room.number}</td>
-		                    <td>${room.type}</td>
+                    <td>${room.type}</td>
                     <td>${formatCurrency(room.price)}</td>
                     <td>
                         <span class="badge ${room.status === 'available' ? 'bg-success' : room.status === 'occupied' ? 'bg-warning' : 'bg-danger'}">
@@ -2600,7 +2549,6 @@
                 roomsList.appendChild(row);
             });
             
-            // Event listener untuk edit kamar
             document.querySelectorAll('.edit-room').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (!checkAccess(['admin'])) {
@@ -2626,36 +2574,29 @@
                 });
             });
             
-            // Event listener untuk hapus kamar
             document.querySelectorAll('.delete-room').forEach(btn => {
                 btn.addEventListener('click', function() {
+                    const roomId = this.getAttribute('data-id');
+                    const isRoomOccupied = guests.some(g => g.roomId === roomId && g.status === 'checked-in');
+                    
+                    if (isRoomOccupied) {
+                        alert('Kamar tidak dapat dihapus karena sedang digunakan!');
+                        return;
+                    }
+                    
                     if (confirm('Apakah Anda yakin ingin menghapus kamar ini?')) {
-                        const roomId = this.getAttribute('data-id');
-                        deleteRoom(roomId);
+                        rooms = rooms.filter(r => r.id !== roomId);
+                        localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                        loadRooms();
                     }
                 });
             });
-        }
-        
-        function deleteRoom(roomId) {
-            // Cek apakah kamar sedang digunakan
-            const isRoomOccupied = guests.some(g => g.roomId === roomId && g.status === 'checked-in');
-            
-            if (isRoomOccupied) {
-                alert('Kamar tidak dapat dihapus karena sedang digunakan!');
-                return;
-            }
-            
-            rooms = rooms.filter(r => r.id !== roomId);
-            localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
-            loadRooms();
         }
         
         // Inisialisasi fasilitas
         function initFasilitas() {
             loadFacilities();
             
-            // Event listener tambah fasilitas
             document.getElementById('add-facility-btn').addEventListener('click', function() {
                 if (!checkAccess(['admin'])) {
                     alert('Anda tidak memiliki akses untuk menambah fasilitas!');
@@ -2670,7 +2611,6 @@
                 modal.show();
             });
             
-            // Event listener simpan fasilitas
             document.getElementById('save-facility').addEventListener('click', function() {
                 const id = document.getElementById('facility-id').value;
                 const name = document.getElementById('facility-name').value;
@@ -2685,7 +2625,6 @@
                 }
                 
                 if (id) {
-                    // Edit fasilitas
                     const facilityIndex = facilities.findIndex(f => f.id === id);
                     if (facilityIndex !== -1) {
                         facilities[facilityIndex] = {
@@ -2698,7 +2637,6 @@
                         };
                     }
                 } else {
-                    // Tambah fasilitas baru
                     const newFacility = {
                         id: generateId(),
                         name,
@@ -2727,7 +2665,7 @@
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${facility.name}</td>
-                    <td>${getFacilityCategoryLabel(facility.category)}</td>
+                    <td>${facility.category}</td>
                     <td>${formatCurrency(facility.price)}</td>
                     <td>
                         <span class="facility-status ${facility.status === 'available' ? 'status-available' : 'status-unavailable'}"></span>
@@ -2748,7 +2686,6 @@
                 facilitiesList.appendChild(row);
             });
             
-            // Event listener untuk edit fasilitas
             document.querySelectorAll('.edit-facility').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (!checkAccess(['admin'])) {
@@ -2765,7 +2702,7 @@
                         document.getElementById('facility-name').value = facility.name;
                         document.getElementById('facility-category').value = facility.category;
                         document.getElementById('facility-price').value = facility.price;
-                        document.getElementById(`${facility.status === 'available' ? 'facility-available' : 'facility-unavailable'}`).checked = true;
+                        document.getElementById(facility.status === 'available' ? 'facility-available' : 'facility-unavailable').checked = true;
                         document.getElementById('facility-description').value = facility.description || '';
                         
                         const modal = new bootstrap.Modal(document.getElementById('facilityModal'));
@@ -2774,38 +2711,23 @@
                 });
             });
             
-            // Event listener untuk hapus fasilitas
             document.querySelectorAll('.delete-facility').forEach(btn => {
                 btn.addEventListener('click', function() {
+                    const facilityId = this.getAttribute('data-id');
+                    
                     if (confirm('Apakah Anda yakin ingin menghapus fasilitas ini?')) {
-                        const facilityId = this.getAttribute('data-id');
-                        deleteFacility(facilityId);
+                        facilities = facilities.filter(f => f.id !== facilityId);
+                        localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
+                        loadFacilities();
                     }
                 });
             });
-        }
-        
-        function getFacilityCategoryLabel(category) {
-            const categories = {
-                'food': 'Makanan',
-                'beverage': 'Minuman',
-                'service': 'Layanan',
-                'other': 'Lainnya'
-            };
-            return categories[category] || category;
-        }
-        
-        function deleteFacility(facilityId) {
-            facilities = facilities.filter(f => f.id !== facilityId);
-            localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
-            loadFacilities();
         }
         
         // Inisialisasi tamu
         function initTamu() {
             loadGuests();
             
-            // Event listener filter tamu
             document.getElementById('filter-guests').addEventListener('click', loadGuests);
         }
         
@@ -2817,9 +2739,7 @@
             
             if (searchQuery) {
                 filteredGuests = filteredGuests.filter(g => 
-                    g.name.toLowerCase().includes(searchQuery) || 
-                    g.identity.includes(searchQuery) ||
-                    g.phone.includes(searchQuery)
+                    g.name && g.name.toLowerCase().includes(searchQuery)
                 );
             }
             
@@ -2835,9 +2755,9 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${guest.name}</td>
-                    <td>${guest.identity}</td>
-                    <td>${guest.phone}</td>
+                    <td>${guest.name || '-'}</td>
+                    <td>${guest.identity || '-'}</td>
+                    <td>${guest.phone || '-'}</td>
                     <td>${room ? room.number : '-'}</td>
                     <td>
                         <span class="badge ${guest.status === 'checked-in' ? 'bg-success' : 'bg-secondary'}">
@@ -2853,54 +2773,60 @@
                 guestsList.appendChild(row);
             });
             
-            // Event listener untuk detail tamu
             document.querySelectorAll('.view-guest').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const guestId = this.getAttribute('data-id');
-                    showGuestDetails(guestId);
+                    viewGuestDetails(guestId);
                 });
             });
         }
         
-        function showGuestDetails(guestId) {
+        function viewGuestDetails(guestId) {
             const guest = guests.find(g => g.id === guestId);
-            if (!guest) return;
+            if (!guest) {
+                alert('Data tamu tidak ditemukan!');
+                return;
+            }
             
             const room = rooms.find(r => r.id === guest.roomId);
+            const checkInDate = new Date(guest.checkIn);
+            const checkOutDate = new Date(guest.checkOut);
+            const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
             
             let details = `
                 <h5>Detail Tamu</h5>
                 <hr>
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Nama:</strong> ${guest.name}</p>
-                        <p><strong>No. Identitas:</strong> ${guest.identity}</p>
-                        <p><strong>No. Telepon:</strong> ${guest.phone}</p>
+                        <p><strong>Nama:</strong> ${guest.name || '-'}</p>
+                        <p><strong>No. Identitas:</strong> ${guest.identity || '-'}</p>
+                        <p><strong>No. Telepon:</strong> ${guest.phone || '-'}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>No. Kamar:</strong> ${room ? room.number : '-'}</p>
+                        <p><strong>Kamar:</strong> ${room ? room.number + ' (' + room.type + ')' : '-'}</p>
                         <p><strong>Check-In:</strong> ${formatDate(guest.checkIn)}</p>
-                        <p><strong>Check-Out:</strong> ${formatDate(guest.checkOut)}</p>
+                        <p><strong>Check-Out:</strong> ${formatDate(guest.checkOut)} (${duration} hari)</p>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <p><strong>Catatan:</strong> ${guest.notes || '-'}</p>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6>Layanan Tambahan:</h6>
-                        <ul>
-                            <li>Sarapan: ${guest.breakfastIncluded ? 'Ya' : 'Tidak'}</li>
-                            <li>Laundry: ${guest.laundryIncluded ? 'Ya' : 'Tidak'}</li>
-                            <li>Pijat: ${guest.massageIncluded ? 'Ya' : 'Tidak'}</li>
-                        </ul>
-                    </div>
-                </div>
+                <hr>
+                <h5>Layanan Tambahan</h5>
+                <ul>
             `;
             
-            // Buat modal untuk menampilkan detail
+            if (guest.breakfastIncluded) {
+                details += `<li>Sarapan Pagi (${settings.breakfastPrice ? formatCurrency(settings.breakfastPrice * duration) : '-'})</li>`;
+            }
+            
+            if (guest.laundryIncluded) {
+                details += `<li>Layanan Laundry (${settings.laundryPrice ? formatCurrency(settings.laundryPrice) : '-'})</li>`;
+            }
+            
+            if (guest.massageIncluded) {
+                details += `<li>Layanan Pijat (${settings.massagePrice ? formatCurrency(settings.massagePrice) : '-'})</li>`;
+            }
+            
+            details += `</ul><hr><p><strong>Catatan:</strong> ${guest.notes || '-'}</p>`;
+            
             const modal = new bootstrap.Modal(document.createElement('div'));
             modal._element.className = 'modal fade';
             modal._element.innerHTML = `
@@ -2923,7 +2849,6 @@
             document.body.appendChild(modal._element);
             modal.show();
             
-            // Hapus modal setelah ditutup
             modal._element.addEventListener('hidden.bs.modal', function() {
                 document.body.removeChild(modal._element);
             });
@@ -2931,19 +2856,19 @@
         
         // Inisialisasi laporan
         function initLaporan() {
-            // Inisialisasi tahun untuk filter
+            // Isi tahun untuk filter
             const currentYear = new Date().getFullYear();
             const yearSelect = document.getElementById('schedule-year');
+            yearSelect.innerHTML = '';
             
-            for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+            for (let year = currentYear - 5; year <= currentYear + 5; year++) {
                 const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i;
-                if (i === currentYear) option.selected = true;
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) option.selected = true;
                 yearSelect.appendChild(option);
             }
             
-            // Event listener jenis laporan
             document.getElementById('report-type').addEventListener('change', function() {
                 document.getElementById('report-date-container').classList.add('d-none');
                 document.getElementById('report-week-container').classList.add('d-none');
@@ -2961,112 +2886,126 @@
                 }
             });
             
-            // Event listener generate laporan
             document.getElementById('generate-report').addEventListener('click', generateReport);
-            
-            // Event listener cetak laporan
             document.getElementById('print-report').addEventListener('click', function() {
                 window.print();
             });
             
-            // Event listener download laporan PDF
-            document.getElementById('download-report-pdf').addEventListener('click', downloadReportPDF);
-            
-            // Event listener generate jadwal karyawan
-            document.getElementById('generate-schedule').addEventListener('click', generateSchedule);
-            
-            // Event listener cetak jadwal
-            document.getElementById('print-schedule').addEventListener('click', function() {
-                window.print();
+            document.getElementById('download-report-pdf').addEventListener('click', function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const reportTitle = document.querySelector('#report-result .card-header h5').textContent;
+                const reportContent = document.getElementById('report-content').innerText;
+                
+                doc.setFontSize(18);
+                doc.text(reportTitle, 105, 15, { align: 'center' });
+                
+                doc.setFontSize(12);
+                const lines = doc.splitTextToSize(reportContent, 180);
+                doc.text(lines, 15, 30);
+                
+                doc.save(`laporan_${new Date().toISOString().split('T')[0]}.pdf`);
             });
-            
-            // Event listener download jadwal PDF
-            document.getElementById('download-schedule-pdf').addEventListener('click', downloadSchedulePDF);
         }
         
         function generateReport() {
-            const type = document.getElementById('report-type').value;
+            const reportType = document.getElementById('report-type').value;
             const category = document.getElementById('report-category').value;
             
             let filteredTransactions = [...transactions];
+            let reportTitle = '';
+            let dateRange = '';
             
-            // Filter berdasarkan tanggal
-            if (type === 'daily') {
+            if (reportType === 'daily') {
                 const date = document.getElementById('report-date').value;
-                if (date) {
-                    filteredTransactions = filteredTransactions.filter(t => t.date.split('T')[0] === date);
+                if (!date) {
+                    alert('Harap pilih tanggal!');
+                    return;
                 }
-            } else if (type === 'weekly') {
-                const weekInput = document.getElementById('report-week').value;
-                if (weekInput) {
-                    const [year, week] = weekInput.split('-W');
-                    const startDate = getDateOfWeek(parseInt(week), parseInt(year));
-                    const endDate = new Date(startDate);
-                    endDate.setDate(startDate.getDate() + 6);
-                    
-                    filteredTransactions = filteredTransactions.filter(t => {
-                        const transactionDate = new Date(t.date);
-                        return transactionDate >= startDate && transactionDate <= endDate;
-                    });
+                
+                filteredTransactions = filteredTransactions.filter(t => t.date && t.date.split('T')[0] === date);
+                reportTitle = `Laporan Harian - ${date}`;
+                dateRange = `Tanggal: ${date}`;
+            } else if (reportType === 'weekly') {
+                const week = document.getElementById('report-week').value;
+                if (!week) {
+                    alert('Harap pilih minggu!');
+                    return;
                 }
-            } else if (type === 'monthly') {
-                const monthInput = document.getElementById('report-month').value;
-                if (monthInput) {
-                    const [year, month] = monthInput.split('-');
-                    const startDate = new Date(year, month - 1, 1);
-                    const endDate = new Date(year, month, 0);
-                    
-                    filteredTransactions = filteredTransactions.filter(t => {
-                        const transactionDate = new Date(t.date);
-                        return transactionDate >= startDate && transactionDate <= endDate;
-                    });
+                
+                const [year, weekNum] = week.split('-W');
+                const firstDay = new Date(year, 0, 1 + (weekNum - 1) * 7);
+                const lastDay = new Date(firstDay);
+                lastDay.setDate(firstDay.getDate() + 6);
+                
+                filteredTransactions = filteredTransactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate >= firstDay && transDate <= lastDay;
+                });
+                
+                reportTitle = `Laporan Mingguan - Minggu ${weekNum} Tahun ${year}`;
+                dateRange = `Minggu: ${weekNum}, Tahun: ${year}`;
+            } else if (reportType === 'monthly') {
+                const month = document.getElementById('report-month').value;
+                if (!month) {
+                    alert('Harap pilih bulan!');
+                    return;
                 }
-            } else if (type === 'custom') {
+                
+                const [year, monthNum] = month.split('-');
+                const firstDay = new Date(year, monthNum - 1, 1);
+                const lastDay = new Date(year, monthNum, 0);
+                
+                filteredTransactions = filteredTransactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate >= firstDay && transDate <= lastDay;
+                });
+                
+                const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                reportTitle = `Laporan Bulanan - ${monthNames[monthNum - 1]} ${year}`;
+                dateRange = `Bulan: ${monthNames[monthNum - 1]}, Tahun: ${year}`;
+            } else if (reportType === 'custom') {
                 const startDate = document.getElementById('report-start-date').value;
                 const endDate = document.getElementById('report-end-date').value;
                 
-                if (startDate && endDate) {
-                    filteredTransactions = filteredTransactions.filter(t => {
-                        const transactionDate = t.date.split('T')[0];
-                        return transactionDate >= startDate && transactionDate <= endDate;
-                    });
+                if (!startDate || !endDate) {
+                    alert('Harap pilih rentang tanggal!');
+                    return;
                 }
+                
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                if (start > end) {
+                    alert('Tanggal mulai tidak boleh lebih besar dari tanggal akhir!');
+                    return;
+                }
+                
+                filteredTransactions = filteredTransactions.filter(t => {
+                    const transDate = new Date(t.date);
+                    return transDate >= start && transDate <= end;
+                });
+                
+                reportTitle = `Laporan Custom - ${startDate} s/d ${endDate}`;
+                dateRange = `Periode: ${startDate} s/d ${endDate}`;
             }
             
-            // Filter berdasarkan kategori
             if (category !== 'all') {
                 filteredTransactions = filteredTransactions.filter(t => t.type === category);
+                reportTitle += ` - Kategori: ${getTransactionTypeLabel(category)}`;
             }
             
-            // Hitung total pendapatan
-            const totalIncome = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
+            const totalIncome = filteredTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
             
-            // Tampilkan hasil laporan
-            const reportContent = document.getElementById('report-content');
-            reportContent.innerHTML = `
-                <h6>Ringkasan Laporan</h6>
+            let reportContent = `
+                <h5>${reportTitle}</h5>
+                <p>${dateRange}</p>
+                <p>Total Transaksi: ${filteredTransactions.length}</p>
+                <p>Total Pendapatan: ${formatCurrency(totalIncome)}</p>
+                <hr>
                 <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Periode</th>
-                                <th>Jumlah Transaksi</th>
-                                <th>Total Pendapatan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>${getReportPeriod(type)}</td>
-                                <td>${filteredTransactions.length}</td>
-                                <td>${formatCurrency(totalIncome)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <h6 class="mt-4">Detail Transaksi</h6>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
+                    <table class="table table-striped">
                         <thead>
                             <tr>
                                 <th>No.</th>
@@ -3075,221 +3014,40 @@
                                 <th>Jenis</th>
                                 <th>Keterangan</th>
                                 <th>Jumlah</th>
-                                <th>Kasir</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${filteredTransactions.map((t, i) => {
-                                const guest = guests.find(g => g.id === t.guestId);
-                                return `
-                                    <tr>
-                                        <td>${i + 1}</td>
-                                        <td>${formatDate(t.date)}</td>
-                                        <td>${guest ? guest.name : 'Tamu tidak ditemukan'}</td>
-                                        <td>${getTransactionTypeLabel(t.type)}</td>
-                                        <td>${t.notes}</td>
-                                        <td>${formatCurrency(t.amount)}</td>
-                                        <td>${t.cashier || '-'}</td>
-                                    </tr>
-                                `;
-                            }).join('')}
+            `;
+            
+            filteredTransactions.forEach((t, index) => {
+                const guest = guests.find(g => g.id === t.guestId);
+                reportContent += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${formatDate(t.date)}</td>
+                        <td>${guest ? guest.name : 'Tamu tidak ditemukan'}</td>
+                        <td>${getTransactionTypeLabel(t.type)}</td>
+                        <td>${t.notes || '-'}</td>
+                        <td>${formatCurrency(t.amount)}</td>
+                    </tr>
+                `;
+            });
+            
+            reportContent += `
                         </tbody>
                     </table>
                 </div>
             `;
             
+            document.getElementById('report-content').innerHTML = reportContent;
             document.getElementById('report-result').classList.remove('d-none');
-        }
-        
-        function getReportPeriod(type) {
-            if (type === 'daily') {
-                const date = document.getElementById('report-date').value;
-                return date ? new Date(date).toLocaleDateString('id-ID') : 'Hari ini';
-            } else if (type === 'weekly') {
-                const weekInput = document.getElementById('report-week').value;
-                if (weekInput) {
-                    const [year, week] = weekInput.split('-W');
-                    const startDate = getDateOfWeek(parseInt(week), parseInt(year));
-                    const endDate = new Date(startDate);
-                    endDate.setDate(startDate.getDate() + 6);
-                    return `${startDate.toLocaleDateString('id-ID')} - ${endDate.toLocaleDateString('id-ID')}`;
-                }
-                return 'Minggu ini';
-            } else if (type === 'monthly') {
-                const monthInput = document.getElementById('report-month').value;
-                if (monthInput) {
-                    const [year, month] = monthInput.split('-');
-                    return new Date(year, month - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-                }
-                return 'Bulan ini';
-            } else if (type === 'custom') {
-                const startDate = document.getElementById('report-start-date').value;
-                const endDate = document.getElementById('report-end-date').value;
-                if (startDate && endDate) {
-                    return `${new Date(startDate).toLocaleDateString('id-ID')} - ${new Date(endDate).toLocaleDateString('id-ID')}`;
-                }
-                return 'Periode Custom';
-            }
-            return '';
-        }
-        
-        function getDateOfWeek(week, year) {
-            const date = new Date(year, 0, 1);
-            const dayOffset = date.getDay();
-            date.setDate(date.getDate() - dayOffset + (week - 1) * 7);
-            return date;
-        }
-        
-        function downloadReportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Judul laporan
-            doc.setFontSize(16);
-            doc.text('Laporan Hotel', 105, 15, { align: 'center' });
-            
-            // Informasi periode
-            doc.setFontSize(12);
-            doc.text(`Periode: ${getReportPeriod(document.getElementById('report-type').value}`, 15, 25);
-            
-            // Ringkasan laporan
-            doc.setFontSize(14);
-            doc.text('Ringkasan Laporan', 15, 35);
-            
-            doc.autoTable({
-                startY: 40,
-                head: [['Periode', 'Jumlah Transaksi', 'Total Pendapatan']],
-                body: [[
-                    getReportPeriod(document.getElementById('report-type').value),
-                    document.querySelector('#report-content table tbody tr td:nth-child(2)').textContent,
-                    document.querySelector('#report-content table tbody tr td:nth-child(3)').textContent
-                ]],
-                theme: 'grid',
-                headStyles: { fillColor: [44, 62, 80] }
-            });
-            
-            // Detail transaksi
-            doc.setFontSize(14);
-            doc.text('Detail Transaksi', 15, doc.lastAutoTable.finalY + 15);
-            
-            const items = Array.from(document.querySelectorAll('#report-content table:last-of-type tbody tr')).map(row => [
-                row.cells[0].textContent,
-                row.cells[1].textContent,
-                row.cells[2].textContent,
-                row.cells[3].textContent,
-                row.cells[4].textContent,
-                row.cells[5].textContent,
-                row.cells[6].textContent
-            ]);
-            
-            doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 20,
-                head: [['No.', 'Tanggal', 'Tamu', 'Jenis', 'Keterangan', 'Jumlah', 'Kasir']],
-                body: items,
-                theme: 'grid',
-                headStyles: { fillColor: [44, 62, 80] },
-                margin: { horizontal: 5 },
-                styles: { fontSize: 8 }
-            });
-            
-            // Footer
-            doc.setFontSize(10);
-            doc.text(`Dibuat oleh: ${currentUser.username}`, 15, doc.lastAutoTable.finalY + 10);
-            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 15, doc.lastAutoTable.finalY + 15);
-            
-            // Simpan PDF
-            doc.save(`laporan_hotel_${new Date().getTime()}.pdf`);
-        }
-        
-        function generateSchedule() {
-            const month = parseInt(document.getElementById('schedule-month').value);
-            const year = parseInt(document.getElementById('schedule-year').value);
-            
-            const activeEmployees = employees.filter(e => e.status === 'active');
-            const daysInMonth = new Date(year, month, 0).getDate();
-            const firstDay = new Date(year, month - 1, 1).getDay();
-            
-            // Generate header
-            const scheduleHeader = document.getElementById('schedule-header');
-            scheduleHeader.innerHTML = '<tr><th>Nama Karyawan</th>';
-            
-            for (let i = 1; i <= daysInMonth; i++) {
-                scheduleHeader.innerHTML += `<th>${i}</th>`;
-            }
-            
-            scheduleHeader.innerHTML += '</tr>';
-            
-            // Generate body
-            const scheduleBody = document.getElementById('schedule-body');
-            scheduleBody.innerHTML = '';
-            
-            activeEmployees.forEach(employee => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${employee.name}</td>`;
-                
-                for (let i = 1; i <= daysInMonth; i++) {
-                    // Generate random shift (morning, afternoon, night)
-                    const shifts = ['P', 'S', 'M'];
-                    const randomShift = shifts[Math.floor(Math.random() * shifts.length)];
-                    
-                    row.innerHTML += `<td class="schedule-day">${randomShift}</td>`;
-                }
-                
-                scheduleBody.appendChild(row);
-            });
-        }
-        
-        function downloadSchedulePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('landscape');
-            
-            // Judul jadwal
-            doc.setFontSize(16);
-            doc.text(`Jadwal Karyawan - ${new Date(document.getElementById('schedule-year').value, document.getElementById('schedule-month').value - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`, 145, 15, { align: 'center' });
-            
-            // Header tabel
-            const headers = ['Nama Karyawan'];
-            for (let i = 1; i <= new Date(document.getElementById('schedule-year').value, document.getElementById('schedule-month').value, 0).getDate(); i++) {
-                headers.push(i.toString());
-            }
-            
-            // Data tabel
-            const rows = [];
-            document.querySelectorAll('#schedule-body tr').forEach(row => {
-                const rowData = [row.cells[0].textContent];
-                for (let i = 1; i < row.cells.length; i++) {
-                    rowData.push(row.cells[i].textContent);
-                }
-                rows.push(rowData);
-            });
-            
-            // Buat tabel
-            doc.autoTable({
-                head: [headers],
-                body: rows,
-                startY: 25,
-                theme: 'grid',
-                headStyles: { fillColor: [44, 62, 80] },
-                styles: { fontSize: 8 }
-            });
-            
-            // Legenda
-            doc.setFontSize(10);
-            doc.text('Legenda: P = Pagi, S = Sore, M = Malam', 15, doc.lastAutoTable.finalY + 10);
-            
-            // Footer
-            doc.text(`Dibuat oleh: ${currentUser.username}`, 15, doc.lastAutoTable.finalY + 15);
-            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 15, doc.lastAutoTable.finalY + 20);
-            
-            // Simpan PDF
-            doc.save(`jadwal_karyawan_${document.getElementById('schedule-month').value}_${document.getElementById('schedule-year').value}.pdf`);
         }
         
         // Inisialisasi karyawan
         function initKaryawan() {
             loadEmployees();
+            initEmployeeSchedule();
             
-            // Event listener tambah karyawan
             document.getElementById('add-employee-btn').addEventListener('click', function() {
                 if (!checkAccess(['admin'])) {
                     alert('Anda tidak memiliki akses untuk menambah karyawan!');
@@ -3304,7 +3062,6 @@
                 modal.show();
             });
             
-            // Event listener simpan karyawan
             document.getElementById('save-employee').addEventListener('click', function() {
                 const id = document.getElementById('employee-id').value;
                 const name = document.getElementById('employee-name').value;
@@ -3318,7 +3075,6 @@
                 }
                 
                 if (id) {
-                    // Edit karyawan
                     const employeeIndex = employees.findIndex(e => e.id === id);
                     if (employeeIndex !== -1) {
                         employees[employeeIndex] = {
@@ -3330,14 +3086,12 @@
                         };
                     }
                 } else {
-                    // Tambah karyawan baru
                     const newEmployee = {
                         id: generateId(),
                         name,
                         phone,
                         position,
-                        status,
-                        employeeId: `EMP${String(employees.length + 1).padStart(4, '0')}`
+                        status
                     };
                     employees.push(newEmployee);
                 }
@@ -3347,6 +3101,47 @@
                 
                 const modal = bootstrap.Modal.getInstance(document.getElementById('employeeModal'));
                 modal.hide();
+            });
+            
+            document.getElementById('generate-schedule').addEventListener('click', generateEmployeeSchedule);
+            document.getElementById('print-schedule').addEventListener('click', function() {
+                window.print();
+            });
+            
+            document.getElementById('download-schedule-pdf').addEventListener('click', function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const month = document.getElementById('schedule-month').value;
+                const year = document.getElementById('schedule-year').value;
+                const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                const title = `Jadwal Karyawan - ${monthNames[month - 1]} ${year}`;
+                
+                doc.setFontSize(18);
+                doc.text(title, 105, 15, { align: 'center' });
+                
+                const headers = ['Nama Karyawan', ...Array.from(document.querySelectorAll('#schedule-header th')).map(th => th.textContent)];
+                const rows = employees.map(emp => {
+                    const row = [emp.name];
+                    const empSchedules = schedules.filter(s => s.employeeId === emp.id && s.month == month && s.year == year);
+                    
+                    for (let i = 1; i <= 31; i++) {
+                        const daySchedule = empSchedules.find(s => s.day == i);
+                        row.push(daySchedule ? daySchedule.shift : '-');
+                    }
+                    
+                    return row;
+                });
+                
+                doc.autoTable({
+                    startY: 25,
+                    head: [headers],
+                    body: rows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [44, 62, 80] }
+                });
+                
+                doc.save(`jadwal_karyawan_${month}_${year}.pdf`);
             });
         }
         
@@ -3358,10 +3153,10 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${employee.employeeId || '-'}</td>
+                    <td>EMP-${String(index + 1).padStart(3, '0')}</td>
                     <td>${employee.name}</td>
-                    <td>${employee.phone}</td>
-                    <td>${getEmployeePositionLabel(employee.position)}</td>
+                    <td>${employee.phone || '-'}</td>
+                    <td>${employee.position}</td>
                     <td>
                         <span class="badge ${employee.status === 'active' ? 'bg-success' : 'bg-secondary'}">
                             ${employee.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
@@ -3381,7 +3176,6 @@
                 employeesList.appendChild(row);
             });
             
-            // Event listener untuk edit karyawan
             document.querySelectorAll('.edit-employee').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (!checkAccess(['admin'])) {
@@ -3398,7 +3192,7 @@
                         document.getElementById('employee-name').value = employee.name;
                         document.getElementById('employee-phone').value = employee.phone;
                         document.getElementById('employee-position').value = employee.position;
-                        document.getElementById(`employee-${employee.status}`).checked = true;
+                        document.getElementById(employee.status === 'active' ? 'employee-active' : 'employee-inactive').checked = true;
                         
                         const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
                         modal.show();
@@ -3406,43 +3200,111 @@
                 });
             });
             
-            // Event listener untuk hapus karyawan
             document.querySelectorAll('.delete-employee').forEach(btn => {
                 btn.addEventListener('click', function() {
+                    const employeeId = this.getAttribute('data-id');
+                    
                     if (confirm('Apakah Anda yakin ingin menghapus karyawan ini?')) {
-                        const employeeId = this.getAttribute('data-id');
-                        deleteEmployee(employeeId);
+                        employees = employees.filter(e => e.id !== employeeId);
+                        localStorage.setItem('hotel_employees', JSON.stringify(employees));
+                        loadEmployees();
                     }
                 });
             });
         }
         
-        function getEmployeePositionLabel(position) {
-            const positions = {
-                'receptionist': 'Resepsionis',
-                'housekeeping': 'Housekeeping',
-                'chef': 'Chef',
-                'security': 'Security',
-                'manager': 'Manager'
-            };
-            return positions[position] || position;
+        function initEmployeeSchedule() {
+            const scheduleHeader = document.getElementById('schedule-header');
+            scheduleHeader.innerHTML = '<th>Nama Karyawan</th>';
+            
+            for (let i = 1; i <= 31; i++) {
+                const th = document.createElement('th');
+                th.textContent = i;
+                th.className = 'schedule-day';
+                scheduleHeader.appendChild(th);
+            }
+            
+            generateEmployeeSchedule();
         }
         
-        function deleteEmployee(employeeId) {
-            employees = employees.filter(e => e.id !== employeeId);
-            localStorage.setItem('hotel_employees', JSON.stringify(employees));
-            loadEmployees();
+        function generateEmployeeSchedule() {
+            const month = document.getElementById('schedule-month').value;
+            const year = document.getElementById('schedule-year').value;
+            
+            // Generate random schedule if not exists
+            if (!schedules.some(s => s.month == month && s.year == year)) {
+                const shifts = ['P', 'S', 'M', '-'];
+                
+                employees.forEach(emp => {
+                    for (let day = 1; day <= 31; day++) {
+                        const randomShift = shifts[Math.floor(Math.random() * shifts.length)];
+                        
+                        schedules.push({
+                            id: generateId(),
+                            employeeId: emp.id,
+                            month,
+                            year,
+                            day,
+                            shift: randomShift
+                        });
+                    }
+                });
+                
+                localStorage.setItem('hotel_schedules', JSON.stringify(schedules));
+            }
+            
+            const scheduleBody = document.getElementById('schedule-body');
+            scheduleBody.innerHTML = '';
+            
+            employees.forEach(emp => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                nameCell.textContent = emp.name;
+                row.appendChild(nameCell);
+                
+                for (let day = 1; day <= 31; day++) {
+                    const daySchedule = schedules.find(s => 
+                        s.employeeId === emp.id && 
+                        s.month == month && 
+                        s.year == year && 
+                        s.day == day
+                    );
+                    
+                    const cell = document.createElement('td');
+                    cell.className = 'schedule-day';
+                    
+                    if (daySchedule) {
+                        cell.textContent = daySchedule.shift;
+                        
+                        if (daySchedule.shift === 'P') {
+                            cell.classList.add('shift-morning');
+                        } else if (daySchedule.shift === 'S') {
+                            cell.classList.add('shift-afternoon');
+                        } else if (daySchedule.shift === 'M') {
+                            cell.classList.add('shift-night');
+                        }
+                    } else {
+                        cell.textContent = '-';
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                scheduleBody.appendChild(row);
+            });
         }
         
         // Inisialisasi admin panel
-        function initAdmin() {
-            // Load daftar user
-            loadUsers();
+        function initAdminPanel() {
+            if (!checkAccess(['admin'])) {
+                alert('Anda tidak memiliki akses ke halaman ini!');
+                showTab('dashboard-content');
+                return;
+            }
             
-            // Load pengaturan sistem
+            loadUsers();
             loadSystemSettings();
             
-            // Event listener tambah user
             document.getElementById('add-user-btn').addEventListener('click', function() {
                 document.getElementById('userModalTitle').textContent = 'Tambah User Baru';
                 document.getElementById('user-form').reset();
@@ -3452,7 +3314,6 @@
                 modal.show();
             });
             
-            // Event listener simpan user
             document.getElementById('save-user').addEventListener('click', function() {
                 const id = document.getElementById('user-id').value;
                 const username = document.getElementById('user-username').value;
@@ -3465,7 +3326,6 @@
                 }
                 
                 if (id) {
-                    // Edit user
                     const userIndex = users.findIndex(u => u.id === id);
                     if (userIndex !== -1) {
                         users[userIndex] = {
@@ -3476,7 +3336,12 @@
                         };
                     }
                 } else {
-                    // Tambah user baru
+                    const existingUser = users.find(u => u.username === username);
+                    if (existingUser) {
+                        alert('Username sudah digunakan!');
+                        return;
+                    }
+                    
                     const newUser = {
                         id: generateId(),
                         username,
@@ -3493,7 +3358,6 @@
                 modal.hide();
             });
             
-            // Event listener ganti password admin
             document.getElementById('change-password-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -3511,7 +3375,6 @@
                     return;
                 }
                 
-                // Update password
                 const userIndex = users.findIndex(u => u.id === currentUser.id);
                 if (userIndex !== -1) {
                     users[userIndex].password = newPassword;
@@ -3523,7 +3386,6 @@
                 }
             });
             
-            // Event listener simpan pengaturan sistem
             document.getElementById('system-settings-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -3533,7 +3395,6 @@
                 settings.hotelEmail = document.getElementById('hotel-email').value;
                 settings.hotelTax = parseFloat(document.getElementById('hotel-tax').value);
                 
-                // Update harga fasilitas
                 settings.breakfastPrice = parseInt(document.getElementById('breakfast-price-setting').value);
                 settings.breakfastAvailable = document.getElementById('breakfast-available').checked;
                 settings.laundryPrice = parseInt(document.getElementById('laundry-price-setting').value);
@@ -3543,12 +3404,17 @@
                 
                 localStorage.setItem('hotel_settings', JSON.stringify(settings));
                 
-                alert('Pengaturan berhasil disimpan!');
-                
-                // Update harga di form check-in
+                // Update prices in the check-in form
                 document.getElementById('breakfast-price').textContent = settings.breakfastPrice;
                 document.getElementById('laundry-price').textContent = settings.laundryPrice;
                 document.getElementById('massage-price').textContent = settings.massagePrice;
+                
+                // Update hotel info in the invoice
+                document.getElementById('hotel-name-header').textContent = settings.hotelName;
+                document.getElementById('hotel-address-header').textContent = settings.hotelAddress;
+                document.getElementById('hotel-contact-header').textContent = `Telp: ${settings.hotelPhone} | Email: ${settings.hotelEmail}`;
+                
+                alert('Pengaturan berhasil disimpan!');
             });
         }
         
@@ -3561,7 +3427,7 @@
                 row.innerHTML = `
                     <td>${user.username}</td>
                     <td>
-                        <span class="badge ${user.role === 'admin' ? 'bg-admin' : 'bg-staff'}">
+                        <span class="badge ${user.role === 'admin' ? 'bg-admin' : user.role === 'staff' ? 'bg-staff' : 'bg-primary'}">
                             ${user.role}
                         </span>
                     </td>
@@ -3579,7 +3445,6 @@
                 usersList.appendChild(row);
             });
             
-            // Event listener untuk edit user
             document.querySelectorAll('.edit-user').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const userId = this.getAttribute('data-id');
@@ -3598,7 +3463,6 @@
                 });
             });
             
-            // Event listener untuk hapus user
             document.querySelectorAll('.delete-user').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const userId = this.getAttribute('data-id');
@@ -3613,13 +3477,12 @@
         }
         
         function loadSystemSettings() {
-            document.getElementById('hotel-name').value = settings.hotelName || 'HOTEL MEWAH';
-            document.getElementById('hotel-address').value = settings.hotelAddress || 'Jl. Raya No. 123, Kota Anda';
-            document.getElementById('hotel-phone').value = settings.hotelPhone || '(021) 1234567';
-            document.getElementById('hotel-email').value = settings.hotelEmail || 'info@hotelmewah.com';
+            document.getElementById('hotel-name').value = settings.hotelName || '';
+            document.getElementById('hotel-address').value = settings.hotelAddress || '';
+            document.getElementById('hotel-phone').value = settings.hotelPhone || '';
+            document.getElementById('hotel-email').value = settings.hotelEmail || '';
             document.getElementById('hotel-tax').value = settings.hotelTax || 10;
             
-            // Fasilitas
             document.getElementById('breakfast-price-setting').value = settings.breakfastPrice || 50000;
             document.getElementById('breakfast-available').checked = settings.breakfastAvailable !== false;
             document.getElementById('laundry-price-setting').value = settings.laundryPrice || 40000;
@@ -3628,147 +3491,114 @@
             document.getElementById('massage-available').checked = settings.massageAvailable !== false;
         }
         
-        // Fungsi untuk menangani tab navigation
-        function initTabNavigation() {
-            const tabs = document.querySelectorAll('.nav-link:not(#logout-tab)');
-            
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Jika tab admin, verifikasi dulu
-                    if (this.classList.contains('admin') && !checkAccess(['admin'])) {
-                        alert('Anda tidak memiliki akses ke halaman ini!');
-                        return;
-                    }
-                    
-                    // Sembunyikan semua konten
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.add('d-none');
-                    });
-                    
-                    // Tampilkan konten yang dipilih
-                    const targetId = this.id.replace('-tab', '-content');
-                    document.getElementById(targetId).classList.remove('d-none');
-                    
-                    // Update active tab
-                    tabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Inisialisasi konten yang dipilih
-                    switch(targetId) {
-                        case 'dashboard-content':
-                            initDashboard();
-                            break;
-                        case 'checkin-content':
-                            initCheckIn();
-                            break;
-                        case 'checkout-content':
-                            initCheckOut();
-                            break;
-                        case 'transaksi-content':
-                            initTransactions();
-                            break;
-                        case 'nota-content':
-                            initNota();
-                            break;
-                        case 'kamar-content':
-                            initKamar();
-                            break;
-                        case 'fasilitas-content':
-                            initFasilitas();
-                            break;
-                        case 'tamu-content':
-                            initTamu();
-                            break;
-                        case 'laporan-content':
-                            initLaporan();
-                            break;
-                        case 'karyawan-content':
-                            initKaryawan();
-                            break;
-                        case 'admin-content':
-                            initAdmin();
-                            break;
-                    }
-                });
+        // Fungsi untuk menampilkan tab
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('d-none');
             });
             
-            // Logout
-            document.getElementById('logout-tab').addEventListener('click', function(e) {
+            document.getElementById(tabId).classList.remove('d-none');
+            
+            // Inisialisasi konten tab yang dipilih
+            switch(tabId) {
+                case 'dashboard-content':
+                    initDashboard();
+                    break;
+                case 'checkin-content':
+                    initCheckIn();
+                    break;
+                case 'checkout-content':
+                    initCheckOut();
+                    break;
+                case 'transaksi-content':
+                    initTransactions();
+                    break;
+                case 'nota-content':
+                    initNota();
+                    break;
+                case 'kamar-content':
+                    initKamar();
+                    break;
+                case 'fasilitas-content':
+                    initFasilitas();
+                    break;
+                case 'tamu-content':
+                    initTamu();
+                    break;
+                case 'laporan-content':
+                    initLaporan();
+                    break;
+                case 'karyawan-content':
+                    initKaryawan();
+                    break;
+                case 'admin-content':
+                    initAdminPanel();
+                    break;
+            }
+        }
+        
+        // Event listener untuk tab sidebar
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                if (confirm('Apakah Anda yakin ingin logout?')) {
+                if (this.id === 'logout-tab') {
                     currentUser = null;
                     adminVerified = false;
                     
-                    // Tampilkan modal login
-                    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-                    modal.show();
-                    
-                    // Sembunyikan sidebar dan konten
-                    document.getElementById('sidebarMenu').classList.add('d-none');
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.add('d-none');
-                    });
+                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                    loginModal.show();
+                    return;
                 }
-            });
-        }
-        
-        // Fungsi untuk menangani login
-        function initLogin() {
-            document.getElementById('login-form').addEventListener('submit', function(e) {
-                e.preventDefault();
                 
-                const username = document.getElementById('login-username').value;
-                const password = document.getElementById('login-password').value;
-                
-                const user = users.find(u => u.username === username && u.password === password);
-                
-                if (user) {
-                    currentUser = user;
-                    
-                    // Sembunyikan modal login
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-                    modal.hide();
-                    
-                    // Tampilkan sidebar
-                    document.getElementById('sidebarMenu').classList.remove('d-none');
-                    
-                    // Update UI berdasarkan role user
-                    updateUIForUser();
-                    
-                    // Tampilkan dashboard
-                    document.getElementById('dashboard-content').classList.remove('d-none');
-                    document.getElementById('dashboard-tab').classList.add('active');
-                    
-                    // Inisialisasi dashboard
-                    initDashboard();
-                } else {
-                    alert('Username atau password salah!');
+                if (this.classList.contains('admin') && !checkAccess(['admin'])) {
+                    alert('Anda tidak memiliki akses ke halaman ini!');
+                    return;
                 }
+                
+                const tabId = this.id.replace('-tab', '-content');
+                showTab(tabId);
+                
+                // Update active state in sidebar
+                document.querySelectorAll('.nav-link').forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                this.classList.add('active');
             });
-        }
+        });
         
-        // Inisialisasi aplikasi saat DOM siap
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                adminVerified = false;
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                modal.hide();
+                
+                updateUIForUser();
+                showTab('dashboard-content');
+            } else {
+                alert('Username atau password salah!');
+            }
+        });
+        
+        // Auto show login modal if not logged in
         document.addEventListener('DOMContentLoaded', function() {
-            // Sembunyikan semua konten kecuali login
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('d-none');
-            });
-            
-            // Sembunyikan sidebar
-            document.getElementById('sidebarMenu').classList.add('d-none');
-            
-            // Inisialisasi login
-            initLogin();
-            
-            // Inisialisasi tab navigation
-            initTabNavigation();
-            
-            // Tampilkan modal login
-            const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-            modal.show();
+            if (!currentUser) {
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            } else {
+                updateUIForUser();
+                showTab('dashboard-content');
+            }
         });
     </script>
 </body>
