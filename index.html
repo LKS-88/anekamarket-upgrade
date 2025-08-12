@@ -372,17 +372,17 @@
                             <i class="fas fa-chart-bar me-2"></i> Laporan
                         </a>
                     </li>
-                    <li class="nav-item" id="products-menu-item" style="display: none;">
+                    <li class="nav-item" id="products-menu-item">
                         <a class="nav-link" href="#" onclick="showSection('products')">
                             <i class="fas fa-map-marked-alt me-2"></i> Produk Wisata
                         </a>
                     </li>
-                    <li class="nav-item" id="users-menu-item" style="display: none;">
+                    <li class="nav-item" id="users-menu-item">
                         <a class="nav-link" href="#" onclick="showSection('users')">
                             <i class="fas fa-users me-2"></i> Pengguna
                         </a>
                     </li>
-                    <li class="nav-item" id="settings-menu-item" style="display: none;">
+                    <li class="nav-item" id="settings-menu-item">
                         <a class="nav-link" href="#" onclick="showSection('settings')">
                             <i class="fas fa-cog me-2"></i> Pengaturan
                         </a>
@@ -1198,6 +1198,84 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Role Permissions Section -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Pengaturan Hak Akses Role</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Perhatian!</strong> Masukkan password admin untuk mengubah pengaturan hak akses.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password Admin</label>
+                                <input type="password" class="form-control" id="adminPasswordForPermissions" placeholder="Masukkan password admin">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Pilih Role</label>
+                                <select class="form-select" id="roleSelector" onchange="loadRolePermissions()">
+                                    <option value="admin">Admin</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="cashier">Kasir</option>
+                                    <option value="operator">Operator</option>
+                                </select>
+                            </div>
+                            <div id="permissionsContainer" style="display: none;">
+                                <div class="permission-group">
+                                    <h6>Hak Akses</h6>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permDashboard" checked disabled>
+                                        <label for="permDashboard">Dashboard</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permTicketSales">
+                                        <label for="permTicketSales">Penjualan Karcis</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permGenerateTicket">
+                                        <label for="permGenerateTicket">Generate Karcis</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permTicketList">
+                                        <label for="permTicketList">Daftar Karcis</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permReports">
+                                        <label for="permReports">Laporan</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permProducts">
+                                        <label for="permProducts">Produk Wisata</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permUsers">
+                                        <label for="permUsers">Pengguna</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permSettings">
+                                        <label for="permSettings">Pengaturan</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permBackup">
+                                        <label for="permBackup">Backup Data</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permRestore">
+                                        <label for="permRestore">Restore Data</label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" class="permission-checkbox" id="permReset">
+                                        <label for="permReset">Reset Data</label>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveRolePermissions()">
+                                    <i class="fas fa-save me-1"></i> Simpan Hak Akses
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Backup Section -->
@@ -1382,10 +1460,6 @@
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="userStatus" checked>
                             <label class="form-check-label" for="userStatus">Aktif</label>
-                        </div>
-                        <div class="permission-group" id="permissionSettings">
-                            <h6>Hak Akses</h6>
-                            <!-- Permissions will be loaded here -->
                         </div>
                     </form>
                 </div>
@@ -1665,9 +1739,9 @@
             
             // Sample transactions
             transactions = [
-                {id: generateTransactionId(), date: '2023-06-10 10:30:00', items: [{ticket: 'TWA-001', price: 50000}], total: 50000, cashier: 'Kasir 1'},
-                {id: generateTransactionId(), date: '2023-06-10 11:45:00', items: [{ticket: 'MB-001', price: 20000}, {ticket: 'KB-001', price: 60000}], total: 80000, cashier: 'Kasir 1'},
-                {id: generateTransactionId(), date: '2023-06-09 15:20:00', items: [{ticket: 'TWA-002', price: 50000}], total: 50000, cashier: 'Manager'}
+                {id: generateTransactionId(), date: '2023-06-10 10:30:00', items: [{ticket: 'TWA-001', price: 50000}], total: 50000, cashier: 'Kasir 1', paymentMethod: 'cash'},
+                {id: generateTransactionId(), date: '2023-06-10 11:45:00', items: [{ticket: 'MB-001', price: 20000}, {ticket: 'KB-001', price: 60000}], total: 80000, cashier: 'Kasir 1', paymentMethod: 'cash'},
+                {id: generateTransactionId(), date: '2023-06-09 15:20:00', items: [{ticket: 'TWA-002', price: 50000}], total: 50000, cashier: 'Manager', paymentMethod: 'cash'}
             ];
 
             // Sample backup history
@@ -1680,11 +1754,12 @@
             refreshDashboard();
         }
 
-        // Generate unique transaction ID
+        // Generate unique transaction ID with timestamp
         function generateTransactionId() {
-            const timestamp = Date.now().toString(36);
-            const random = Math.random().toString(36).substr(2, 5);
-            return `TRX-${timestamp}-${random}`.toUpperCase();
+            const now = new Date();
+            const timestamp = now.getTime().toString();
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `TRX-${timestamp}-${random}`;
         }
         
         // Populate destination dropdowns
@@ -1717,7 +1792,6 @@
             
             // Simulate API call
             setTimeout(() => {
-                // In a real app, this would be an actual authentication check
                 const user = users.find(u => u.username === username);
                 const hashedPassword = CryptoJS.SHA256(password).toString();
                 
@@ -1739,14 +1813,9 @@
                                                                    user.role === 'manager' ? 'Manager' : 'Operator';
                     
                     // Show/hide menu items based on role
-                    if (user.role === 'admin' || user.role === 'manager') {
-                        document.getElementById('products-menu-item').style.display = 'block';
-                        document.getElementById('settings-menu-item').style.display = 'block';
-                    }
-                    
-                    if (user.role === 'admin') {
-                        document.getElementById('users-menu-item').style.display = 'block';
-                    }
+                    document.getElementById('products-menu-item').style.display = 'block';
+                    document.getElementById('settings-menu-item').style.display = 'block';
+                    document.getElementById('users-menu-item').style.display = 'block';
 
                     // Show/hide backup buttons based on role
                     if (user.role === 'admin') {
@@ -1783,11 +1852,6 @@
             document.getElementById('appContainer').style.display = 'none';
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
-            
-            // Hide all menu items except dashboard
-            document.getElementById('products-menu-item').style.display = 'none';
-            document.getElementById('users-menu-item').style.display = 'none';
-            document.getElementById('settings-menu-item').style.display = 'none';
             
             // Show login modal
             const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
@@ -1847,10 +1911,21 @@
                 case 'users':
                     loadUsers();
                     break;
+                case 'settings':
+                    loadSettings();
+                    break;
                 case 'backup':
                     loadBackupHistory();
                     break;
             }
+        }
+
+        // Load settings
+        function loadSettings() {
+            // In a real app, this would load settings from database
+            document.getElementById('enableTax').addEventListener('change', function() {
+                document.getElementById('taxRateContainer').style.display = this.checked ? 'block' : 'none';
+            });
         }
         
         // Refresh dashboard data
@@ -3052,57 +3127,6 @@
         // Show add user modal
         function showAddUserModal() {
             document.getElementById('addUserForm').reset();
-            
-            // Load permissions
-            const permissionSettings = document.getElementById('permissionSettings');
-            permissionSettings.innerHTML = `
-                <h6>Hak Akses</h6>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permDashboard" checked disabled>
-                    <label for="permDashboard">Dashboard</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permTicketSales">
-                    <label for="permTicketSales">Penjualan Karcis</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permGenerateTicket">
-                    <label for="permGenerateTicket">Generate Karcis</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permTicketList">
-                    <label for="permTicketList">Daftar Karcis</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permReports">
-                    <label for="permReports">Laporan</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permProducts">
-                    <label for="permProducts">Produk Wisata</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permUsers">
-                    <label for="permUsers">Pengguna</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permSettings">
-                    <label for="permSettings">Pengaturan</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permBackup">
-                    <label for="permBackup">Backup Data</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permRestore">
-                    <label for="permRestore">Restore Data</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permReset">
-                    <label for="permReset">Reset Data</label>
-                </div>
-            `;
-            
             const addUserModal = new bootstrap.Modal(document.getElementById('addUserModal'));
             addUserModal.show();
         }
@@ -3117,56 +3141,6 @@
             document.getElementById('userPassword').value = '';
             document.getElementById('userRole').value = user.role;
             document.getElementById('userStatus').checked = user.status === 'active';
-            
-            // Load permissions
-            const permissionSettings = document.getElementById('permissionSettings');
-            permissionSettings.innerHTML = `
-                <h6>Hak Akses</h6>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permDashboard" checked disabled>
-                    <label for="permDashboard">Dashboard</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permTicketSales" ${user.permissions.ticketSales ? 'checked' : ''}>
-                    <label for="permTicketSales">Penjualan Karcis</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permGenerateTicket" ${user.permissions.generateTicket ? 'checked' : ''}>
-                    <label for="permGenerateTicket">Generate Karcis</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permTicketList" ${user.permissions.ticketList ? 'checked' : ''}>
-                    <label for="permTicketList">Daftar Karcis</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permReports" ${user.permissions.reports ? 'checked' : ''}>
-                    <label for="permReports">Laporan</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permProducts" ${user.permissions.products ? 'checked' : ''}>
-                    <label for="permProducts">Produk Wisata</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permUsers" ${user.permissions.users ? 'checked' : ''}>
-                    <label for="permUsers">Pengguna</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permSettings" ${user.permissions.settings ? 'checked' : ''}>
-                    <label for="permSettings">Pengaturan</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permBackup" ${user.permissions.backup ? 'checked' : ''}>
-                    <label for="permBackup">Backup Data</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permRestore" ${user.permissions.restore ? 'checked' : ''}>
-                    <label for="permRestore">Restore Data</label>
-                </div>
-                <div class="permission-item">
-                    <input type="checkbox" class="permission-checkbox" id="permReset" ${user.permissions.reset ? 'checked' : ''}>
-                    <label for="permReset">Reset Data</label>
-                </div>
-            `;
             
             const addUserModal = new bootstrap.Modal(document.getElementById('addUserModal'));
             addUserModal.show();
@@ -3185,21 +3159,6 @@
                 return;
             }
             
-            // Get permissions
-            const permissions = {
-                dashboard: true,
-                ticketSales: document.getElementById('permTicketSales').checked,
-                generateTicket: document.getElementById('permGenerateTicket').checked,
-                ticketList: document.getElementById('permTicketList').checked,
-                reports: document.getElementById('permReports').checked,
-                products: document.getElementById('permProducts').checked,
-                users: document.getElementById('permUsers').checked,
-                settings: document.getElementById('permSettings').checked,
-                backup: document.getElementById('permBackup').checked,
-                restore: document.getElementById('permRestore').checked,
-                reset: document.getElementById('permReset').checked
-            };
-            
             // Check if user exists
             const existingIndex = users.findIndex(u => u.username === username);
             
@@ -3208,7 +3167,6 @@
                 users[existingIndex].fullName = fullName;
                 users[existingIndex].role = role;
                 users[existingIndex].status = status;
-                users[existingIndex].permissions = permissions;
                 
                 // Update password if provided
                 if (password) {
@@ -3229,7 +3187,7 @@
                     password: CryptoJS.SHA256(password).toString(),
                     role,
                     status,
-                    permissions,
+                    permissions: rolePermissions[role] || rolePermissions.cashier,
                     lastLogin: ''
                 });
                 
@@ -3274,6 +3232,76 @@
             document.getElementById('previewReceiptFooter').textContent = receiptHeader || 'Terima kasih telah berkunjung';
         }
 
+        // Load role permissions
+        function loadRolePermissions() {
+            const password = document.getElementById('adminPasswordForPermissions').value;
+            const role = document.getElementById('roleSelector').value;
+            
+            // Verify admin password
+            const admin = users.find(u => u.role === 'admin');
+            if (!admin || CryptoJS.SHA256(password).toString() !== admin.password) {
+                alert('Password admin salah!');
+                return;
+            }
+            
+            // Show permissions container
+            document.getElementById('permissionsContainer').style.display = 'block';
+            
+            // Load permissions for the selected role
+            const permissions = rolePermissions[role] || rolePermissions.cashier;
+            
+            document.getElementById('permTicketSales').checked = permissions.ticketSales;
+            document.getElementById('permGenerateTicket').checked = permissions.generateTicket;
+            document.getElementById('permTicketList').checked = permissions.ticketList;
+            document.getElementById('permReports').checked = permissions.reports;
+            document.getElementById('permProducts').checked = permissions.products;
+            document.getElementById('permUsers').checked = permissions.users;
+            document.getElementById('permSettings').checked = permissions.settings;
+            document.getElementById('permBackup').checked = permissions.backup;
+            document.getElementById('permRestore').checked = permissions.restore;
+            document.getElementById('permReset').checked = permissions.reset;
+        }
+
+        // Save role permissions
+        function saveRolePermissions() {
+            const password = document.getElementById('adminPasswordForPermissions').value;
+            const role = document.getElementById('roleSelector').value;
+            
+            // Verify admin password
+            const admin = users.find(u => u.role === 'admin');
+            if (!admin || CryptoJS.SHA256(password).toString() !== admin.password) {
+                alert('Password admin salah!');
+                return;
+            }
+            
+            // Get permissions from checkboxes
+            const permissions = {
+                dashboard: true, // Always true
+                ticketSales: document.getElementById('permTicketSales').checked,
+                generateTicket: document.getElementById('permGenerateTicket').checked,
+                ticketList: document.getElementById('permTicketList').checked,
+                reports: document.getElementById('permReports').checked,
+                products: document.getElementById('permProducts').checked,
+                users: document.getElementById('permUsers').checked,
+                settings: document.getElementById('permSettings').checked,
+                backup: document.getElementById('permBackup').checked,
+                restore: document.getElementById('permRestore').checked,
+                reset: document.getElementById('permReset').checked
+            };
+            
+            // Update role permissions
+            rolePermissions[role] = permissions;
+            
+            // Update permissions for all users with this role
+            users.forEach(user => {
+                if (user.role === role) {
+                    user.permissions = permissions;
+                }
+            });
+            
+            alert('Hak akses role berhasil disimpan!');
+        }
+
         // Load backup history
         function loadBackupHistory() {
             const backupHistoryTable = document.getElementById('backupHistoryTable');
@@ -3315,7 +3343,8 @@
                         receiptFooter: document.getElementById('receiptFooter').value,
                         printLogo: document.getElementById('printLogo').checked,
                         printAddress: document.getElementById('printAddress').checked
-                    }
+                    },
+                    rolePermissions
                 }
             };
             
