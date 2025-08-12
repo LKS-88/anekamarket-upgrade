@@ -1,8 +1,3 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hotel Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome@6.4.0/css/all.min.css">
@@ -1706,141 +1701,104 @@
             return guests.filter(guest => guest.checkIn && guest.checkIn.split('T')[0] === today);
         }
         
-        function getOccupiedRooms() {
+         function getOccupiedRooms() {
             return rooms.filter(room => room.status === 'occupied').length;
         }
-        
+
         function getTodayIncome() {
             const today = new Date().toISOString().split('T')[0];
             return transactions
-                .filter(t => t.date && t.date.split('T')[0] === today)
-                .reduce((sum, t) => sum + (t.amount || 0), 0);
+                .filter(txn => txn.date && txn.date.split('T')[0] === today)
+                .reduce((sum, txn) => sum + (txn.amount * txn.quantity), 0);
         }
-        
-        function getCurrentShift() {
+
+        function getAvailableRooms() {
+            return rooms.filter(room => room.status === 'available');
+        }
+
+        function getCheckedInGuests() {
+            return guests.filter(guest => guest.status === 'checked-in');
+        }
+
+        // Fungsi untuk memeriksa shift saat ini
+        function checkCurrentShift() {
             const hours = new Date().getHours();
-            if (hours >= 7 && hours < 15) return { name: 'Pagi', class: 'bg-success' };
-            if (hours >= 15 && hours < 23) return { name: 'Sore', class: 'bg-warning' };
-            return { name: 'Malam', class: 'bg-info' };
-        }
-        
-        function isGuestAlreadyCheckedIn(identity) {
-            const twentyFourHoursAgo = new Date();
-            twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-            
-            return guests.some(guest => 
-                guest.identity === identity && 
-                guest.checkIn &&
-                new Date(guest.checkIn) > twentyFourHoursAgo &&
-                guest.status === 'checked-in'
-            );
-        }
-        
-        function checkAccess(requiredRoles) {
-            if (!currentUser) return false;
-            return requiredRoles.includes(currentUser.role);
-        }
-        
-        function verifyAdmin(callback) {
-            if (adminVerified) {
-                callback();
-                return;
-            }
-            
-            const modal = new bootstrap.Modal(document.getElementById('adminPasswordModal'));
-            modal.show();
-            
-            document.getElementById('admin-password-form').onsubmit = function(e) {
-                e.preventDefault();
-                const password = document.getElementById('admin-password').value;
-                
-                if (password === currentUser.password) {
-                    adminVerified = true;
-                    modal.hide();
-                    callback();
-                } else {
-                    alert('Password admin salah!');
-                }
-            };
-        }
-        
-        function updateUIForUser() {
-            const adminTabs = document.querySelectorAll('.nav-link.admin');
-            const supervisorTabs = document.querySelectorAll('.nav-link.supervisor');
-            const managerTabs = document.querySelectorAll('.nav-link.manager');
-            
-            adminTabs.forEach(tab => tab.style.display = 'none');
-            supervisorTabs.forEach(tab => tab.style.display = 'none');
-            managerTabs.forEach(tab => tab.style.display = 'none');
-            
-            if (checkAccess(['admin'])) {
-                adminTabs.forEach(tab => tab.style.display = 'block');
-            }
-            
-            if (checkAccess(['supervisor'])) {
-                supervisorTabs.forEach(tab => tab.style.display = 'block');
-            }
-            
-            if (checkAccess(['manager'])) {
-                managerTabs.forEach(tab => tab.style.display = 'block');
-            }
-            
-            if (currentUser) {
-                document.getElementById('current-user-role').textContent = currentUser.role.toUpperCase();
-                
-                // Set badge color based on role
-                let badgeClass = 'bg-secondary';
-                if (currentUser.role === 'admin') badgeClass = 'bg-admin';
-                if (currentUser.role === 'supervisor') badgeClass = 'bg-supervisor';
-                if (currentUser.role === 'manager') badgeClass = 'bg-manager';
-                if (currentUser.role === 'staff') badgeClass = 'bg-staff';
-                
-                document.getElementById('current-user-role').className = `badge ${badgeClass}`;
-                
-                currentShift = getCurrentShift();
-                const shiftBadge = document.getElementById('current-shift');
-                shiftBadge.textContent = `Shift ${currentShift.name}`;
-                shiftBadge.className = `shift-indicator ${currentShift.class}`;
+            if (hours >= 8 && hours < 16) {
+                return { name: 'Pagi (08:00-16:00)', code: 'morning' };
+            } else if (hours >= 16 && hours < 24) {
+                return { name: 'Sore (16:00-24:00)', code: 'afternoon' };
+            } else {
+                return { name: 'Malam (00:00-08:00)', code: 'night' };
             }
         }
-        
-        // Inisialisasi dashboard
-        function initDashboard() {
+
+        // Fungsi untuk memverifikasi password admin
+        function verifyAdminPassword(password) {
+            const admin = users.find(user => user.role === 'admin');
+            return admin && admin.password === password;
+        }
+
+        // Fungsi untuk memuat data ke UI
+        function loadDashboardData() {
+            // Update statistik
             document.getElementById('today-guests').textContent = getTodayGuests().length;
             document.getElementById('occupied-rooms').textContent = getOccupiedRooms();
             document.getElementById('total-rooms').textContent = rooms.length;
             document.getElementById('today-income').textContent = formatCurrency(getTodayIncome());
-            
+            document.getElementById('active-staff').textContent = users.filter(u => u.role !== 'admin').length;
+
+            // Update shift
+            currentShift = checkCurrentShift();
+            const shiftElement = document.getElementById('current-shift');
+            shiftElement.textContent = `Shift: ${currentShift.name}`;
+            shiftElement.className = `shift-indicator bg-${currentShift.code === 'morning' ? 'info' : currentShift.code === 'afternoon' ? 'warning' : 'primary'}`;
+
+            // Load chart
+            loadMonthlyChart();
+        }
+
+        function loadMonthlyChart() {
             const ctx = document.getElementById('monthlyChart').getContext('2d');
-            if (window.monthlyChart instanceof Chart) {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            // Hitung pendapatan per hari
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const dailyIncome = Array(daysInMonth).fill(0);
+            
+            transactions.forEach(txn => {
+                const txnDate = new Date(txn.date);
+                if (txnDate.getMonth() === currentMonth && txnDate.getFullYear() === currentYear) {
+                    const day = txnDate.getDate() - 1;
+                    dailyIncome[day] += txn.amount * txn.quantity;
+                }
+            });
+            
+            // Buat chart
+            if (window.monthlyChart) {
                 window.monthlyChart.destroy();
             }
             
             window.monthlyChart = new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
-                    labels: Array.from({ length: 31 }, (_, i) => (i + 1).toString()),
+                    labels: Array.from({length: daysInMonth}, (_, i) => i + 1),
                     datasets: [{
                         label: 'Pendapatan Harian',
-                        data: Array(31).fill(0).map(() => Math.floor(Math.random() * 5000000)),
-                        backgroundColor: 'rgba(66, 153, 225, 0.7)',
+                        data: dailyIncome,
+                        backgroundColor: 'rgba(66, 153, 225, 0.2)',
                         borderColor: 'rgba(66, 153, 225, 1)',
-                        borderWidth: 1
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
                     }]
                 },
                 options: {
                     responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatCurrency(value).replace('Rp', '');
-                                }
-                            }
-                        }
-                    },
                     plugins: {
+                        legend: {
+                            position: 'top',
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
@@ -1848,999 +1806,50 @@
                                 }
                             }
                         }
-                    }
-                }
-            });
-        }
-        
-        // Inisialisasi check-in
-        function initCheckIn() {
-            const roomSelect = document.getElementById('checkin-room');
-            roomSelect.innerHTML = '<option value="">Pilih Kamar</option>';
-            
-            const availableRooms = rooms.filter(room => room.status === 'available');
-            availableRooms.forEach(room => {
-                const option = document.createElement('option');
-                option.value = room.id;
-                option.textContent = `${room.number} (${room.type} - ${formatCurrency(room.price)}/hari)`;
-                option.setAttribute('data-price', room.price);
-                roomSelect.appendChild(option);
-            });
-            
-            // Load additional services based on settings
-            const servicesContainer = document.getElementById('additional-services-container');
-            servicesContainer.innerHTML = '';
-            
-            if (settings.breakfastAvailable) {
-                const breakfastDiv = document.createElement('div');
-                breakfastDiv.className = 'form-check';
-                breakfastDiv.innerHTML = `
-                    <input class="form-check-input" type="checkbox" id="checkin-breakfast">
-                    <label class="form-check-label" for="checkin-breakfast">
-                        Tambah Sarapan (Rp ${settings.breakfastPrice || 50000}/hari)
-                    </label>
-                `;
-                servicesContainer.appendChild(breakfastDiv);
-            }
-            
-            if (settings.laundryAvailable) {
-                const laundryDiv = document.createElement('div');
-                laundryDiv.className = 'form-check';
-                laundryDiv.innerHTML = `
-                    <input class="form-check-input" type="checkbox" id="checkin-laundry">
-                    <label class="form-check-label" for="checkin-laundry">
-                        Layanan Laundry (Rp ${settings.laundryPrice || 40000}/kg)
-                    </label>
-                `;
-                servicesContainer.appendChild(laundryDiv);
-            }
-            
-            if (settings.massageAvailable) {
-                const massageDiv = document.createElement('div');
-                massageDiv.className = 'form-check';
-                massageDiv.innerHTML = `
-                    <input class="form-check-input" type="checkbox" id="checkin-massage">
-                    <label class="form-check-label" for="checkin-massage">
-                        Layanan Pijat (Rp ${settings.massagePrice || 150000}/jam)
-                    </label>
-                `;
-                servicesContainer.appendChild(massageDiv);
-            }
-            
-            document.getElementById('checkin-room').addEventListener('change', calculateCheckInTotal);
-            document.getElementById('checkin-duration').addEventListener('change', calculateCheckInTotal);
-            
-            // Add event listeners for dynamically created checkboxes
-            servicesContainer.addEventListener('change', function(e) {
-                if (e.target.type === 'checkbox') {
-                    calculateCheckInTotal();
-                }
-            });
-            
-            loadTodayGuests();
-        }
-        
-        function loadTodayGuests() {
-            const todayGuestsList = document.getElementById('today-guests-list');
-            todayGuestsList.innerHTML = '';
-            
-            const todayGuests = getTodayGuests();
-            todayGuests.forEach((guest, index) => {
-                const room = rooms.find(r => r.id === guest.roomId);
-                const row = document.createElement('tr');
-                
-                let actionButton = '';
-                if (guest.status === 'checked-in') {
-                    actionButton = `
-                        <button class="btn btn-sm btn-success checkout-btn" data-id="${guest.id}">
-                            <i class="fas fa-sign-out-alt"></i> Check-Out
-                        </button>
-                    `;
-                } else {
-                    actionButton = `
-                        <button class="btn btn-sm btn-secondary" disabled>
-                            <i class="fas fa-sign-out-alt"></i> Sudah Check-Out
-                        </button>
-                    `;
-                }
-                
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${guest.name || '-'}</td>
-                    <td>${room ? room.number : '-'}</td>
-                    <td>${formatDate(guest.checkIn)}</td>
-                    <td>${formatDate(guest.checkOut)}</td>
-                    <td>
-                        <span class="badge ${guest.status === 'checked-in' ? 'bg-success' : 'bg-secondary'}">
-                            ${guest.status === 'checked-in' ? 'Check-In' : 'Check-Out'}
-                        </span>
-                    </td>
-                    <td>${actionButton}</td>
-                `;
-                todayGuestsList.appendChild(row);
-            });
-            
-            document.querySelectorAll('.checkout-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const guestId = this.getAttribute('data-id');
-                    checkoutGuest(guestId);
-                });
-            });
-        }
-        
-        function calculateCheckInTotal() {
-            const roomId = document.getElementById('checkin-room').value;
-            const duration = parseInt(document.getElementById('checkin-duration').value) || 0;
-            
-            if (!roomId || duration <= 0) {
-                document.getElementById('checkin-total').textContent = 'Rp 0';
-                return;
-            }
-            
-            const room = rooms.find(r => r.id === roomId);
-            if (!room) return;
-            
-            const roomTotal = room.price * duration;
-            
-            // Calculate additional services
-            let breakfastTotal = 0;
-            let laundryTotal = 0;
-            let massageTotal = 0;
-            
-            if (settings.breakfastAvailable && document.getElementById('checkin-breakfast')?.checked) {
-                breakfastTotal = settings.breakfastPrice * duration;
-            }
-            
-            if (settings.laundryAvailable && document.getElementById('checkin-laundry')?.checked) {
-                laundryTotal = settings.laundryPrice;
-            }
-            
-            if (settings.massageAvailable && document.getElementById('checkin-massage')?.checked) {
-                massageTotal = settings.massagePrice;
-            }
-            
-            const total = roomTotal + breakfastTotal + laundryTotal + massageTotal;
-            
-            document.getElementById('checkin-total').textContent = formatCurrency(total);
-        }
-        
-        document.getElementById('checkin-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (!checkAccess(['admin', 'receptionist'])) {
-                alert('Anda tidak memiliki akses untuk melakukan check-in!');
-                return;
-            }
-            
-            const name = document.getElementById('checkin-name').value;
-            const phone = document.getElementById('checkin-phone').value;
-            const identity = document.getElementById('checkin-identity').value;
-            const roomId = document.getElementById('checkin-room').value;
-            const duration = parseInt(document.getElementById('checkin-duration').value);
-            const notes = document.getElementById('checkin-notes').value;
-            
-            const breakfastIncluded = settings.breakfastAvailable && document.getElementById('checkin-breakfast')?.checked;
-            const laundryIncluded = settings.laundryAvailable && document.getElementById('checkin-laundry')?.checked;
-            const massageIncluded = settings.massageAvailable && document.getElementById('checkin-massage')?.checked;
-            
-            if (isGuestAlreadyCheckedIn(identity)) {
-                alert('Tamu dengan identitas ini sudah check-in dalam 24 jam terakhir dan belum check-out!');
-                return;
-            }
-            
-            const checkInDate = new Date();
-            const checkOutDate = new Date();
-            checkOutDate.setDate(checkInDate.getDate() + duration);
-            
-            const newGuest = {
-                id: generateId(),
-                name,
-                identity,
-                phone,
-                roomId,
-                checkIn: checkInDate.toISOString(),
-                checkOut: checkOutDate.toISOString(),
-                status: 'checked-in',
-                notes,
-                breakfastIncluded,
-                laundryIncluded,
-                massageIncluded
-            };
-            
-            guests.push(newGuest);
-            localStorage.setItem('hotel_guests', JSON.stringify(guests));
-            
-            const roomIndex = rooms.findIndex(r => r.id === roomId);
-            if (roomIndex !== -1) {
-                rooms[roomIndex].status = 'occupied';
-                localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
-            }
-            
-            const room = rooms.find(r => r.id === roomId);
-            if (room) {
-                const roomTotal = room.price * duration;
-                const breakfastTotal = breakfastIncluded ? settings.breakfastPrice * duration : 0;
-                const laundryTotal = laundryIncluded ? settings.laundryPrice : 0;
-                const massageTotal = massageIncluded ? settings.massagePrice : 0;
-                
-                const newTransaction = {
-                    id: generateId(),
-                    guestId: newGuest.id,
-                    date: new Date().toISOString(),
-                    type: 'room',
-                    amount: roomTotal,
-                    notes: `Pembayaran kamar ${room.number} untuk ${duration} hari`,
-                    invoiceId: null,
-                    cashier: currentUser.username
-                };
-                
-                transactions.push(newTransaction);
-                
-                if (breakfastIncluded) {
-                    const breakfastTransaction = {
-                        id: generateId(),
-                        guestId: newGuest.id,
-                        date: new Date().toISOString(),
-                        type: 'food',
-                        amount: breakfastTotal,
-                        notes: `Sarapan pagi untuk ${duration} hari`,
-                        invoiceId: null,
-                        cashier: currentUser.username
-                    };
-                    transactions.push(breakfastTransaction);
-                }
-                
-                if (laundryIncluded) {
-                    const laundryTransaction = {
-                        id: generateId(),
-                        guestId: newGuest.id,
-                        date: new Date().toISOString(),
-                        type: 'laundry',
-                        amount: laundryTotal,
-                        notes: `Layanan laundry`,
-                        invoiceId: null,
-                        cashier: currentUser.username
-                    };
-                    transactions.push(laundryTransaction);
-                }
-                
-                if (massageIncluded) {
-                    const massageTransaction = {
-                        id: generateId(),
-                        guestId: newGuest.id,
-                        date: new Date().toISOString(),
-                        type: 'facility',
-                        amount: massageTotal,
-                        notes: `Layanan pijat`,
-                        invoiceId: null,
-                        cashier: currentUser.username
-                    };
-                    transactions.push(massageTransaction);
-                }
-                
-                localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-            }
-            
-            alert('Check-in berhasil!');
-            this.reset();
-            loadTodayGuests();
-            initDashboard();
-        });
-        
-        // Inisialisasi check-out
-        function initCheckOut() {
-            loadCheckOutGuests();
-        }
-        
-        function loadCheckOutGuests() {
-            const checkoutGuestsList = document.getElementById('checkout-guests-list');
-            checkoutGuestsList.innerHTML = '';
-            
-            const checkedInGuests = guests.filter(guest => guest.status === 'checked-in');
-            
-            checkedInGuests.forEach((guest, index) => {
-                const room = rooms.find(r => r.id === guest.roomId);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${guest.name || '-'}</td>
-                    <td>${guest.identity || '-'}</td>
-                    <td>${room ? room.number : '-'}</td>
-                    <td>${formatDate(guest.checkIn)}</td>
-                    <td>${formatDate(guest.checkOut)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-success checkout-btn" data-id="${guest.id}">
-                            <i class="fas fa-sign-out-alt"></i> Check-Out
-                        </button>
-                    </td>
-                `;
-                checkoutGuestsList.appendChild(row);
-            });
-            
-            document.querySelectorAll('.checkout-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const guestId = this.getAttribute('data-id');
-                    checkoutGuest(guestId);
-                });
-            });
-        }
-        
-        function checkoutGuest(guestId) {
-            if (!checkAccess(['admin', 'receptionist'])) {
-                alert('Anda tidak memiliki akses untuk melakukan check-out!');
-                return;
-            }
-            
-            if (!confirm('Apakah Anda yakin ingin melakukan check-out tamu ini?')) {
-                return;
-            }
-            
-            const guestIndex = guests.findIndex(g => g.id === guestId);
-            if (guestIndex !== -1) {
-                guests[guestIndex].status = 'checked-out';
-                guests[guestIndex].actualCheckOut = new Date().toISOString();
-                localStorage.setItem('hotel_guests', JSON.stringify(guests));
-                
-                const roomId = guests[guestIndex].roomId;
-                const roomIndex = rooms.findIndex(r => r.id === roomId);
-                if (roomIndex !== -1) {
-                    rooms[roomIndex].status = 'available';
-                    localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
-                }
-                
-                const checkInDate = new Date(guests[guestIndex].checkIn);
-                const actualCheckOutDate = new Date(guests[guestIndex].actualCheckOut);
-                const plannedCheckOutDate = new Date(guests[guestIndex].checkOut);
-                
-                const actualDuration = Math.ceil((actualCheckOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-                const plannedDuration = Math.ceil((plannedCheckOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-                
-                if (actualDuration < plannedDuration) {
-                    const room = rooms.find(r => r.id === roomId);
-                    if (room) {
-                        const refundAmount = room.price * (plannedDuration - actualDuration);
-                        
-                        const newTransaction = {
-                            id: generateId(),
-                            guestId: guestId,
-                            date: new Date().toISOString(),
-                            type: 'room',
-                            amount: -refundAmount,
-                            notes: `Pengembalian karena check-out lebih awal (${plannedDuration - actualDuration} hari)`,
-                            invoiceId: null,
-                            cashier: currentUser.username
-                        };
-                        
-                        transactions.push(newTransaction);
-                        localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-                    }
-                } else if (actualDuration > plannedDuration) {
-                    const room = rooms.find(r => r.id === roomId);
-                    if (room) {
-                        const additionalAmount = room.price * (actualDuration - plannedDuration);
-                        
-                        const newTransaction = {
-                            id: generateId(),
-                            guestId: guestId,
-                            date: new Date().toISOString(),
-                            type: 'room',
-                            amount: additionalAmount,
-                            notes: `Biaya tambahan karena check-out terlambat (${actualDuration - plannedDuration} hari)`,
-                            invoiceId: null,
-                            cashier: currentUser.username
-                        };
-                        
-                        transactions.push(newTransaction);
-                        localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-                    }
-                }
-                
-                alert('Check-out berhasil!');
-                loadCheckOutGuests();
-                initDashboard();
-                initCheckIn();
-            }
-        }
-        
-        // Inisialisasi transaksi
-        function initTransactions() {
-            const guestSelect = document.getElementById('transaction-guest');
-            guestSelect.innerHTML = '<option value="">Pilih Tamu</option>';
-            
-            const checkedInGuests = guests.filter(guest => guest.status === 'checked-in');
-            checkedInGuests.forEach(guest => {
-                const option = document.createElement('option');
-                option.value = guest.id;
-                option.textContent = `${guest.name} (${guest.identity})`;
-                guestSelect.appendChild(option);
-            });
-            
-            const facilitySelect = document.getElementById('transaction-facility');
-            facilitySelect.innerHTML = '<option value="">Pilih Fasilitas</option>';
-            
-            facilities.forEach(facility => {
-                const option = document.createElement('option');
-                option.value = facility.id;
-                option.textContent = `${facility.name} - ${formatCurrency(facility.price)}`;
-                option.setAttribute('data-price', facility.price);
-                facilitySelect.appendChild(option);
-            });
-            
-            document.getElementById('transaction-type').addEventListener('change', function() {
-                const facilityContainer = document.getElementById('facility-select-container');
-                if (this.value === 'facility') {
-                    facilityContainer.classList.remove('d-none');
-                    document.getElementById('transaction-amount').value = '';
-                    document.getElementById('transaction-amount').readOnly = true;
-                } else {
-                    facilityContainer.classList.add('d-none');
-                    document.getElementById('transaction-amount').readOnly = false;
-                }
-            });
-            
-            document.getElementById('transaction-facility').addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption.value) {
-                    document.getElementById('transaction-amount').value = selectedOption.getAttribute('data-price');
-                    document.getElementById('transaction-notes').value = selectedOption.text;
-                    calculateTransactionSubtotal();
-                }
-            });
-            
-            document.getElementById('transaction-amount').addEventListener('input', calculateTransactionSubtotal);
-            document.getElementById('transaction-quantity').addEventListener('input', calculateTransactionSubtotal);
-            
-            document.getElementById('transaction-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                if (!checkAccess(['admin', 'cashier'])) {
-                    alert('Anda tidak memiliki akses untuk membuat transaksi!');
-                    return;
-                }
-                
-                const guestId = document.getElementById('transaction-guest').value;
-                const type = document.getElementById('transaction-type').value;
-                const amount = parseFloat(document.getElementById('transaction-amount').value);
-                const quantity = parseInt(document.getElementById('transaction-quantity').value) || 1;
-                let notes = document.getElementById('transaction-notes').value;
-                
-                if (type === 'facility') {
-                    const facilityId = document.getElementById('transaction-facility').value;
-                    const facility = facilities.find(f => f.id === facilityId);
-                    if (facility) {
-                        notes = `Pembelian fasilitas: ${facility.name} (${quantity}x)`;
-                    }
-                }
-                
-                const newTransaction = {
-                    id: generateId(),
-                    guestId,
-                    date: new Date().toISOString(),
-                    type,
-                    amount: amount * quantity,
-                    notes,
-                    invoiceId: null,
-                    cashier: currentUser.username
-                };
-                
-                transactions.push(newTransaction);
-                localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-                
-                alert('Transaksi berhasil disimpan!');
-                this.reset();
-                loadTransactions();
-                initDashboard();
-            });
-            
-            loadTransactions();
-            
-            document.getElementById('filter-transactions').addEventListener('click', loadTransactions);
-        }
-        
-        function calculateTransactionSubtotal() {
-            const amount = parseFloat(document.getElementById('transaction-amount').value) || 0;
-            const quantity = parseInt(document.getElementById('transaction-quantity').value) || 1;
-            const subtotal = amount * quantity;
-            
-            document.getElementById('transaction-subtotal').textContent = formatCurrency(subtotal);
-        }
-        
-        function loadTransactions() {
-            const dateFilter = document.getElementById('transaction-date-filter').value;
-            const typeFilter = document.getElementById('transaction-type-filter').value;
-            
-            let filteredTransactions = [...transactions];
-            
-            if (dateFilter) {
-                filteredTransactions = filteredTransactions.filter(t => t.date && t.date.split('T')[0] === dateFilter);
-            }
-            
-            if (typeFilter) {
-                filteredTransactions = filteredTransactions.filter(t => t.type === typeFilter);
-            }
-            
-            const transactionsList = document.getElementById('transactions-list');
-            transactionsList.innerHTML = '';
-            
-            filteredTransactions.forEach((transaction, index) => {
-                const guest = guests.find(g => g.id === transaction.guestId);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${formatDate(transaction.date)}</td>
-                    <td>${guest ? guest.name : 'Tamu tidak ditemukan'}</td>
-                    <td>${getTransactionTypeLabel(transaction.type)}</td>
-                    <td>${transaction.notes || '-'}</td>
-                    <td>${formatCurrency(transaction.amount)}</td>
-                    <td>${transaction.cashier || '-'}</td>
-                    <td>
-                        ${checkAccess(['admin']) ? `
-                        <button class="btn btn-sm btn-danger delete-transaction" data-id="${transaction.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-                transactionsList.appendChild(row);
-            });
-            
-            document.querySelectorAll('.delete-transaction').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
-                        const transactionId = this.getAttribute('data-id');
-                        deleteTransaction(transactionId);
-                    }
-                });
-            });
-        }
-        
-        function getTransactionTypeLabel(type) {
-            const types = {
-                'room': 'Biaya Kamar',
-                'food': 'Makanan & Minuman',
-                'laundry': 'Laundry',
-                'facility': 'Fasilitas',
-                'other': 'Lainnya'
-            };
-            return types[type] || type;
-        }
-        
-        function deleteTransaction(transactionId) {
-            transactions = transactions.filter(t => t.id !== transactionId);
-            localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-            loadTransactions();
-            initDashboard();
-        }
-        
-        // Inisialisasi nota
-        function initNota() {
-            loadInvoiceGuests();
-            
-            document.getElementById('hotel-name-header').textContent = settings.hotelName || 'HOTEL MEWAH';
-            document.getElementById('hotel-address-header').textContent = settings.hotelAddress || 'Jl. Raya No. 123, Kota Anda';
-            document.getElementById('hotel-contact-header').textContent = `Telp: ${settings.hotelPhone || '(021) 1234567'} | Email: ${settings.hotelEmail || 'info@hotelmewah.com'}`;
-            
-            document.getElementById('filter-invoice-guests').addEventListener('click', loadInvoiceGuests);
-            
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('select-guest')) {
-                    const guestId = e.target.getAttribute('data-id');
-                    generateInvoice(guestId);
-                }
-            });
-            
-            document.getElementById('print-invoice').addEventListener('click', function() {
-                window.print();
-            });
-            
-            document.getElementById('save-invoice').addEventListener('click', function() {
-                const invoiceContainer = document.getElementById('invoice-container');
-                const invoiceNumber = document.getElementById('invoice-number').textContent;
-                
-                const existingInvoice = invoices.find(inv => inv.number === invoiceNumber);
-                if (existingInvoice) {
-                    alert('Nota sudah disimpan sebelumnya!');
-                    return;
-                }
-                
-                const newInvoice = {
-                    id: generateId(),
-                    number: invoiceNumber,
-                    date: new Date().toISOString(),
-                    guestId: document.getElementById('invoice-guest').value,
-                    items: Array.from(document.querySelectorAll('#invoice-items tr')).map(row => ({
-                        description: row.cells[1].textContent,
-                        quantity: row.cells[2].textContent,
-                        price: row.cells[3].textContent,
-                        total: row.cells[4].textContent
-                    })),
-                    subtotal: document.getElementById('invoice-subtotal').textContent,
-                    tax: document.getElementById('invoice-tax').textContent,
-                    total: document.getElementById('invoice-total').textContent,
-                    cashier: currentUser.username
-                };
-                
-                invoices.push(newInvoice);
-                localStorage.setItem('hotel_invoices', JSON.stringify(invoices));
-                
-                const guestTransactions = transactions.filter(t => t.guestId === newInvoice.guestId && !t.invoiceId);
-                guestTransactions.forEach(t => {
-                    t.invoiceId = newInvoice.id;
-                });
-                localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-                
-                alert('Nota berhasil disimpan!');
-            });
-            
-            document.getElementById('download-invoice-pdf').addEventListener('click', function() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                
-                // Set font
-                doc.setFont('helvetica', 'normal');
-                
-                // Hotel header
-                doc.setFontSize(18);
-                doc.setTextColor(44, 62, 80);
-                doc.text(settings.hotelName || 'HOTEL MEWAH', 105, 15, { align: 'center' });
-                
-                doc.setFontSize(12);
-                doc.setTextColor(100, 100, 100);
-                doc.text(settings.hotelAddress || 'Jl. Raya No. 123, Kota Anda', 105, 22, { align: 'center' });
-                doc.text(`Telp: ${settings.hotelPhone || '(021) 1234567'} | Email: ${settings.hotelEmail || 'info@hotelmewah.com'}`, 105, 28, { align: 'center' });
-                
-                // Invoice title
-                doc.setFontSize(14);
-                doc.setTextColor(44, 62, 80);
-                doc.text('NOTA PEMBAYARAN', 105, 38, { align: 'center' });
-                
-                // Invoice details
-                doc.setFontSize(10);
-                doc.text(`No. Nota: ${document.getElementById('invoice-number').textContent}`, 15, 45);
-                doc.text(`Tanggal: ${document.getElementById('invoice-date').textContent}`, 15, 50);
-                doc.text(`Kasir: ${document.getElementById('invoice-cashier').textContent}`, 15, 55);
-                
-                doc.text(`Nama Tamu: ${document.getElementById('invoice-guest-name').textContent}`, 105, 45);
-                doc.text(`No. Kamar: ${document.getElementById('invoice-room-number').textContent}`, 105, 50);
-                doc.text(`No. Identitas: ${document.getElementById('invoice-guest-id').textContent}`, 105, 55);
-                
-                // Items table
-                const items = Array.from(document.querySelectorAll('#invoice-items tr')).map(row => [
-                    row.cells[0].textContent,
-                    row.cells[1].textContent,
-                    row.cells[2].textContent,
-                    row.cells[3].textContent.replace('Rp', '').trim(),
-                    row.cells[4].textContent.replace('Rp', '').trim()
-                ]);
-                
-                doc.autoTable({
-                    startY: 65,
-                    head: [['No.', 'Deskripsi', 'Jumlah', 'Harga', 'Total']],
-                    body: items,
-                    theme: 'grid',
-                    headStyles: { 
-                        fillColor: [44, 62, 80],
-                        textColor: [255, 255, 255],
-                        fontStyle: 'bold'
                     },
-                    columnStyles: {
-                        0: { cellWidth: 10 },
-                        1: { cellWidth: 'auto' },
-                        2: { cellWidth: 20 },
-                        3: { cellWidth: 30 },
-                        4: { cellWidth: 30 }
-                    },
-                    styles: {
-                        fontSize: 10,
-                        cellPadding: 3
-                    },
-                    margin: { left: 15 }
-                });
-                
-                // Calculate totals position
-                const finalY = doc.lastAutoTable.finalY + 10;
-                
-                // Totals
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                doc.text('Subtotal:', 150, finalY);
-                doc.text(document.getElementById('invoice-subtotal').textContent, 180, finalY, { align: 'right' });
-                
-                doc.text(`Pajak (${settings.hotelTax || 10}%):`, 150, finalY + 5);
-                doc.text(document.getElementById('invoice-tax').textContent, 180, finalY + 5, { align: 'right' });
-                
-                doc.setFontSize(11);
-                doc.setFontStyle('bold');
-                doc.text('Total:', 150, finalY + 10);
-                doc.text(document.getElementById('invoice-total').textContent, 180, finalY + 10, { align: 'right' });
-                
-                // Footer
-                doc.setFontSize(10);
-                doc.setFontStyle('normal');
-                doc.text('Terima kasih atas kunjungan Anda', 105, finalY + 20, { align: 'center' });
-                doc.text('Nota ini sah tanpa tanda tangan dan stempel', 105, finalY + 25, { align: 'center' });
-                
-                // Save the PDF
-                doc.save(`nota_${document.getElementById('invoice-number').textContent}.pdf`);
-            });
-        }
-        
-        function loadInvoiceGuests() {
-            const searchQuery = document.getElementById('invoice-search').value.toLowerCase();
-            const dateFilter = document.getElementById('invoice-date-filter').value;
-            
-            let filteredGuests = [...guests];
-            
-            if (searchQuery) {
-                filteredGuests = filteredGuests.filter(g => 
-                    (g.name && g.name.toLowerCase().includes(searchQuery)) || 
-                    (g.identity && g.identity.includes(searchQuery)) ||
-                    (rooms.find(r => r.id === g.roomId)?.number.includes(searchQuery))
-                );
-            }
-            
-            if (dateFilter) {
-                filteredGuests = filteredGuests.filter(g => g.checkIn && g.checkIn.split('T')[0] === dateFilter);
-            }
-            
-            const invoiceGuestsList = document.getElementById('invoice-guests-list');
-            invoiceGuestsList.innerHTML = '';
-            
-            filteredGuests.forEach(guest => {
-                const room = rooms.find(r => r.id === guest.roomId);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${guest.name || '-'}</td>
-                    <td>${guest.identity || '-'}</td>
-                    <td>${room ? room.number : '-'}</td>
-                    <td>
-                        <span class="badge ${guest.status === 'checked-in' ? 'bg-success' : 'bg-secondary'}">
-                            ${guest.status === 'checked-in' ? 'Check-In' : 'Check-Out'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-primary select-guest" data-id="${guest.id}">
-                            <i class="fas fa-file-invoice"></i> Buat Nota
-                        </button>
-                    </td>
-                `;
-                invoiceGuestsList.appendChild(row);
-            });
-        }
-        
-        function generateInvoice(guestId) {
-            const guest = guests.find(g => g.id === guestId);
-            if (!guest) {
-                alert('Data tamu tidak ditemukan!');
-                return;
-            }
-            
-            const room = rooms.find(r => r.id === guest.roomId);
-            if (!room) {
-                alert('Data kamar tidak ditemukan!');
-                return;
-            }
-            
-            const checkInDate = new Date(guest.checkIn);
-            const checkOutDate = guest.status === 'checked-out' && guest.actualCheckOut ? 
-                new Date(guest.actualCheckOut) : new Date(guest.checkOut);
-            const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-            
-            document.getElementById('invoice-number').textContent = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(invoices.length + 1).padStart(4, '0')}`;
-            document.getElementById('invoice-date').textContent = formatDate(new Date().toISOString());
-            document.getElementById('invoice-guest-name').textContent = guest.name;
-            document.getElementById('invoice-room-number').textContent = room.number;
-            document.getElementById('invoice-guest-id').textContent = guest.identity;
-            document.getElementById('invoice-cashier').textContent = currentUser.username;
-            
-            // Store guest ID in hidden field for saving invoice
-            document.getElementById('invoice-guest').value = guestId;
-            
-            JsBarcode("#invoice-barcode", document.getElementById('invoice-number').textContent, {
-                format: "CODE128",
-                lineColor: "#000",
-                width: 2,
-                height: 50,
-                displayValue: true
-            });
-            
-            // Generate invoice items
-            const invoiceItems = document.getElementById('invoice-items');
-            invoiceItems.innerHTML = '';
-            
-            // Room charges
-            const roomRow = document.createElement('tr');
-            roomRow.innerHTML = `
-                <td>1</td>
-                <td>Kamar ${room.number} (${room.type}) - ${duration} hari</td>
-                <td>${duration}</td>
-                <td>${formatCurrency(room.price)}</td>
-                <td>${formatCurrency(room.price * duration)}</td>
-            `;
-            invoiceItems.appendChild(roomRow);
-            
-            // Additional services
-            let rowCount = 2;
-            let subtotal = room.price * duration;
-            
-            if (guest.breakfastIncluded) {
-                const breakfastRow = document.createElement('tr');
-                const breakfastTotal = settings.breakfastPrice * duration;
-                breakfastRow.innerHTML = `
-                    <td>${rowCount++}</td>
-                    <td>Sarapan pagi - ${duration} hari</td>
-                    <td>${duration}</td>
-                    <td>${formatCurrency(settings.breakfastPrice)}</td>
-                    <td>${formatCurrency(breakfastTotal)}</td>
-                `;
-                invoiceItems.appendChild(breakfastRow);
-                subtotal += breakfastTotal;
-            }
-            
-            if (guest.laundryIncluded) {
-                const laundryRow = document.createElement('tr');
-                laundryRow.innerHTML = `
-                    <td>${rowCount++}</td>
-                    <td>Layanan Laundry</td>
-                    <td>1</td>
-                    <td>${formatCurrency(settings.laundryPrice)}</td>
-                    <td>${formatCurrency(settings.laundryPrice)}</td>
-                `;
-                invoiceItems.appendChild(laundryRow);
-                subtotal += settings.laundryPrice;
-            }
-            
-            if (guest.massageIncluded) {
-                const massageRow = document.createElement('tr');
-                massageRow.innerHTML = `
-                    <td>${rowCount++}</td>
-                    <td>Layanan Pijat</td>
-                    <td>1</td>
-                    <td>${formatCurrency(settings.massagePrice)}</td>
-                    <td>${formatCurrency(settings.massagePrice)}</td>
-                `;
-                invoiceItems.appendChild(massageRow);
-                subtotal += settings.massagePrice;
-            }
-            
-            // Add transactions that haven't been invoiced yet
-            const guestTransactions = transactions.filter(t => 
-                t.guestId === guestId && 
-                !t.invoiceId &&
-                !(t.type === 'room' && t.amount === room.price * duration) &&
-                !(guest.breakfastIncluded && t.type === 'food' && t.amount === settings.breakfastPrice * duration) &&
-                !(guest.laundryIncluded && t.type === 'laundry' && t.amount === settings.laundryPrice) &&
-                !(guest.massageIncluded && t.type === 'facility' && t.amount === settings.massagePrice)
-            );
-            
-            guestTransactions.forEach(transaction => {
-                const transactionRow = document.createElement('tr');
-                transactionRow.innerHTML = `
-                    <td>${rowCount++}</td>
-                    <td>${transaction.notes || getTransactionTypeLabel(transaction.type)}</td>
-                    <td>1</td>
-                    <td>${formatCurrency(transaction.amount)}</td>
-                    <td>${formatCurrency(transaction.amount)}</td>
-                `;
-                invoiceItems.appendChild(transactionRow);
-                subtotal += transaction.amount;
-            });
-            
-            // Calculate tax and total
-            const tax = subtotal * (settings.hotelTax / 100);
-            const total = subtotal + tax;
-            
-            document.getElementById('invoice-subtotal').textContent = formatCurrency(subtotal);
-            document.getElementById('invoice-tax').textContent = formatCurrency(tax);
-            document.getElementById('invoice-total').textContent = formatCurrency(total);
-            
-            // Show invoice container
-            document.getElementById('invoice-container').classList.remove('d-none');
-        }
-        
-        // Inisialisasi manajemen kamar
-        function initKamar() {
-            loadRooms();
-            
-            document.getElementById('add-room-btn').addEventListener('click', function() {
-                document.getElementById('roomModalTitle').textContent = 'Tambah Kamar Baru';
-                document.getElementById('room-id').value = '';
-                document.getElementById('room-form').reset();
-                
-                const modal = new bootstrap.Modal(document.getElementById('roomModal'));
-                modal.show();
-            });
-            
-            document.getElementById('save-room').addEventListener('click', function() {
-                const roomId = document.getElementById('room-id').value;
-                const number = document.getElementById('room-number').value;
-                const type = document.getElementById('room-type').value;
-                const price = parseInt(document.getElementById('room-price').value);
-                const status = document.getElementById('room-status').value;
-                const notes = document.getElementById('room-notes').value;
-                
-                if (!number || !type || isNaN(price) || !status) {
-                    alert('Harap isi semua field yang diperlukan!');
-                    return;
-                }
-                
-                if (roomId) {
-                    // Update existing room
-                    const roomIndex = rooms.findIndex(r => r.id === roomId);
-                    if (roomIndex !== -1) {
-                        rooms[roomIndex] = {
-                            ...rooms[roomIndex],
-                            number,
-                            type,
-                            price,
-                            status,
-                            notes
-                        };
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
                     }
-                } else {
-                    // Add new room
-                    rooms.push({
-                        id: generateId(),
-                        number,
-                        type,
-                        price,
-                        status,
-                        notes
-                    });
                 }
-                
-                localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
-                
-                alert('Data kamar berhasil disimpan!');
-                const modal = bootstrap.Modal.getInstance(document.getElementById('roomModal'));
-                modal.hide();
-                
-                loadRooms();
-                initDashboard();
-                initCheckIn();
             });
         }
-        
-        function loadRooms() {
+
+        function loadRoomsData() {
             const roomsList = document.getElementById('rooms-list');
             roomsList.innerHTML = '';
             
             rooms.forEach((room, index) => {
                 const row = document.createElement('tr');
-                
-                let statusBadge = '';
-                if (room.status === 'available') {
-                    statusBadge = '<span class="badge bg-success">Tersedia</span>';
-                } else if (room.status === 'occupied') {
-                    statusBadge = '<span class="badge bg-danger">Terisi</span>';
-                } else {
-                    statusBadge = '<span class="badge bg-warning">Perbaikan</span>';
-                }
-                
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${room.number}</td>
-                    <td>${room.type}</td>
+                    <td>${room.type.charAt(0).toUpperCase() + room.type.slice(1)}</td>
                     <td>${formatCurrency(room.price)}</td>
-                    <td>${statusBadge}</td>
+                    <td>
+                        <span class="badge bg-${room.status === 'available' ? 'success' : room.status === 'occupied' ? 'danger' : 'warning'}">
+                            ${room.status === 'available' ? 'Tersedia' : room.status === 'occupied' ? 'Terisi' : 'Perbaikan'}
+                        </span>
+                    </td>
                     <td>
                         <button class="btn btn-sm btn-primary edit-room" data-id="${room.id}">
                             <i class="fas fa-edit"></i>
                         </button>
-                        ${checkAccess(['admin']) ? `
                         <button class="btn btn-sm btn-danger delete-room" data-id="${room.id}">
                             <i class="fas fa-trash"></i>
                         </button>
-                        ` : ''}
                     </td>
                 `;
                 roomsList.appendChild(row);
             });
             
+            // Tambahkan event listener untuk tombol edit dan delete
             document.querySelectorAll('.edit-room').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const roomId = this.getAttribute('data-id');
@@ -2855,7 +1864,660 @@
                 });
             });
         }
-        
+
+        function loadFacilitiesData() {
+            const facilitiesList = document.getElementById('facilities-list');
+            facilitiesList.innerHTML = '';
+            
+            facilities.forEach((facility, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${facility.name}</td>
+                    <td>${facility.category === 'food' ? 'Makanan' : 
+                          facility.category === 'beverage' ? 'Minuman' : 
+                          facility.category === 'service' ? 'Layanan' : 'Lainnya'}</td>
+                    <td>${formatCurrency(facility.price)}</td>
+                    <td>
+                        <span class="badge bg-${facility.status === 'available' ? 'success' : 'danger'}">
+                            ${facility.status === 'available' ? 'Tersedia' : 'Tidak Tersedia'}
+                        </span>
+                    </td>
+                    <td>${facility.description || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary edit-facility" data-id="${facility.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-facility" data-id="${facility.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                facilitiesList.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol edit dan delete
+            document.querySelectorAll('.edit-facility').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const facilityId = this.getAttribute('data-id');
+                    editFacility(facilityId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-facility').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const facilityId = this.getAttribute('data-id');
+                    deleteFacility(facilityId);
+                });
+            });
+        }
+
+        function loadGuestsData(filter = {}) {
+            const guestsList = document.getElementById('guests-list');
+            guestsList.innerHTML = '';
+            
+            let filteredGuests = [...guests];
+            
+            if (filter.search) {
+                const searchTerm = filter.search.toLowerCase();
+                filteredGuests = filteredGuests.filter(guest => 
+                    guest.name.toLowerCase().includes(searchTerm) || 
+                    guest.identity.toLowerCase().includes(searchTerm) ||
+                    guest.phone.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filter.status) {
+                filteredGuests = filteredGuests.filter(guest => guest.status === filter.status);
+            }
+            
+            filteredGuests.forEach((guest, index) => {
+                const room = rooms.find(r => r.id === guest.roomId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${guest.name}</td>
+                    <td>${guest.identity}</td>
+                    <td>${guest.phone}</td>
+                    <td>${room ? room.number : 'Tidak diketahui'}</td>
+                    <td>
+                        <span class="badge bg-${guest.status === 'checked-in' ? 'success' : 'secondary'}">
+                            ${guest.status === 'checked-in' ? 'Check-In' : 'Check-Out'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info view-guest" data-id="${guest.id}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                guestsList.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol view
+            document.querySelectorAll('.view-guest').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    viewGuest(guestId);
+                });
+            });
+        }
+
+        function loadCheckInForm() {
+            // Load available rooms
+            const roomSelect = document.getElementById('checkin-room');
+            roomSelect.innerHTML = '<option value="">Pilih Kamar</option>';
+            
+            getAvailableRooms().forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.id;
+                option.textContent = `${room.number} (${room.type.charAt(0).toUpperCase() + room.type.slice(1)}) - ${formatCurrency(room.price)}/hari`;
+                roomSelect.appendChild(option);
+            });
+            
+            // Load additional services
+            const servicesContainer = document.getElementById('additional-services-container');
+            servicesContainer.innerHTML = '';
+            
+            if (settings.breakfastAvailable) {
+                const div = document.createElement('div');
+                div.className = 'form-check form-switch mb-2';
+                div.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="checkin-breakfast">
+                    <label class="form-check-label" for="checkin-breakfast">
+                        Sarapan (+${formatCurrency(settings.breakfastPrice)})
+                    </label>
+                `;
+                servicesContainer.appendChild(div);
+            }
+            
+            if (settings.laundryAvailable) {
+                const div = document.createElement('div');
+                div.className = 'form-check form-switch mb-2';
+                div.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="checkin-laundry">
+                    <label class="form-check-label" for="checkin-laundry">
+                        Laundry (+${formatCurrency(settings.laundryPrice)}/kg)
+                    </label>
+                `;
+                servicesContainer.appendChild(div);
+            }
+            
+            if (settings.massageAvailable) {
+                const div = document.createElement('div');
+                div.className = 'form-check form-switch mb-2';
+                div.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="checkin-massage">
+                    <label class="form-check-label" for="checkin-massage">
+                        Pijat (+${formatCurrency(settings.massagePrice)}/jam)
+                    </label>
+                `;
+                servicesContainer.appendChild(div);
+            }
+            
+            // Load today's guests
+            loadTodayGuestsList();
+            
+            // Event listener untuk menghitung total biaya
+            document.getElementById('checkin-room').addEventListener('change', updateCheckInTotal);
+            document.getElementById('checkin-duration').addEventListener('input', updateCheckInTotal);
+            document.querySelectorAll('#additional-services-container input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCheckInTotal);
+            });
+        }
+
+        function updateCheckInTotal() {
+            const roomId = document.getElementById('checkin-room').value;
+            const duration = parseInt(document.getElementById('checkin-duration').value) || 0;
+            const room = rooms.find(r => r.id === roomId);
+            
+            if (!room || duration <= 0) {
+                document.getElementById('checkin-total').textContent = 'Rp 0';
+                return;
+            }
+            
+            let total = room.price * duration;
+            
+            // Tambahkan biaya layanan tambahan
+            if (settings.breakfastAvailable && document.getElementById('checkin-breakfast').checked) {
+                total += settings.breakfastPrice * duration;
+            }
+            
+            if (settings.laundryAvailable && document.getElementById('checkin-laundry').checked) {
+                total += settings.laundryPrice;
+            }
+            
+            if (settings.massageAvailable && document.getElementById('checkin-massage').checked) {
+                total += settings.massagePrice;
+            }
+            
+            document.getElementById('checkin-total').textContent = formatCurrency(total);
+        }
+
+        function loadTodayGuestsList() {
+            const todayGuestsList = document.getElementById('today-guests-list');
+            todayGuestsList.innerHTML = '';
+            
+            const todayGuests = getTodayGuests();
+            
+            if (todayGuests.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="7" class="text-center">Tidak ada tamu hari ini</td>';
+                todayGuestsList.appendChild(row);
+                return;
+            }
+            
+            todayGuests.forEach((guest, index) => {
+                const room = rooms.find(r => r.id === guest.roomId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${guest.name}</td>
+                    <td>${room ? room.number : 'Tidak diketahui'}</td>
+                    <td>${formatDate(guest.checkIn)}</td>
+                    <td>${formatDate(guest.checkOut)}</td>
+                    <td>
+                        <span class="badge bg-${guest.status === 'checked-in' ? 'success' : 'secondary'}">
+                            ${guest.status === 'checked-in' ? 'Check-In' : 'Check-Out'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info view-guest" data-id="${guest.id}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                todayGuestsList.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol view
+            document.querySelectorAll('.view-guest').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    viewGuest(guestId);
+                });
+            });
+        }
+
+        function loadCheckOutList() {
+            const checkoutList = document.getElementById('checkout-guests-list');
+            checkoutList.innerHTML = '';
+            
+            const checkedInGuests = getCheckedInGuests();
+            
+            if (checkedInGuests.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="7" class="text-center">Tidak ada tamu yang sedang menginap</td>';
+                checkoutList.appendChild(row);
+                return;
+            }
+            
+            checkedInGuests.forEach((guest, index) => {
+                const room = rooms.find(r => r.id === guest.roomId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${guest.name}</td>
+                    <td>${guest.identity}</td>
+                    <td>${room ? room.number : 'Tidak diketahui'}</td>
+                    <td>${formatDate(guest.checkIn)}</td>
+                    <td>${formatDate(guest.checkOut)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary checkout-guest" data-id="${guest.id}">
+                            <i class="fas fa-sign-out-alt"></i> Check-Out
+                        </button>
+                    </td>
+                `;
+                checkoutList.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol checkout
+            document.querySelectorAll('.checkout-guest').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    processCheckOut(guestId);
+                });
+            });
+        }
+
+        function loadTransactionsData(filter = {}) {
+            const transactionsList = document.getElementById('transactions-list');
+            transactionsList.innerHTML = '';
+            
+            let filteredTransactions = [...transactions];
+            
+            if (filter.date) {
+                filteredTransactions = filteredTransactions.filter(txn => 
+                    txn.date && txn.date.split('T')[0] === filter.date
+                );
+            }
+            
+            if (filter.type) {
+                filteredTransactions = filteredTransactions.filter(txn => txn.type === filter.type);
+            }
+            
+            if (filteredTransactions.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="8" class="text-center">Tidak ada transaksi</td>';
+                transactionsList.appendChild(row);
+                return;
+            }
+            
+            filteredTransactions.forEach((txn, index) => {
+                const guest = guests.find(g => g.id === txn.guestId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${formatDate(txn.date)}</td>
+                    <td>${guest ? guest.name : 'Tamu tidak diketahui'}</td>
+                    <td>
+                        ${txn.type === 'room' ? 'Biaya Kamar' : 
+                          txn.type === 'food' ? 'Makanan & Minuman' : 
+                          txn.type === 'facility' ? 'Fasilitas' : 
+                          txn.type === 'laundry' ? 'Laundry' : 'Lainnya'}
+                    </td>
+                    <td>${txn.notes || '-'}</td>
+                    <td>${formatCurrency(txn.amount * txn.quantity)}</td>
+                    <td>${txn.cashier || currentUser.username}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger delete-transaction" data-id="${txn.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                transactionsList.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol delete
+            document.querySelectorAll('.delete-transaction').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const txnId = this.getAttribute('data-id');
+                    deleteTransaction(txnId);
+                });
+            });
+        }
+
+        function loadTransactionForm() {
+            const guestSelect = document.getElementById('transaction-guest');
+            guestSelect.innerHTML = '<option value="">Pilih Tamu</option>';
+            
+            guests.filter(g => g.status === 'checked-in').forEach(guest => {
+                const option = document.createElement('option');
+                option.value = guest.id;
+                option.textContent = `${guest.name} (Kamar: ${rooms.find(r => r.id === guest.roomId)?.number || '-'})`;
+                guestSelect.appendChild(option);
+            });
+            
+            const facilitySelect = document.getElementById('transaction-facility');
+            facilitySelect.innerHTML = '<option value="">Pilih Fasilitas</option>';
+            
+            facilities.forEach(facility => {
+                if (facility.status === 'available') {
+                    const option = document.createElement('option');
+                    option.value = facility.id;
+                    option.textContent = `${facility.name} - ${formatCurrency(facility.price)}`;
+                    facilitySelect.appendChild(option);
+                }
+            });
+            
+            // Event listener untuk jenis transaksi
+            document.getElementById('transaction-type').addEventListener('change', function() {
+                const type = this.value;
+                const facilityContainer = document.getElementById('facility-select-container');
+                
+                if (type === 'facility') {
+                    facilityContainer.style.display = 'block';
+                } else {
+                    facilityContainer.style.display = 'none';
+                }
+                
+                updateTransactionSubtotal();
+            });
+            
+            // Event listener untuk menghitung subtotal
+            document.getElementById('transaction-amount').addEventListener('input', updateTransactionSubtotal);
+            document.getElementById('transaction-quantity').addEventListener('input', updateTransactionSubtotal);
+            document.getElementById('transaction-facility').addEventListener('change', function() {
+                const facilityId = this.value;
+                const facility = facilities.find(f => f.id === facilityId);
+                if (facility) {
+                    document.getElementById('transaction-amount').value = facility.price;
+                    document.getElementById('transaction-notes').value = facility.name;
+                    updateTransactionSubtotal();
+                }
+            });
+        }
+
+        function updateTransactionSubtotal() {
+            const amount = parseFloat(document.getElementById('transaction-amount').value) || 0;
+            const quantity = parseInt(document.getElementById('transaction-quantity').value) || 0;
+            const subtotal = amount * quantity;
+            
+            document.getElementById('transaction-subtotal').textContent = formatCurrency(subtotal);
+        }
+
+        function loadInvoiceGuests(filter = {}) {
+            const invoiceGuestsList = document.getElementById('invoice-guests-list');
+            invoiceGuestsList.innerHTML = '';
+            
+            let filteredGuests = [...guests];
+            
+            if (filter.search) {
+                const searchTerm = filter.search.toLowerCase();
+                filteredGuests = filteredGuests.filter(guest => 
+                    guest.name.toLowerCase().includes(searchTerm) || 
+                    guest.identity.toLowerCase().includes(searchTerm) ||
+                    (rooms.find(r => r.id === guest.roomId)?.number || '').toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filter.date) {
+                filteredGuests = filteredGuests.filter(guest => 
+                    guest.checkIn && guest.checkIn.split('T')[0] === filter.date
+                );
+            }
+            
+            if (filteredGuests.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5" class="text-center">Tidak ada tamu yang ditemukan</td>';
+                invoiceGuestsList.appendChild(row);
+                return;
+            }
+            
+            filteredGuests.forEach(guest => {
+                const room = rooms.find(r => r.id === guest.roomId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${guest.name}</td>
+                    <td>${guest.identity}</td>
+                    <td>${room ? room.number : 'Tidak diketahui'}</td>
+                    <td>
+                        <span class="badge bg-${guest.status === 'checked-in' ? 'success' : 'secondary'}">
+                            ${guest.status === 'checked-in' ? 'Check-In' : 'Check-Out'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary create-invoice" data-id="${guest.id}">
+                            <i class="fas fa-receipt"></i> Buat Nota
+                        </button>
+                    </td>
+                `;
+                invoiceGuestsList.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol buat nota
+            document.querySelectorAll('.create-invoice').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const guestId = this.getAttribute('data-id');
+                    createInvoice(guestId);
+                });
+            });
+        }
+
+        function loadUsersData() {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = '';
+            
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.username}</td>
+                    <td>
+                        <span class="badge bg-${user.role}">
+                            ${user.role === 'admin' ? 'Admin' : 
+                              user.role === 'supervisor' ? 'Supervisor' : 
+                              user.role === 'manager' ? 'Manager' : 'Staff'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary edit-user" data-id="${user.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-user" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                usersList.appendChild(row);
+            });
+            
+            // Tambahkan event listener untuk tombol edit dan delete
+            document.querySelectorAll('.edit-user').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-id');
+                    editUser(userId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-user').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-id');
+                    deleteUser(userId);
+                });
+            });
+        }
+
+        function loadSettingsData() {
+            document.getElementById('hotel-name').value = settings.hotelName || '';
+            document.getElementById('hotel-address').value = settings.hotelAddress || '';
+            document.getElementById('hotel-phone').value = settings.hotelPhone || '';
+            document.getElementById('hotel-email').value = settings.hotelEmail || '';
+            document.getElementById('hotel-tax').value = settings.hotelTax || 10;
+            document.getElementById('breakfast-price').value = settings.breakfastPrice || 50000;
+            document.getElementById('breakfast-available').checked = settings.breakfastAvailable !== false;
+            document.getElementById('laundry-price').value = settings.laundryPrice || 40000;
+            document.getElementById('laundry-available').checked = settings.laundryAvailable !== false;
+            document.getElementById('massage-price').value = settings.massagePrice || 150000;
+            document.getElementById('massage-available').checked = settings.massageAvailable !== false;
+        }
+
+        // Fungsi untuk operasi CRUD
+        function addRoom(roomData) {
+            rooms.push(roomData);
+            localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+            loadRoomsData();
+            showNotification('success', 'Kamar berhasil ditambahkan');
+        }
+
+        function updateRoom(roomId, roomData) {
+            const index = rooms.findIndex(r => r.id === roomId);
+            if (index !== -1) {
+                rooms[index] = { ...rooms[index], ...roomData };
+                localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                loadRoomsData();
+                showNotification('success', 'Kamar berhasil diperbarui');
+            }
+        }
+
+        function deleteRoom(roomId) {
+            if (confirm('Apakah Anda yakin ingin menghapus kamar ini?')) {
+                rooms = rooms.filter(r => r.id !== roomId);
+                localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                loadRoomsData();
+                showNotification('success', 'Kamar berhasil dihapus');
+            }
+        }
+
+        function addFacility(facilityData) {
+            facilities.push(facilityData);
+            localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
+            loadFacilitiesData();
+            showNotification('success', 'Fasilitas berhasil ditambahkan');
+        }
+
+        function updateFacility(facilityId, facilityData) {
+            const index = facilities.findIndex(f => f.id === facilityId);
+            if (index !== -1) {
+                facilities[index] = { ...facilities[index], ...facilityData };
+                localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
+                loadFacilitiesData();
+                showNotification('success', 'Fasilitas berhasil diperbarui');
+            }
+        }
+
+        function deleteFacility(facilityId) {
+            if (confirm('Apakah Anda yakin ingin menghapus fasilitas ini?')) {
+                facilities = facilities.filter(f => f.id !== facilityId);
+                localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
+                loadFacilitiesData();
+                showNotification('success', 'Fasilitas berhasil dihapus');
+            }
+        }
+
+        function addGuest(guestData) {
+            guests.push(guestData);
+            localStorage.setItem('hotel_guests', JSON.stringify(guests));
+            
+            // Update status kamar
+            const roomIndex = rooms.findIndex(r => r.id === guestData.roomId);
+            if (roomIndex !== -1) {
+                rooms[roomIndex].status = 'occupied';
+                localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+            }
+            
+            loadDashboardData();
+            showNotification('success', 'Check-In berhasil diproses');
+        }
+
+        function checkOutGuest(guestId) {
+            const guestIndex = guests.findIndex(g => g.id === guestId);
+            if (guestIndex !== -1) {
+                guests[guestIndex].status = 'checked-out';
+                guests[guestIndex].checkOut = new Date().toISOString();
+                localStorage.setItem('hotel_guests', JSON.stringify(guests));
+                
+                // Update status kamar
+                const roomId = guests[guestIndex].roomId;
+                const roomIndex = rooms.findIndex(r => r.id === roomId);
+                if (roomIndex !== -1) {
+                    rooms[roomIndex].status = 'available';
+                    localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                }
+                
+                loadDashboardData();
+                loadCheckOutList();
+                showNotification('success', 'Check-Out berhasil diproses');
+            }
+        }
+
+        function addTransaction(transactionData) {
+            transactions.push(transactionData);
+            localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+            loadDashboardData();
+            loadTransactionsData();
+            showNotification('success', 'Transaksi berhasil ditambahkan');
+        }
+
+        function deleteTransaction(transactionId) {
+            if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+                transactions = transactions.filter(t => t.id !== transactionId);
+                localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+                loadTransactionsData();
+                loadDashboardData();
+                showNotification('success', 'Transaksi berhasil dihapus');
+            }
+        }
+
+        function addInvoice(invoiceData) {
+            invoices.push(invoiceData);
+            localStorage.setItem('hotel_invoices', JSON.stringify(invoices));
+            showNotification('success', 'Nota berhasil disimpan');
+        }
+
+        function addUser(userData) {
+            users.push(userData);
+            localStorage.setItem('hotel_users', JSON.stringify(users));
+            loadUsersData();
+            showNotification('success', 'Pengguna berhasil ditambahkan');
+        }
+
+        function updateUser(userId, userData) {
+            const index = users.findIndex(u => u.id === userId);
+            if (index !== -1) {
+                users[index] = { ...users[index], ...userData };
+                localStorage.setItem('hotel_users', JSON.stringify(users));
+                loadUsersData();
+                showNotification('success', 'Pengguna berhasil diperbarui');
+            }
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) {
+                users = users.filter(u => u.id !== userId);
+                localStorage.setItem('hotel_users', JSON.stringify(users));
+                loadUsersData();
+                showNotification('success', 'Pengguna berhasil dihapus');
+            }
+        }
+
+        function updateSettings(newSettings) {
+            settings = { ...settings, ...newSettings };
+            localStorage.setItem('hotel_settings', JSON.stringify(settings));
+            showNotification('success', 'Pengaturan berhasil diperbarui');
+        }
+
+        // Fungsi untuk modal dan form
         function editRoom(roomId) {
             const room = rooms.find(r => r.id === roomId);
             if (!room) return;
@@ -2871,151 +2533,7 @@
             const modal = new bootstrap.Modal(document.getElementById('roomModal'));
             modal.show();
         }
-        
-        function deleteRoom(roomId) {
-            if (!confirm('Apakah Anda yakin ingin menghapus kamar ini?')) {
-                return;
-            }
-            
-            // Check if room is occupied
-            const isOccupied = guests.some(g => g.roomId === roomId && g.status === 'checked-in');
-            if (isOccupied) {
-                alert('Tidak dapat menghapus kamar yang sedang digunakan tamu!');
-                return;
-            }
-            
-            rooms = rooms.filter(r => r.id !== roomId);
-            localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
-            
-            loadRooms();
-            initDashboard();
-            initCheckIn();
-        }
-        
-        // Inisialisasi manajemen fasilitas
-        function initFasilitas() {
-            loadFacilities();
-            
-            document.getElementById('add-facility-btn').addEventListener('click', function() {
-                document.getElementById('facilityModalTitle').textContent = 'Tambah Fasilitas Baru';
-                document.getElementById('facility-id').value = '';
-                document.getElementById('facility-form').reset();
-                document.getElementById('facility-available').checked = true;
-                
-                const modal = new bootstrap.Modal(document.getElementById('facilityModal'));
-                modal.show();
-            });
-            
-            document.getElementById('save-facility').addEventListener('click', function() {
-                const facilityId = document.getElementById('facility-id').value;
-                const name = document.getElementById('facility-name').value;
-                const category = document.getElementById('facility-category').value;
-                const price = parseInt(document.getElementById('facility-price').value);
-                const status = document.querySelector('input[name="facility-status"]:checked').value;
-                const description = document.getElementById('facility-description').value;
-                
-                if (!name || !category || isNaN(price) || !status) {
-                    alert('Harap isi semua field yang diperlukan!');
-                    return;
-                }
-                
-                if (facilityId) {
-                    // Update existing facility
-                    const facilityIndex = facilities.findIndex(f => f.id === facilityId);
-                    if (facilityIndex !== -1) {
-                        facilities[facilityIndex] = {
-                            ...facilities[facilityIndex],
-                            name,
-                            category,
-                            price,
-                            status,
-                            description
-                        };
-                    }
-                } else {
-                    // Add new facility
-                    facilities.push({
-                        id: generateId(),
-                        name,
-                        category,
-                        price,
-                        status,
-                        description
-                    });
-                }
-                
-                localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
-                
-                alert('Data fasilitas berhasil disimpan!');
-                const modal = bootstrap.Modal.getInstance(document.getElementById('facilityModal'));
-                modal.hide();
-                
-                loadFacilities();
-                initTransactions();
-            });
-        }
-        
-        function loadFacilities() {
-            const facilitiesList = document.getElementById('facilities-list');
-            facilitiesList.innerHTML = '';
-            
-            facilities.forEach((facility, index) => {
-                const row = document.createElement('tr');
-                
-                let categoryBadge = '';
-                if (facility.category === 'food') {
-                    categoryBadge = '<span class="badge bg-success">Makanan</span>';
-                } else if (facility.category === 'beverage') {
-                    categoryBadge = '<span class="badge bg-info">Minuman</span>';
-                } else if (facility.category === 'service') {
-                    categoryBadge = '<span class="badge bg-primary">Layanan</span>';
-                } else {
-                    categoryBadge = '<span class="badge bg-secondary">Lainnya</span>';
-                }
-                
-                let statusBadge = '';
-                if (facility.status === 'available') {
-                    statusBadge = '<span class="badge bg-success">Tersedia</span>';
-                } else {
-                    statusBadge = '<span class="badge bg-danger">Tidak Tersedia</span>';
-                }
-                
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${facility.name}</td>
-                    <td>${categoryBadge}</td>
-                    <td>${formatCurrency(facility.price)}</td>
-                    <td>${statusBadge}</td>
-                    <td>${facility.description || '-'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary edit-facility" data-id="${facility.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        ${checkAccess(['admin']) ? `
-                        <button class="btn btn-sm btn-danger delete-facility" data-id="${facility.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-                facilitiesList.appendChild(row);
-            });
-            
-            document.querySelectorAll('.edit-facility').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const facilityId = this.getAttribute('data-id');
-                    editFacility(facilityId);
-                });
-            });
-            
-            document.querySelectorAll('.delete-facility').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const facilityId = this.getAttribute('data-id');
-                    deleteFacility(facilityId);
-                });
-            });
-        }
-        
+
         function editFacility(facilityId) {
             const facility = facilities.find(f => f.id === facilityId);
             if (!facility) return;
@@ -3025,6 +2543,7 @@
             document.getElementById('facility-name').value = facility.name;
             document.getElementById('facility-category').value = facility.category;
             document.getElementById('facility-price').value = facility.price;
+            document.getElementById('facility-description').value = facility.description || '';
             
             if (facility.status === 'available') {
                 document.getElementById('facility-available').checked = true;
@@ -3032,567 +2551,828 @@
                 document.getElementById('facility-unavailable').checked = true;
             }
             
-            document.getElementById('facility-description').value = facility.description || '';
-            
             const modal = new bootstrap.Modal(document.getElementById('facilityModal'));
             modal.show();
         }
-        
-        function deleteFacility(facilityId) {
-            if (!confirm('Apakah Anda yakin ingin menghapus fasilitas ini?')) {
-                return;
-            }
-            
-            facilities = facilities.filter(f => f.id !== facilityId);
-            localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
-            
-            loadFacilities();
-            initTransactions();
-        }
-        
-        // Inisialisasi data tamu
-        function initTamu() {
-            loadGuests();
-            
-            document.getElementById('filter-guests').addEventListener('click', loadGuests);
-        }
-        
-        function loadGuests() {
-            const searchQuery = document.getElementById('guest-search').value.toLowerCase();
-            const statusFilter = document.getElementById('guest-status-filter').value;
-            
-            let filteredGuests = [...guests];
-            
-            if (searchQuery) {
-                filteredGuests = filteredGuests.filter(g => 
-                    (g.name && g.name.toLowerCase().includes(searchQuery)) || 
-                    (g.identity && g.identity.includes(searchQuery)) ||
-                    (g.phone && g.phone.includes(searchQuery))
-                );
-            }
-            
-            if (statusFilter) {
-                filteredGuests = filteredGuests.filter(g => g.status === statusFilter);
-            }
-            
-            const guestsList = document.getElementById('guests-list');
-            guestsList.innerHTML = '';
-            
-            filteredGuests.forEach((guest, index) => {
-                const room = rooms.find(r => r.id === guest.roomId);
-                
-                let statusBadge = '';
-                if (guest.status === 'checked-in') {
-                    statusBadge = '<span class="badge bg-success">Check-In</span>';
-                } else {
-                    statusBadge = '<span class="badge bg-secondary">Check-Out</span>';
-                }
-                
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${guest.name || '-'}</td>
-                    <td>${guest.identity || '-'}</td>
-                    <td>${guest.phone || '-'}</td>
-                    <td>${room ? room.number : '-'}</td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary view-guest" data-id="${guest.id}">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${checkAccess(['admin']) ? `
-                        <button class="btn btn-sm btn-danger delete-guest" data-id="${guest.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-                guestsList.appendChild(row);
-            });
-            
-            document.querySelectorAll('.view-guest').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const guestId = this.getAttribute('data-id');
-                    viewGuestDetails(guestId);
-                });
-            });
-            
-            document.querySelectorAll('.delete-guest').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const guestId = this.getAttribute('data-id');
-                    deleteGuest(guestId);
-                });
-            });
-        }
-        
-        function viewGuestDetails(guestId) {
+
+        function viewGuest(guestId) {
             const guest = guests.find(g => g.id === guestId);
             if (!guest) return;
             
             const room = rooms.find(r => r.id === guest.roomId);
             
-            let content = `
-                <h5>Detail Tamu</h5>
-                <hr>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <p><strong>Nama:</strong> ${guest.name || '-'}</p>
-                        <p><strong>No. Identitas:</strong> ${guest.identity || '-'}</p>
-                        <p><strong>No. Telepon:</strong> ${guest.phone || '-'}</p>
+            let modalContent = `
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Detail Tamu</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Nama:</strong> ${guest.name}</p>
+                            <p><strong>No. Identitas:</strong> ${guest.identity}</p>
+                            <p><strong>No. Telepon:</strong> ${guest.phone}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Kamar:</strong> ${room ? room.number : 'Tidak diketahui'}</p>
+                            <p><strong>Check-In:</strong> ${formatDate(guest.checkIn)}</p>
+                            <p><strong>Check-Out:</strong> ${guest.checkOut ? formatDate(guest.checkOut) : '-'}</p>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <p><strong>Kamar:</strong> ${room ? room.number : '-'}</p>
-                        <p><strong>Check-In:</strong> ${formatDate(guest.checkIn)}</p>
-                        <p><strong>Check-Out:</strong> ${formatDate(guest.checkOut)}</p>
+                    <div class="mb-3">
+                        <p><strong>Catatan:</strong> ${guest.notes || '-'}</p>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             `;
             
-            if (guest.notes) {
-                content += `
-                    <div class="mb-3">
-                        <p><strong>Catatan:</strong> ${guest.notes}</p>
-                    </div>
-                `;
-            }
-            
-            // Show modal with guest details
-            const modal = new bootstrap.Modal(document.createElement('div'));
-            modal._element.className = 'modal fade';
-            modal._element.innerHTML = `
+            // Buat modal dinamis
+            const modalContainer = document.createElement('div');
+            modalContainer.className = 'modal fade';
+            modalContainer.id = 'guestDetailModal';
+            modalContainer.tabIndex = '-1';
+            modalContainer.innerHTML = `
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Detail Tamu</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            ${content}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        </div>
+                        ${modalContent}
                     </div>
                 </div>
             `;
             
-            document.body.appendChild(modal._element);
+            document.body.appendChild(modalContainer);
+            
+            const modal = new bootstrap.Modal(modalContainer);
             modal.show();
             
-            // Remove modal from DOM after it's hidden
-            modal._element.addEventListener('hidden.bs.modal', function() {
-                document.body.removeChild(modal._element);
+            // Hapus modal setelah ditutup
+            modalContainer.addEventListener('hidden.bs.modal', function() {
+                document.body.removeChild(modalContainer);
+            });
+        }
+
+        function processCheckOut(guestId) {
+            if (confirm('Apakah Anda yakin ingin memproses Check-Out untuk tamu ini?')) {
+                checkOutGuest(guestId);
+            }
+        }
+
+        function createInvoice(guestId) {
+            const guest = guests.find(g => g.id === guestId);
+            if (!guest) return;
+            
+            const room = rooms.find(r => r.id === guest.roomId);
+            const guestTransactions = transactions.filter(t => t.guestId === guest.id);
+            
+            // Hitung durasi menginap
+            const checkInDate = new Date(guest.checkIn);
+            const checkOutDate = guest.checkOut ? new Date(guest.checkOut) : new Date();
+            const duration = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+            
+            // Generate nomor nota
+            const invoiceNumber = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(invoices.length + 1).padStart(4, '0')}`;
+            
+            // Isi data nota
+            document.getElementById('invoice-number').textContent = invoiceNumber;
+            document.getElementById('invoice-date').textContent = formatDate(new Date().toISOString());
+            document.getElementById('invoice-cashier').textContent = currentUser.username;
+            document.getElementById('invoice-guest-name').textContent = guest.name;
+            document.getElementById('invoice-room-number').textContent = room ? room.number : '-';
+            document.getElementById('invoice-guest-id').textContent = guest.identity;
+            document.getElementById('invoice-guest').value = guest.id;
+            
+            // Isi item nota
+            const invoiceItems = document.getElementById('invoice-items');
+            invoiceItems.innerHTML = '';
+            
+            // Tambahkan biaya kamar
+            if (room) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>1</td>
+                    <td>Kamar ${room.number} (${room.type}) - ${duration} hari</td>
+                    <td>1</td>
+                    <td>${formatCurrency(room.price)}</td>
+                    <td>${formatCurrency(room.price * duration)}</td>
+                `;
+                invoiceItems.appendChild(row);
+            }
+            
+            // Tambahkan transaksi lainnya
+            guestTransactions.forEach((txn, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 2}</td>
+                    <td>${txn.notes || 
+                         (txn.type === 'room' ? 'Biaya Kamar' : 
+                          txn.type === 'food' ? 'Makanan & Minuman' : 
+                          txn.type === 'facility' ? 'Fasilitas' : 
+                          txn.type === 'laundry' ? 'Laundry' : 'Lainnya')}</td>
+                    <td>${txn.quantity}</td>
+                    <td>${formatCurrency(txn.amount)}</td>
+                    <td>${formatCurrency(txn.amount * txn.quantity)}</td>
+                `;
+                invoiceItems.appendChild(row);
+            });
+            
+            // Hitung total
+            const roomTotal = room ? room.price * duration : 0;
+            const transactionsTotal = guestTransactions.reduce((sum, txn) => sum + (txn.amount * txn.quantity), 0);
+            const subtotal = roomTotal + transactionsTotal;
+            const tax = subtotal * (settings.hotelTax / 100);
+            const total = subtotal + tax;
+            
+            document.getElementById('invoice-subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('invoice-tax').textContent = formatCurrency(tax);
+            document.getElementById('invoice-total').textContent = formatCurrency(total);
+            
+            // Generate barcode
+            JsBarcode("#invoice-barcode", invoiceNumber, {
+                format: "CODE128",
+                lineColor: "#2a4365",
+                width: 2,
+                height: 50,
+                displayValue: true
+            });
+            
+            // Tampilkan container nota
+            document.getElementById('invoice-container').classList.remove('d-none');
+            
+            // Scroll ke bagian nota
+            document.getElementById('invoice-container').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function editUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('userModalTitle').textContent = 'Edit Pengguna';
+            document.getElementById('user-id').value = user.id;
+            document.getElementById('user-username').value = user.username;
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-role').value = user.role;
+            
+            const modal = new bootstrap.Modal(document.getElementById('userModal'));
+            modal.show();
+        }
+        
+        // Fungsi untuk backup dan restore data
+        function backupData() {
+            const data = {
+                guests: guests,
+                rooms: rooms,
+                transactions: transactions,
+                invoices: invoices,
+                facilities: facilities,
+                users: users,
+                settings: settings,
+                backupDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportName = `hotel_backup_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportName);
+            linkElement.click();
+            
+            showNotification('success', 'Backup data berhasil dibuat');
+        }
+        
+        function restoreData(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (confirm('Restore akan mengganti semua data saat ini. Lanjutkan?')) {
+                        guests = data.guests || [];
+                        rooms = data.rooms || [];
+                        transactions = data.transactions || [];
+                        invoices = data.invoices || [];
+                        facilities = data.facilities || [];
+                        users = data.users || [];
+                        settings = data.settings || {};
+                        
+                        localStorage.setItem('hotel_guests', JSON.stringify(guests));
+                        localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+                        localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
+                        localStorage.setItem('hotel_invoices', JSON.stringify(invoices));
+                        localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
+                        localStorage.setItem('hotel_users', JSON.stringify(users));
+                        localStorage.setItem('hotel_settings', JSON.stringify(settings));
+                        
+                        loadDashboardData();
+                        showNotification('success', 'Data berhasil di-restore');
+                    }
+                } catch (error) {
+                    showNotification('danger', 'Gagal memproses file backup: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function resetData() {
+            if (confirm('PERINGATAN: Ini akan menghapus SEMUA DATA dan mengembalikan ke pengaturan awal. Lanjutkan?')) {
+                localStorage.clear();
+                
+                // Reload halaman untuk menginisialisasi data default
+                location.reload();
+            }
+        }
+        
+        // Fungsi untuk menampilkan notifikasi
+        function showNotification(type, message) {
+            const notificationList = document.getElementById('notification-list');
+            const notification = document.createElement('a');
+            notification.className = `list-group-item list-group-item-action list-group-item-${type}`;
+            notification.innerHTML = `
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${type === 'success' ? 'Berhasil' : type === 'danger' ? 'Error' : 'Info'}</h6>
+                    <small>Baru saja</small>
+                </div>
+                <p class="mb-1">${message}</p>
+            `;
+            
+            notificationList.insertBefore(notification, notificationList.firstChild);
+            
+            // Hapus notifikasi setelah 5 detik
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+        
+        // Fungsi untuk menangani tab navigation
+        function showTab(tabId) {
+            // Sembunyikan semua konten tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('d-none');
+            });
+            
+            // Tampilkan tab yang dipilih
+            const tabContent = document.getElementById(`${tabId}-content`);
+            if (tabContent) {
+                tabContent.classList.remove('d-none');
+            }
+            
+            // Update active tab di sidebar
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const tabLink = document.getElementById(`${tabId}-tab`);
+            if (tabLink) {
+                tabLink.classList.add('active');
+            }
+            
+            // Load data yang diperlukan untuk tab tersebut
+            switch(tabId) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'checkin':
+                    loadCheckInForm();
+                    break;
+                case 'checkout':
+                    loadCheckOutList();
+                    break;
+                case 'transaksi':
+                    loadTransactionForm();
+                    loadTransactionsData();
+                    break;
+                case 'nota':
+                    loadInvoiceGuests();
+                    break;
+                case 'kamar':
+                    loadRoomsData();
+                    break;
+                case 'fasilitas':
+                    loadFacilitiesData();
+                    break;
+                case 'tamu':
+                    loadGuestsData();
+                    break;
+                case 'laporan':
+                    // Inisialisasi filter laporan
+                    document.getElementById('report-type').value = 'daily';
+                    document.getElementById('report-date').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('report-category').value = 'all';
+                    break;
+                case 'admin':
+                    if (currentUser.role !== 'admin') {
+                        const adminModal = new bootstrap.Modal(document.getElementById('adminPasswordModal'));
+                        adminModal.show();
+                        return;
+                    }
+                    loadUsersData();
+                    loadSettingsData();
+                    break;
+                case 'backup':
+                    // Tidak perlu load data khusus
+                    break;
+            }
+        }
+        
+        // Fungsi untuk handle login
+        function handleLogin(username, password) {
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                adminVerified = false;
+                
+                // Update UI berdasarkan role
+                document.getElementById('current-user-role').textContent = 
+                    user.role === 'admin' ? 'Admin' : 
+                    user.role === 'supervisor' ? 'Supervisor' : 
+                    user.role === 'manager' ? 'Manager' : 'Staff';
+                
+                document.getElementById('current-user-role').className = `badge bg-${user.role} mt-2`;
+                
+                // Sembunyikan modal login
+                const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                loginModal.hide();
+                
+                // Tampilkan tab yang sesuai berdasarkan role
+                showTab('dashboard');
+                
+                // Sembunyikan menu yang tidak sesuai dengan role
+                document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                    if (link.classList.contains('admin') && user.role !== 'admin') {
+                        link.style.display = 'none';
+                    }
+                    if (link.classList.contains('supervisor') && user.role !== 'supervisor') {
+                        link.style.display = 'none';
+                    }
+                    if (link.classList.contains('manager') && user.role !== 'manager') {
+                        link.style.display = 'none';
+                    }
+                });
+                
+                showNotification('success', `Selamat datang, ${user.username}!`);
+            } else {
+                showNotification('danger', 'Username atau password salah');
+            }
+        }
+        
+        // Fungsi untuk handle logout
+        function handleLogout() {
+            currentUser = null;
+            adminVerified = false;
+            
+            // Reset UI
+            document.getElementById('current-user-role').textContent = '';
+            
+            // Tampilkan modal login
+            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+            loginModal.show();
+            
+            // Reset sidebar
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.style.display = 'block';
+                link.classList.remove('active');
             });
         }
         
-        function deleteGuest(guestId) {
-            if (!confirm('Apakah Anda yakin ingin menghapus data tamu ini?')) {
-                return;
-            }
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tampilkan modal login saat pertama kali load
+            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            loginModal.show();
             
-            const guest = guests.find(g => g.id === guestId);
-            if (guest && guest.status === 'checked-in') {
-                alert('Tidak dapat menghapus tamu yang sedang check-in!');
-                return;
-            }
+            // Handle form login
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+                handleLogin(username, password);
+            });
             
-            guests = guests.filter(g => g.id !== guestId);
-            localStorage.setItem('hotel_guests', JSON.stringify(guests));
-            
-            // Also delete related transactions
-            transactions = transactions.filter(t => t.guestId !== guestId);
-            localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-            
-            loadGuests();
-            initDashboard();
-        }
-        
-        // Inisialisasi laporan
-        function initLaporan() {
-            document.getElementById('report-type').addEventListener('change', function() {
-                document.getElementById('report-date-container').classList.add('d-none');
-                document.getElementById('report-week-container').classList.add('d-none');
-                document.getElementById('report-month-container').classList.add('d-none');
-                document.getElementById('report-custom-container').classList.add('d-none');
+            // Handle form verifikasi admin
+            document.getElementById('admin-password-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const password = document.getElementById('admin-password').value;
                 
-                if (this.value === 'daily') {
-                    document.getElementById('report-date-container').classList.remove('d-none');
-                } else if (this.value === 'weekly') {
-                    document.getElementById('report-week-container').classList.remove('d-none');
-                } else if (this.value === 'monthly') {
-                    document.getElementById('report-month-container').classList.remove('d-none');
-                } else if (this.value === 'custom') {
-                    document.getElementById('report-custom-container').classList.remove('d-none');
+                if (verifyAdminPassword(password)) {
+                    adminVerified = true;
+                    const adminModal = bootstrap.Modal.getInstance(document.getElementById('adminPasswordModal'));
+                    adminModal.hide();
+                    showTab('admin');
+                    showNotification('success', 'Verifikasi admin berhasil');
+                } else {
+                    showNotification('danger', 'Password admin salah');
                 }
             });
             
-            document.getElementById('generate-report').addEventListener('click', generateReport);
+            // Handle form check-in
+            document.getElementById('checkin-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('checkin-name').value;
+                const identity = document.getElementById('checkin-identity').value;
+                const phone = document.getElementById('checkin-phone').value;
+                const roomId = document.getElementById('checkin-room').value;
+                const duration = parseInt(document.getElementById('checkin-duration').value);
+                const notes = document.getElementById('checkin-notes').value;
+                
+                if (!roomId || duration <= 0) {
+                    showNotification('danger', 'Silakan pilih kamar dan masukkan durasi yang valid');
+                    return;
+                }
+                
+                const room = rooms.find(r => r.id === roomId);
+                if (!room) {
+                    showNotification('danger', 'Kamar tidak ditemukan');
+                    return;
+                }
+                
+                // Hitung total biaya
+                let total = room.price * duration;
+                const services = [];
+                
+                if (settings.breakfastAvailable && document.getElementById('checkin-breakfast').checked) {
+                    total += settings.breakfastPrice * duration;
+                    services.push('Sarapan');
+                }
+                
+                if (settings.laundryAvailable && document.getElementById('checkin-laundry').checked) {
+                    total += settings.laundryPrice;
+                    services.push('Laundry');
+                }
+                
+                if (settings.massageAvailable && document.getElementById('checkin-massage').checked) {
+                    total += settings.massagePrice;
+                    services.push('Pijat');
+                }
+                
+                // Tambahkan tamu
+                const guest = {
+                    id: generateId(),
+                    name,
+                    identity,
+                    phone,
+                    roomId,
+                    checkIn: new Date().toISOString(),
+                    checkOut: null,
+                    status: 'checked-in',
+                    duration,
+                    services,
+                    notes,
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.username
+                };
+                
+                addGuest(guest);
+                
+                // Tambahkan transaksi kamar
+                const roomTransaction = {
+                    id: generateId(),
+                    guestId: guest.id,
+                    type: 'room',
+                    amount: room.price,
+                    quantity: duration,
+                    notes: `Biaya kamar ${room.number} (${room.type}) untuk ${duration} hari`,
+                    date: new Date().toISOString(),
+                    cashier: currentUser.username
+                };
+                
+                addTransaction(roomTransaction);
+                
+                // Tambahkan transaksi layanan tambahan jika ada
+                if (services.includes('Sarapan')) {
+                    const breakfastTransaction = {
+                        id: generateId(),
+                        guestId: guest.id,
+                        type: 'food',
+                        amount: settings.breakfastPrice,
+                        quantity: duration,
+                        notes: 'Biaya sarapan',
+                        date: new Date().toISOString(),
+                        cashier: currentUser.username
+                    };
+                    addTransaction(breakfastTransaction);
+                }
+                
+                if (services.includes('Laundry')) {
+                    const laundryTransaction = {
+                        id: generateId(),
+                        guestId: guest.id,
+                        type: 'laundry',
+                        amount: settings.laundryPrice,
+                        quantity: 1,
+                        notes: 'Biaya laundry',
+                        date: new Date().toISOString(),
+                        cashier: currentUser.username
+                    };
+                    addTransaction(laundryTransaction);
+                }
+                
+                if (services.includes('Pijat')) {
+                    const massageTransaction = {
+                        id: generateId(),
+                        guestId: guest.id,
+                        type: 'facility',
+                        amount: settings.massagePrice,
+                        quantity: 1,
+                        notes: 'Biaya pijat',
+                        date: new Date().toISOString(),
+                        cashier: currentUser.username
+                    };
+                    addTransaction(massageTransaction);
+                }
+                
+                // Reset form
+                document.getElementById('checkin-form').reset();
+                document.getElementById('checkin-total').textContent = 'Rp 0';
+                
+                // Update daftar tamu hari ini
+                loadTodayGuestsList();
+            });
             
-            document.getElementById('print-report').addEventListener('click', function() {
+            // Handle form transaksi
+            document.getElementById('transaction-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const guestId = document.getElementById('transaction-guest').value;
+                const type = document.getElementById('transaction-type').value;
+                const amount = parseFloat(document.getElementById('transaction-amount').value);
+                const quantity = parseInt(document.getElementById('transaction-quantity').value);
+                const notes = document.getElementById('transaction-notes').value;
+                
+                if (!guestId || isNaN(amount) || isNaN(quantity) || quantity <= 0) {
+                    showNotification('danger', 'Silakan isi semua field dengan benar');
+                    return;
+                }
+                
+                const transaction = {
+                    id: generateId(),
+                    guestId,
+                    type,
+                    amount,
+                    quantity,
+                    notes: notes || 
+                          (type === 'room' ? 'Biaya Kamar' : 
+                           type === 'food' ? 'Makanan & Minuman' : 
+                           type === 'facility' ? 'Fasilitas' : 
+                           type === 'laundry' ? 'Laundry' : 'Lainnya'),
+                    date: new Date().toISOString(),
+                    cashier: currentUser.username
+                };
+                
+                addTransaction(transaction);
+                
+                // Reset form
+                document.getElementById('transaction-form').reset();
+                document.getElementById('facility-select-container').style.display = 'none';
+                document.getElementById('transaction-subtotal').textContent = 'Rp 0';
+            });
+            
+            // Handle filter transaksi
+            document.getElementById('filter-transactions').addEventListener('click', function() {
+                const date = document.getElementById('transaction-date-filter').value;
+                const type = document.getElementById('transaction-type-filter').value;
+                
+                loadTransactionsData({ date, type });
+            });
+            
+            // Handle filter tamu
+            document.getElementById('filter-guests').addEventListener('click', function() {
+                const search = document.getElementById('guest-search').value;
+                const status = document.getElementById('guest-status-filter').value;
+                
+                loadGuestsData({ search, status });
+            });
+            
+            // Handle filter nota
+            document.getElementById('filter-invoice-guests').addEventListener('click', function() {
+                const search = document.getElementById('invoice-search').value;
+                const date = document.getElementById('invoice-date-filter').value;
+                
+                loadInvoiceGuests({ search, date });
+            });
+            
+            // Handle cetak nota
+            document.getElementById('print-invoice').addEventListener('click', function() {
                 window.print();
             });
             
-            document.getElementById('download-report-pdf').addEventListener('click', function() {
+            // Handle download PDF nota
+            document.getElementById('download-invoice-pdf').addEventListener('click', function() {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
+                const doc = new jsPDF();
                 
-                // Set font
-                doc.setFont('helvetica', 'normal');
-                
-                // Report header
-                doc.setFontSize(18);
-                doc.setTextColor(44, 62, 80);
-                doc.text(settings.hotelName || 'HOTEL MEWAH', 105, 15, { align: 'center' });
-                
-                doc.setFontSize(14);
-                doc.text('LAPORAN TRANSAKSI', 105, 25, { align: 'center' });
-                
-                // Report period
-                doc.setFontSize(12);
-                doc.setTextColor(100, 100, 100);
-                doc.text(`Periode: ${document.getElementById('report-period').textContent}`, 105, 32, { align: 'center' });
-                
-                // Generated info
-                doc.text(`Dibuat oleh: ${currentUser.username}`, 15, 40);
-                doc.text(`Tanggal cetak: ${new Date().toLocaleDateString('id-ID')}`, 15, 45);
-                
-                // Report content
-                const reportContent = document.getElementById('report-content').cloneNode(true);
-                
-                // Remove action buttons from the clone
-                const buttons = reportContent.querySelectorAll('.no-print');
-                buttons.forEach(btn => btn.remove());
-                
-                // Convert HTML to PDF
-                doc.html(reportContent, {
-                    x: 15,
-                    y: 55,
-                    width: 180,
-                    windowWidth: 800,
-                    callback: function(doc) {
-                        doc.save(`laporan_${new Date().toISOString().split('T')[0]}.pdf`);
-                    }
-                });
-            });
-        }
-        
-        function generateReport() {
-            const reportType = document.getElementById('report-type').value;
-            const category = document.getElementById('report-category').value;
-            
-            let startDate, endDate;
-            let periodText = '';
-            
-            if (reportType === 'daily') {
-                const date = document.getElementById('report-date').value;
-                if (!date) {
-                    alert('Harap pilih tanggal!');
-                    return;
-                }
-                
-                startDate = new Date(date);
-                endDate = new Date(date);
-                periodText = `Harian - ${startDate.toLocaleDateString('id-ID')}`;
-            } else if (reportType === 'weekly') {
-                const weekInput = document.getElementById('report-week').value;
-                if (!weekInput) {
-                    alert('Harap pilih minggu!');
-                    return;
-                }
-                
-                const year = parseInt(weekInput.split('-')[0]);
-                const weekNum = parseInt(weekInput.split('-W')[1]);
-                
-                startDate = new Date(year, 0, 1);
-                const dayOffset = startDate.getDay() || 7;
-                startDate.setDate(startDate.getDate() + (weekNum - 1) * 7 - dayOffset + 1);
-                
-                endDate = new Date(startDate);
-                endDate.setDate(endDate.getDate() + 6);
-                
-                periodText = `Mingguan - ${startDate.toLocaleDateString('id-ID')} s/d ${endDate.toLocaleDateString('id-ID')}`;
-            } else if (reportType === 'monthly') {
-                const monthInput = document.getElementById('report-month').value;
-                if (!monthInput) {
-                    alert('Harap pilih bulan!');
-                    return;
-                }
-                
-                startDate = new Date(monthInput + '-01');
-                endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-                
-                periodText = `Bulanan - ${startDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`;
-            } else if (reportType === 'custom') {
-                startDate = new Date(document.getElementById('report-start-date').value);
-                endDate = new Date(document.getElementById('report-end-date').value);
-                
-                if (!startDate || isNaN(startDate.getTime()) {
-                    alert('Harap pilih tanggal mulai!');
-                    return;
-                }
-                
-                if (!endDate || isNaN(endDate.getTime())) {
-                    alert('Harap pilih tanggal selesai!');
-                    return;
-                }
-                
-                if (startDate > endDate) {
-                    alert('Tanggal mulai tidak boleh lebih besar dari tanggal selesai!');
-                    return;
-                }
-                
-                periodText = `Custom - ${startDate.toLocaleDateString('id-ID')} s/d ${endDate.toLocaleDateString('id-ID')}`;
-            }
-            
-            // Adjust end date to include the entire day
-            endDate.setHours(23, 59, 59, 999);
-            
-            // Filter transactions
-            let filteredTransactions = transactions.filter(t => {
-                const transactionDate = new Date(t.date);
-                return transactionDate >= startDate && transactionDate <= endDate;
-            });
-            
-            if (category !== 'all') {
-                filteredTransactions = filteredTransactions.filter(t => t.type === category);
-            }
-            
-            // Group by date and calculate totals
-            const dailyData = {};
-            let grandTotal = 0;
-            
-            filteredTransactions.forEach(t => {
-                const date = new Date(t.date).toLocaleDateString('id-ID');
-                
-                if (!dailyData[date]) {
-                    dailyData[date] = {
-                        date,
-                        room: 0,
-                        food: 0,
-                        laundry: 0,
-                        facility: 0,
-                        other: 0,
-                        total: 0
-                    };
-                }
-                
-                dailyData[date][t.type] += t.amount;
-                dailyData[date].total += t.amount;
-                grandTotal += t.amount;
-            });
-            
-            // Generate report content
-            const reportContent = document.getElementById('report-content');
-            reportContent.innerHTML = '';
-            
-            // Add period info
-            const periodElement = document.createElement('h5');
-            periodElement.id = 'report-period';
-            periodElement.textContent = periodText;
-            reportContent.appendChild(periodElement);
-            
-            // Add summary cards
-            const summaryRow = document.createElement('div');
-            summaryRow.className = 'row mb-4';
-            
-            const summaryCol = document.createElement('div');
-            summaryCol.className = 'col-md-12';
-            summaryCol.innerHTML = `
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <h6>Total Transaksi</h6>
-                                <h3>${filteredTransactions.length}</h3>
-                            </div>
-                            <div class="col-md-3">
-                                <h6>Total Pendapatan</h6>
-                                <h3>${formatCurrency(grandTotal)}</h3>
-                            </div>
-                            <div class="col-md-3">
-                                <h6>Biaya Kamar</h6>
-                                <h3>${formatCurrency(filteredTransactions.filter(t => t.type === 'room').reduce((sum, t) => sum + t.amount, 0)}</h3>
-                            </div>
-                            <div class="col-md-3">
-                                <h6>Layanan Tambahan</h6>
-                                <h3>${formatCurrency(filteredTransactions.filter(t => t.type !== 'room').reduce((sum, t) => sum + t.amount, 0)}</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            summaryRow.appendChild(summaryCol);
-            reportContent.appendChild(summaryRow);
-            
-            // Add chart
-            const chartRow = document.createElement('div');
-            chartRow.className = 'row mb-4';
-            
-            const chartCol = document.createElement('div');
-            chartCol.className = 'col-md-12';
-            chartCol.innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Grafik Pendapatan</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="reportChart" height="200"></canvas>
-                    </div>
-                </div>
-            `;
-            chartRow.appendChild(chartCol);
-            reportContent.appendChild(chartRow);
-            
-            // Initialize chart
-            const ctx = document.getElementById('reportChart').getContext('2d');
-            const dates = Object.keys(dailyData).sort();
-            const roomData = dates.map(date => dailyData[date].room);
-            const foodData = dates.map(date => dailyData[date].food);
-            const laundryData = dates.map(date => dailyData[date].laundry);
-            const facilityData = dates.map(date => dailyData[date].facility);
-            const otherData = dates.map(date => dailyData[date].other);
-            
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: dates,
-                    datasets: [
-                        {
-                            label: 'Biaya Kamar',
-                            data: roomData,
-                            backgroundColor: 'rgba(66, 153, 225, 0.7)'
-                        },
-                        {
-                            label: 'Makanan & Minuman',
-                            data: foodData,
-                            backgroundColor: 'rgba(56, 161, 105, 0.7)'
-                        },
-                        {
-                            label: 'Laundry',
-                            data: laundryData,
-                            backgroundColor: 'rgba(221, 107, 32, 0.7)'
-                        },
-                        {
-                            label: 'Fasilitas',
-                            data: facilityData,
-                            backgroundColor: 'rgba(128, 90, 213, 0.7)'
-                        },
-                        {
-                            label: 'Lainnya',
-                            data: otherData,
-                            backgroundColor: 'rgba(158, 158, 158, 0.7)'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            stacked: true
-                        },
-                        y: {
-                            stacked: true,
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatCurrency(value).replace('Rp', '').trim();
-                                }
-                            }
-                        }
+                // Tambahkan konten nota ke PDF
+                doc.html(document.querySelector('.nota-container'), {
+                    callback: function(pdf) {
+                        pdf.save(`nota_${document.getElementById('invoice-number').textContent}.pdf`);
                     },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
-                                }
-                            }
-                        }
+                    margin: 10,
+                    autoPaging: 'text',
+                    width: 190
+                });
+            });
+            
+            // Handle simpan nota
+            document.getElementById('save-invoice').addEventListener('click', function() {
+                const guestId = document.getElementById('invoice-guest').value;
+                const guest = guests.find(g => g.id === guestId);
+                
+                if (!guest) {
+                    showNotification('danger', 'Tamu tidak ditemukan');
+                    return;
+                }
+                
+                const invoice = {
+                    id: generateId(),
+                    number: document.getElementById('invoice-number').textContent,
+                    guestId,
+                    date: new Date().toISOString(),
+                    cashier: currentUser.username,
+                    subtotal: parseFloat(document.getElementById('invoice-subtotal').textContent.replace(/[^0-9]/g, '')),
+                    tax: parseFloat(document.getElementById('invoice-tax').textContent.replace(/[^0-9]/g, '')),
+                    total: parseFloat(document.getElementById('invoice-total').textContent.replace(/[^0-9]/g, '')),
+                    createdAt: new Date().toISOString()
+                };
+                
+                addInvoice(invoice);
+            });
+            
+            // Handle tambah kamar
+            document.getElementById('add-room-btn').addEventListener('click', function() {
+                document.getElementById('roomModalTitle').textContent = 'Tambah Kamar Baru';
+                document.getElementById('room-form').reset();
+                document.getElementById('room-id').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('roomModal'));
+                modal.show();
+            });
+            
+            // Handle simpan kamar
+            document.getElementById('save-room').addEventListener('click', function() {
+                const id = document.getElementById('room-id').value;
+                const number = document.getElementById('room-number').value;
+                const type = document.getElementById('room-type').value;
+                const price = parseFloat(document.getElementById('room-price').value);
+                const status = document.getElementById('room-status').value;
+                const notes = document.getElementById('room-notes').value;
+                
+                if (!number || isNaN(price) || price <= 0) {
+                    showNotification('danger', 'Silakan isi semua field dengan benar');
+                    return;
+                }
+                
+                const roomData = {
+                    number,
+                    type,
+                    price,
+                    status,
+                    notes
+                };
+                
+                if (id) {
+                    // Update kamar yang sudah ada
+                    updateRoom(id, roomData);
+                } else {
+                    // Tambah kamar baru
+                    roomData.id = generateId();
+                    addRoom(roomData);
+                }
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('roomModal'));
+                modal.hide();
+            });
+            
+            // Handle tambah fasilitas
+            document.getElementById('add-facility-btn').addEventListener('click', function() {
+                document.getElementById('facilityModalTitle').textContent = 'Tambah Fasilitas Baru';
+                document.getElementById('facility-form').reset();
+                document.getElementById('facility-id').value = '';
+                document.getElementById('facility-available').checked = true;
+                
+                const modal = new bootstrap.Modal(document.getElementById('facilityModal'));
+                modal.show();
+            });
+            
+            // Handle simpan fasilitas
+            document.getElementById('save-facility').addEventListener('click', function() {
+                const id = document.getElementById('facility-id').value;
+                const name = document.getElementById('facility-name').value;
+                const category = document.getElementById('facility-category').value;
+                const price = parseFloat(document.getElementById('facility-price').value);
+                const status = document.querySelector('input[name="facility-status"]:checked').value;
+                const description = document.getElementById('facility-description').value;
+                
+                if (!name || isNaN(price) || price <= 0) {
+                    showNotification('danger', 'Silakan isi semua field dengan benar');
+                    return;
+                }
+                
+                const facilityData = {
+                    name,
+                    category,
+                    price,
+                    status,
+                    description
+                };
+                
+                if (id) {
+                    // Update fasilitas yang sudah ada
+                    updateFacility(id, facilityData);
+                } else {
+                    // Tambah fasilitas baru
+                    facilityData.id = generateId();
+                    addFacility(facilityData);
+                }
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('facilityModal'));
+                modal.hide();
+            });
+            
+            // Handle tambah pengguna
+            document.getElementById('add-user-btn').addEventListener('click', function() {
+                document.getElementById('userModalTitle').textContent = 'Tambah Pengguna Baru';
+                document.getElementById('user-form').reset();
+                document.getElementById('user-id').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('userModal'));
+                modal.show();
+            });
+            
+            // Handle simpan pengguna
+            document.getElementById('save-user').addEventListener('click', function() {
+                const id = document.getElementById('user-id').value;
+                const username = document.getElementById('user-username').value;
+                const password = document.getElementById('user-password').value;
+                const role = document.getElementById('user-role').value;
+                
+                if (!username || !role) {
+                    showNotification('danger', 'Silakan isi username dan role');
+                    return;
+                }
+                
+                // Untuk edit, jika password kosong, gunakan password lama
+                if (id && !password) {
+                    const existingUser = users.find(u => u.id === id);
+                    if (existingUser) {
+                        password = existingUser.password;
+                    } else {
+                        showNotification('danger', 'Pengguna tidak ditemukan');
+                        return;
                     }
                 }
+                
+                // Untuk tambah baru, password wajib diisi
+                if (!id && !password) {
+                    showNotification('danger', 'Silakan isi password');
+                    return;
+                }
+                
+                const userData = {
+                    username,
+                    password,
+                    role
+                };
+                
+                if (id) {
+                    // Update pengguna yang sudah ada
+                    updateUser(id, userData);
+                } else {
+                    // Tambah pengguna baru
+                    userData.id = generateId();
+                    addUser(userData);
+                }
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
+                modal.hide();
             });
             
-            // Add transaction table
-            const tableRow = document.createElement('div');
-            tableRow.className = 'row';
-            
-            const tableCol = document.createElement('div');
-            tableCol.className = 'col-md-12';
-            tableCol.innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Detail Transaksi</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Tanggal</th>
-                                        <th>Tamu</th>
-                                        <th>Jenis</th>
-                                        <th>Keterangan</th>
-                                        <th>Jumlah</th>
-                                        <th>Kasir</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-transactions">
-                                    <!-- Transactions will be added here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-            tableRow.appendChild(tableCol);
-            reportContent.appendChild(tableRow);
-            
-            // Add transactions to table
-            const transactionsBody = document.getElementById('report-transactions');
-            filteredTransactions.forEach(t => {
-                const guest = guests.find(g => g.id === t.guestId);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${formatDate(t.date)}</td>
-                    <td>${guest ? guest.name : 'Tamu tidak ditemukan'}</td>
-                    <td>${getTransactionTypeLabel(t.type)}</td>
-                    <td>${t.notes || '-'}</td>
-                    <td>${formatCurrency(t.amount)}</td>
-                    <td>${t.cashier || '-'}</td>
-                `;
-                transactionsBody.appendChild(row);
+            // Handle simpan pengaturan
+            document.getElementById('save-settings').addEventListener('click', function() {
+                const newSettings = {
+                    hotelName: document.getElementById('hotel-name').value,
+                    hotelAddress: document.getElementById('hotel-address').value,
+                    hotelPhone: document.getElementById('hotel-phone').value,
+                    hotelEmail: document.getElementById('hotel-email').value,
+                    hotelTax: parseFloat(document.getElementById('hotel-tax').value) || 0,
+                    breakfastPrice: parseFloat(document.getElementById('breakfast-price').value) || 0,
+                    breakfastAvailable: document.getElementById('breakfast-available').checked,
+                    laundryPrice: parseFloat(document.getElementById('laundry-price').value) || 0,
+                    laundryAvailable: document.getElementById('laundry-available').checked,
+                    massagePrice: parseFloat(document.getElementById('massage-price').value) || 0,
+                    massageAvailable: document.getElementById('massage-available').checked
+                };
+                
+                updateSettings(newSettings);
             });
             
-            // Show report result
-            document.getElementById('report-result').classList.remove('d-none');
-            document.getElementById('report-empty').classList.add('d-none');
-        }
-        
-        // Inisialisasi admin panel
-        function initAdmin() {
-            if (!checkAccess(['admin'])) {
-                alert('Anda tidak memiliki akses ke halaman ini!');
-                showTab('dashboard-tab');
-                return;
-            }
-            
-            // Load settings
-            document.getElementById('hotel-name').value = settings.hotelName || '';
-            document.getElementById('hotel-address').value = settings.hotelAddress || '';
-            document.getElementById('hotel-phone').value = settings.hotelPhone || '';
-            document.getElementById('hotel-email').value = settings.hotelEmail || '';
-            document.getElementById('hotel-tax').value = settings.hotelTax || 10;
-            document.getElementById('breakfast-price').value = settings.breakfastPrice || 50000;
-            document.getElementById('breakfast-available').checked = settings.breakfastAvailable !== false;
-            document.getElementById('laundry-price').value = settings.laundryPrice || 40000;
-            document.getElementById('laundry-available').checked = settings.laundryAvailable !== false;
-            document.getElementById('massage-price').value = settings.massagePrice || 150000;
-            document.getElementById('massage-available').checked = settings.massageAvailable !== false;
-            
-            // Database management buttons
+            // Handle backup data
             document.getElementById('backup-btn').addEventListener('click', function() {
                 document.getElementById('databaseModalTitle').textContent = 'Backup Data';
                 document.getElementById('database-action').value = 'backup';
@@ -3604,6 +3384,7 @@
                 modal.show();
             });
             
+            // Handle restore data
             document.getElementById('restore-btn').addEventListener('click', function() {
                 document.getElementById('databaseModalTitle').textContent = 'Restore Data';
                 document.getElementById('database-action').value = 'restore';
@@ -3615,6 +3396,7 @@
                 modal.show();
             });
             
+            // Handle reset data
             document.getElementById('reset-btn').addEventListener('click', function() {
                 document.getElementById('databaseModalTitle').textContent = 'Reset Data';
                 document.getElementById('database-action').value = 'reset';
@@ -3626,12 +3408,13 @@
                 modal.show();
             });
             
+            // Handle konfirmasi aksi database
             document.getElementById('confirm-database-action').addEventListener('click', function() {
                 const action = document.getElementById('database-action').value;
                 const password = document.getElementById('database-password').value;
                 
-                if (password !== currentUser.password) {
-                    alert('Password admin salah!');
+                if (!verifyAdminPassword(password)) {
+                    showNotification('danger', 'Password admin salah');
                     return;
                 }
                 
@@ -3639,433 +3422,220 @@
                     backupData();
                 } else if (action === 'restore') {
                     const fileInput = document.getElementById('restore-file');
-                    if (!fileInput.files.length) {
-                        alert('Harap pilih file backup!');
+                    if (fileInput.files.length > 0) {
+                        restoreData(fileInput.files[0]);
+                    } else {
+                        showNotification('danger', 'Silakan pilih file backup');
                         return;
                     }
-                    
-                    restoreData(fileInput.files[0]);
                 } else if (action === 'reset') {
-                    if (!document.getElementById('confirm-reset').checked) {
-                        alert('Harap centang konfirmasi reset data!');
+                    if (document.getElementById('confirm-reset').checked) {
+                        resetData();
+                    } else {
+                        showNotification('danger', 'Anda harus mencentang konfirmasi reset');
                         return;
                     }
-                    
-                    resetData();
                 }
                 
                 const modal = bootstrap.Modal.getInstance(document.getElementById('databaseModal'));
                 modal.hide();
             });
             
-            // Save settings
-            document.getElementById('save-settings').addEventListener('click', function() {
-                settings = {
-                    hotelName: document.getElementById('hotel-name').value,
-                    hotelAddress: document.getElementById('hotel-address').value,
-                    hotelPhone: document.getElementById('hotel-phone').value,
-                    hotelEmail: document.getElementById('hotel-email').value,
-                    hotelTax: parseInt(document.getElementById('hotel-tax').value) || 10,
-                    breakfastPrice: parseInt(document.getElementById('breakfast-price').value) || 50000,
-                    breakfastAvailable: document.getElementById('breakfast-available').checked,
-                    laundryPrice: parseInt(document.getElementById('laundry-price').value) || 40000,
-                    laundryAvailable: document.getElementById('laundry-available').checked,
-                    massagePrice: parseInt(document.getElementById('massage-price').value) || 150000,
-                    massageAvailable: document.getElementById('massage-available').checked
-                };
-                
-                localStorage.setItem('hotel_settings', JSON.stringify(settings));
-                
-                // Update facilities that use settings prices
-                facilities.forEach(facility => {
-                    if (facility.name === 'Sarapan Pagi') {
-                        facility.price = settings.breakfastPrice;
-                    } else if (facility.name === 'Laundry Kiloan') {
-                        facility.price = settings.laundryPrice;
-                    } else if (facility.name === 'Pijat') {
-                        facility.price = settings.massagePrice;
-                    }
-                });
-                
-                localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
-                
-                alert('Pengaturan berhasil disimpan!');
-                initNota();
-                initCheckIn();
-            });
-            
-            // User management
-            document.getElementById('add-user-btn').addEventListener('click', function() {
-                document.getElementById('userModalTitle').textContent = 'Tambah Pengguna Baru';
-                document.getElementById('user-id').value = '';
-                document.getElementById('user-form').reset();
-                
-                const modal = new bootstrap.Modal(document.getElementById('userModal'));
-                modal.show();
-            });
-            
-            document.getElementById('save-user').addEventListener('click', function() {
-                const userId = document.getElementById('user-id').value;
-                const username = document.getElementById('user-username').value;
-                const password = document.getElementById('user-password').value;
-                const role = document.getElementById('user-role').value;
-                
-                if (!username || !role) {
-                    alert('Harap isi semua field yang diperlukan!');
-                    return;
-                }
-                
-                if (!userId && !password) {
-                    alert('Harap masukkan password untuk pengguna baru!');
-                    return;
-                }
-                
-                if (userId) {
-                    // Update existing user
-                    const userIndex = users.findIndex(u => u.id === userId);
-                    if (userIndex !== -1) {
-                        users[userIndex] = {
-                            ...users[userIndex],
-                            username,
-                            role
-                        };
-                        
-                        if (password) {
-                            users[userIndex].password = password;
-                        }
-                    }
-                } else {
-                    // Add new user
-                    users.push({
-                        id: generateId(),
-                        username,
-                        password,
-                        role
-                    });
-                }
-                
-                localStorage.setItem('hotel_users', JSON.stringify(users));
-                
-                alert('Data pengguna berhasil disimpan!');
-                const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
-                modal.hide();
-                
-                loadUsers();
-            });
-            
-            loadUsers();
-        }
-        
-        function backupData() {
-            const backupData = {
-                guests,
-                rooms,
-                transactions,
-                invoices,
-                facilities,
-                users,
-                settings,
-                backupDate: new Date().toISOString()
-            };
-            
-            const dataStr = JSON.stringify(backupData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportName = `hotel_backup_${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportName);
-            linkElement.click();
-            
-            alert('Backup data berhasil!');
-        }
-        
-        function restoreData(file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const backupData = JSON.parse(e.target.result);
-                    
-                    if (!backupData.guests || !backupData.rooms || !backupData.transactions || 
-                        !backupData.facilities || !backupData.users || !backupData.settings) {
-                        throw new Error('Format file backup tidak valid!');
-                    }
-                    
-                    if (confirm('Apakah Anda yakin ingin mengembalikan data dari backup? Semua data saat ini akan diganti!')) {
-                        guests = backupData.guests;
-                        rooms = backupData.rooms;
-                        transactions = backupData.transactions;
-                        invoices = backupData.invoices || [];
-                        facilities = backupData.facilities;
-                        users = backupData.users;
-                        settings = backupData.settings;
-                        
-                        localStorage.setItem('hotel_guests', JSON.stringify(guests));
-                        localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
-                        localStorage.setItem('hotel_transactions', JSON.stringify(transactions));
-                        localStorage.setItem('hotel_invoices', JSON.stringify(invoices));
-                        localStorage.setItem('hotel_facilities', JSON.stringify(facilities));
-                        localStorage.setItem('hotel_users', JSON.stringify(users));
-                        localStorage.setItem('hotel_settings', JSON.stringify(settings));
-                        
-                        alert('Restore data berhasil! Sistem akan memuat ulang...');
-                        location.reload();
-                    }
-                } catch (error) {
-                    alert('Gagal memproses file backup: ' + error.message);
-                }
-            };
-            
-            reader.readAsText(file);
-        }
-        
-        function resetData() {
-            if (confirm('PERINGATAN: Ini akan menghapus SEMUA data dan mengembalikan ke pengaturan awal. Apakah Anda yakin?')) {
-                localStorage.removeItem('hotel_guests');
-                localStorage.removeItem('hotel_rooms');
-                localStorage.removeItem('hotel_transactions');
-                localStorage.removeItem('hotel_invoices');
-                localStorage.removeItem('hotel_facilities');
-                localStorage.removeItem('hotel_users');
-                localStorage.removeItem('hotel_settings');
-                
-                alert('Reset data berhasil! Sistem akan memuat ulang...');
-                location.reload();
-            }
-        }
-        
-        function loadUsers() {
-            const usersList = document.getElementById('users-list');
-            usersList.innerHTML = '';
-            
-            users.forEach((user, index) => {
-                const row = document.createElement('tr');
-                
-                let roleBadge = '';
-                if (user.role === 'admin') {
-                    roleBadge = '<span class="badge bg-admin">Admin</span>';
-                } else if (user.role === 'supervisor') {
-                    roleBadge = '<span class="badge bg-supervisor">Supervisor</span>';
-                } else if (user.role === 'manager') {
-                    roleBadge = '<span class="badge bg-manager">Manager</span>';
-                } else {
-                    roleBadge = '<span class="badge bg-staff">Staff</span>';
-                }
-                
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${user.username}</td>
-                    <td>${roleBadge}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary edit-user" data-id="${user.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        ${user.role !== 'admin' || users.filter(u => u.role === 'admin').length > 1 ? `
-                        <button class="btn btn-sm btn-danger delete-user" data-id="${user.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-                usersList.appendChild(row);
-            });
-            
-            document.querySelectorAll('.edit-user').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-id');
-                    editUser(userId);
-                });
-            });
-            
-            document.querySelectorAll('.delete-user').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-id');
-                    deleteUser(userId);
-                });
-            });
-        }
-        
-        function editUser(userId) {
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            document.getElementById('userModalTitle').textContent = 'Edit Pengguna';
-            document.getElementById('user-id').value = user.id;
-            document.getElementById('user-username').value = user.username;
-            document.getElementById('user-role').value = user.role;
-            document.getElementById('user-password').value = '';
-            
-            const modal = new bootstrap.Modal(document.getElementById('userModal'));
-            modal.show();
-        }
-        
-        function deleteUser(userId) {
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            if (user.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1) {
-                alert('Tidak dapat menghapus satu-satunya admin!');
-                return;
-            }
-            
-            if (confirm(`Apakah Anda yakin ingin menghapus pengguna ${user.username}?`)) {
-                users = users.filter(u => u.id !== userId);
-                localStorage.setItem('hotel_users', JSON.stringify(users));
-                
-                // If deleting current user, logout
-                if (currentUser && currentUser.id === userId) {
-                    logout();
-                } else {
-                    loadUsers();
-                }
-            }
-        }
-        
-        // Inisialisasi backup data
-        function initBackup() {
+            // Handle backup data harian
             document.getElementById('daily-backup-btn').addEventListener('click', function() {
-                verifyAdmin(() => {
-                    backupData();
-                });
-            });
-        }
-        
-        // Fungsi untuk menampilkan tab
-        function showTab(tabId) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('d-none');
+                backupData();
             });
             
-            // Show selected tab content
-            const tab = document.getElementById(tabId);
-            if (tab) {
-                const contentId = tabId.replace('-tab', '-content');
-                document.getElementById(contentId)?.classList.remove('d-none');
+            // Handle generate laporan
+            document.getElementById('generate-report').addEventListener('click', function() {
+                const type = document.getElementById('report-type').value;
+                const category = document.getElementById('report-category').value;
                 
-                // Update active tab
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                tab.classList.add('active');
+                let startDate, endDate;
                 
-                // Initialize tab content
-                switch(tabId) {
-                    case 'dashboard-tab':
-                        initDashboard();
+                switch(type) {
+                    case 'daily':
+                        startDate = endDate = document.getElementById('report-date').value;
                         break;
-                    case 'checkin-tab':
-                        initCheckIn();
+                    case 'weekly':
+                        const weekValue = document.getElementById('report-week').value;
+                        startDate = weekValue; // Minggu dimulai dari hari Senin
+                        const weekDate = new Date(weekValue);
+                        weekDate.setDate(weekDate.getDate() + 6);
+                        endDate = weekDate.toISOString().split('T')[0];
                         break;
-                    case 'checkout-tab':
-                        initCheckOut();
+                    case 'monthly':
+                        const monthValue = document.getElementById('report-month').value;
+                        startDate = monthValue + '-01';
+                        const monthDate = new Date(monthValue);
+                        monthDate.setMonth(monthDate.getMonth() + 1);
+                        monthDate.setDate(0);
+                        endDate = monthDate.toISOString().split('T')[0];
                         break;
-                    case 'transaksi-tab':
-                        initTransactions();
-                        break;
-                    case 'nota-tab':
-                        initNota();
-                        break;
-                    case 'kamar-tab':
-                        initKamar();
-                        break;
-                    case 'fasilitas-tab':
-                        initFasilitas();
-                        break;
-                    case 'tamu-tab':
-                        initTamu();
-                        break;
-                    case 'laporan-tab':
-                        initLaporan();
-                        break;
-                    case 'admin-tab':
-                        initAdmin();
-                        break;
-                    case 'backup-tab':
-                        initBackup();
+                    case 'custom':
+                        startDate = document.getElementById('report-start-date').value;
+                        endDate = document.getElementById('report-end-date').value;
                         break;
                 }
-            }
-        }
-        
-        // Fungsi logout
-        function logout() {
-            currentUser = null;
-            adminVerified = false;
-            
-            // Show login modal
-            const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-            modal.show();
-            
-            // Hide all tabs except dashboard
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('d-none');
-            });
-            
-            // Reset active tab
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.getElementById('dashboard-tab').classList.add('active');
-        }
-        
-        // Event listeners untuk tab
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize login modal
-            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'), {
-                backdrop: 'static',
-                keyboard: false
-            });
-            loginModal.show();
-            
-            // Login form submission
-            document.getElementById('login-form').addEventListener('submit', function(e) {
-                e.preventDefault();
                 
-                const username = document.getElementById('login-username').value;
-                const password = document.getElementById('login-password').value;
+                if (!startDate || !endDate) {
+                    showNotification('danger', 'Silakan pilih tanggal');
+                    return;
+                }
                 
-                const user = users.find(u => u.username === username && u.password === password);
-                if (user) {
-                    currentUser = user;
-                    loginModal.hide();
-                    
-                    // Update UI based on user role
-                    updateUIForUser();
-                    
-                    // Show dashboard
-                    showTab('dashboard-tab');
-                } else {
-                    alert('Username atau password salah!');
+                // Filter transaksi berdasarkan tanggal dan kategori
+                let filteredTransactions = transactions.filter(txn => {
+                    const txnDate = txn.date ? txn.date.split('T')[0] : '';
+                    return txnDate >= startDate && txnDate <= endDate;
+                });
+                
+                if (category !== 'all') {
+                    filteredTransactions = filteredTransactions.filter(txn => txn.type === category);
+                }
+                
+                // Hitung total pendapatan
+                const totalIncome = filteredTransactions.reduce((sum, txn) => sum + (txn.amount * txn.quantity), 0);
+                
+                // Generate laporan
+                const reportContent = document.getElementById('report-content');
+                reportContent.innerHTML = `
+                    <h5 class="mb-4">Laporan ${type === 'daily' ? 'Harian' : type === 'weekly' ? 'Mingguan' : type === 'monthly' ? 'Bulanan' : 'Custom'}</h5>
+                    <p><strong>Periode:</strong> ${startDate} s/d ${endDate}</p>
+                    <p><strong>Kategori:</strong> ${category === 'all' ? 'Semua' : 
+                      category === 'room' ? 'Biaya Kamar' : 
+                      category === 'food' ? 'Makanan & Minuman' : 
+                      category === 'facility' ? 'Fasilitas' : 
+                      category === 'laundry' ? 'Laundry' : 'Lainnya'}</p>
+                    <hr>
+                    <h6 class="mb-3">Ringkasan</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Jumlah Transaksi:</strong> ${filteredTransactions.length}</p>
+                            <p><strong>Total Pendapatan:</strong> ${formatCurrency(totalIncome)}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Pajak (${settings.hotelTax}%):</strong> ${formatCurrency(totalIncome * (settings.hotelTax / 100))}</p>
+                            <p><strong>Total Bersih:</strong> ${formatCurrency(totalIncome - (totalIncome * (settings.hotelTax / 100))}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">Detail Transaksi</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Tanggal</th>
+                                    <th>Tamu</th>
+                                    <th>Jenis</th>
+                                    <th>Keterangan</th>
+                                    <th>Jumlah</th>
+                                    <th>Kasir</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredTransactions.map((txn, index) => {
+                                    const guest = guests.find(g => g.id === txn.guestId);
+                                    return `
+                                        <tr>
+                                            <td>${index + 1}</td>
+                                            <td>${formatDate(txn.date)}</td>
+                                            <td>${guest ? guest.name : 'Tamu tidak diketahui'}</td>
+                                            <td>${txn.type === 'room' ? 'Biaya Kamar' : 
+                                              txn.type === 'food' ? 'Makanan & Minuman' : 
+                                              txn.type === 'facility' ? 'Fasilitas' : 
+                                              txn.type === 'laundry' ? 'Laundry' : 'Lainnya'}</td>
+                                            <td>${txn.notes || '-'}</td>
+                                            <td>${formatCurrency(txn.amount * txn.quantity)}</td>
+                                            <td>${txn.cashier || 'System'}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                // Tampilkan laporan
+                document.getElementById('report-result').classList.remove('d-none');
+                document.getElementById('report-empty').classList.add('d-none');
+            });
+            
+            // Handle cetak laporan
+            document.getElementById('print-report').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Handle download PDF laporan
+            document.getElementById('download-report-pdf').addEventListener('click', function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Tambahkan konten laporan ke PDF
+                doc.html(document.getElementById('report-content'), {
+                    callback: function(pdf) {
+                        const type = document.getElementById('report-type').value;
+                        pdf.save(`laporan_${type}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    },
+                    margin: 10,
+                    autoPaging: 'text',
+                    width: 190
+                });
+            });
+            
+            // Handle perubahan jenis laporan
+            document.getElementById('report-type').addEventListener('change', function() {
+                const type = this.value;
+                
+                document.getElementById('report-date-container').classList.add('d-none');
+                document.getElementById('report-week-container').classList.add('d-none');
+                document.getElementById('report-month-container').classList.add('d-none');
+                document.getElementById('report-custom-container').classList.add('d-none');
+                
+                switch(type) {
+                    case 'daily':
+                        document.getElementById('report-date-container').classList.remove('d-none');
+                        document.getElementById('report-date').value = new Date().toISOString().split('T')[0];
+                        break;
+                    case 'weekly':
+                        document.getElementById('report-week-container').classList.remove('d-none');
+                        document.getElementById('report-week').value = new Date().toISOString().split('T')[0];
+                        break;
+                    case 'monthly':
+                        document.getElementById('report-month-container').classList.remove('d-none');
+                        document.getElementById('report-month').value = new Date().toISOString().split('T')[0].substring(0, 7);
+                        break;
+                    case 'custom':
+                        document.getElementById('report-custom-container').classList.remove('d-none');
+                        document.getElementById('report-start-date').value = new Date().toISOString().split('T')[0];
+                        document.getElementById('report-end-date').value = new Date().toISOString().split('T')[0];
+                        break;
                 }
             });
-            
-            // Tab click events
-            document.querySelectorAll('.nav-link').forEach(link => {
+
+            // Handle tab navigation
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
-                    if (this.id === 'logout-tab') {
-                        logout();
-                    } else if (this.classList.contains('admin') && !checkAccess(['admin'])) {
-                        alert('Anda tidak memiliki akses ke halaman ini!');
-                    } else if (this.classList.contains('supervisor') && !checkAccess(['supervisor'])) {
-                        alert('Anda tidak memiliki akses ke halaman ini!');
-                    } else if (this.classList.contains('manager') && !checkAccess(['manager'])) {
-                        alert('Anda tidak memiliki akses ke halaman ini!');
-                    } else {
-                        showTab(this.id);
-                    }
+                    const tabId = this.id.replace('-tab', '');
+                    showTab(tabId);
                 });
             });
-            
-            // Initialize dashboard if user is already logged in (for page refresh)
-            if (currentUser) {
-                updateUIForUser();
-                showTab('dashboard-tab');
-            }
+
+            // Handle logout
+            document.getElementById('logout-tab').addEventListener('click', function(e) {
+                e.preventDefault();
+                handleLogout();
+            });
+
+            // Inisialisasi tab pertama
+            showTab('dashboard');
+        });
+
+        // Inisialisasi tooltip Bootstrap
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     </script>
 </body>
