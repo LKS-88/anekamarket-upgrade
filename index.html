@@ -3,2934 +3,555 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome@6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Sistem Jadwal Shift Karyawan</title>
     <style>
-        :root {
-            --primary-color: #2a4365;
-            --secondary-color: #4299e1;
-            --accent-color: #e53e3e;
-            --light-color: #ebf8ff;
-            --dark-color: #1a365d;
-            --admin-color: #805ad5;
-            --supervisor-color: #38a169;
-            --manager-color: #d69e2e;
-            --staff-color: #3182ce;
-            --success-color: #38a169;
-            --warning-color: #dd6b20;
-            --info-color: #00b5d8;
-            --danger-color: #e53e3e;
-        }
-        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f7fafc;
-            color: var(--dark-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-        
-        .sidebar {
-            background: linear-gradient(180deg, var(--primary-color) 0%, #1e3a8a 100%);
-            color: white;
-            min-height: 100vh;
-            transition: all 0.3s;
-            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.85);
-            border-radius: 6px;
-            margin-bottom: 6px;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background-color: var(--secondary-color);
-            color: white;
-            transform: translateX(5px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .sidebar .nav-link.admin {
-            background-color: var(--admin-color);
-        }
-        
-        .sidebar .nav-link.supervisor {
-            background-color: var(--supervisor-color);
-        }
-        
-        .sidebar .nav-link.manager {
-            background-color: var(--manager-color);
-        }
-        
-        .sidebar .nav-link.staff {
-            background-color: var(--staff-color);
-        }
-        
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .main-content {
-            padding: 25px;
-            background-color: #fff;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-        }
-        
-        .card {
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-            border: none;
-            transition: transform 0.3s, box-shadow 0.3s;
-            overflow: hidden;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-header {
-            background: linear-gradient(90deg, var(--primary-color) 0%, #2c5282 100%);
-            color: white;
-            border-radius: 12px 12px 0 0 !important;
-            padding: 16px 20px;
-            border-bottom: none;
-        }
-        
-        .btn {
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-        }
-        
-        .btn-primary:hover {
-            background-color: #3182ce;
-            border-color: #3182ce;
-        }
-        
-        .btn-success {
-            background-color: var(--success-color);
-            border-color: var(--success-color);
-        }
-        
-        .btn-danger {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-        
-        .btn-warning {
-            background-color: var(--warning-color);
-            border-color: var(--warning-color);
-        }
-        
-        .btn-info {
-            background-color: var(--info-color);
-            border-color: var(--info-color);
-        }
-        
-        .btn-admin {
-            background-color: var(--admin-color);
-            border-color: var(--admin-color);
-        }
-        
-        .btn-supervisor {
-            background-color: var(--supervisor-color);
-            border-color: var(--supervisor-color);
-        }
-        
-        .btn-manager {
-            background-color: var(--manager-color);
-            border-color: var(--manager-color);
-        }
-        
-        .btn-staff {
-            background-color: var(--staff-color);
-            border-color: var(--staff-color);
-        }
-        
-        .table-responsive {
-            overflow-x: auto;
-            border-radius: 8px;
-        }
-        
-        .table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        
-        .table th {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 600;
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: rgba(66, 153, 225, 0.08);
-        }
-        
-        /* Premium Invoice Styling */
-        .nota-container {
-            background-color: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 35px;
-            max-width: 800px;
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            box-shadow: 0 0 25px rgba(0,0,0,0.08);
-            position: relative;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        
-        .nota-header {
-            text-align: center;
-            margin-bottom: 35px;
-            border-bottom: 2px dashed #e2e8f0;
-            padding-bottom: 25px;
+        h1, h2 {
+            color: #333;
         }
-        
-        .hotel-logo {
-            max-width: 150px;
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: #ddd;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .form-group {
             margin-bottom: 15px;
         }
-        
-        .nota-footer {
-            margin-top: 35px;
-            border-top: 2px dashed #e2e8f0;
-            padding-top: 25px;
-            text-align: center;
-            font-style: italic;
-            color: #718096;
-        }
-        
-        .barcode-container {
-            text-align: center;
-            margin: 35px 0;
-            padding: 20px;
-            background-color: #f8fafc;
-            border-radius: 8px;
-        }
-        
-        .payment-methods {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .payment-method {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-            min-width: 120px;
-            text-align: center;
-        }
-        
-        .payment-method:hover {
-            border-color: var(--secondary-color);
-            background-color: #f0f9ff;
-        }
-        
-        .payment-method.active {
-            border-color: var(--success-color);
-            background-color: #f0fff4;
-        }
-        
-        .payment-method i {
-            font-size: 24px;
+        label {
+            display: block;
             margin-bottom: 5px;
-            display: block;
+            font-weight: bold;
         }
-        
-        .payment-details {
-            display: none;
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #f8fafc;
-            border-radius: 8px;
-        }
-        
-        .payment-details.active {
-            display: block;
-        }
-        
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 10px 12px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 0.25rem rgba(66, 153, 225, 0.25);
-        }
-        
-        .alert {
-            border-radius: 8px;
-            padding: 12px 16px;
-        }
-        
-        .badge {
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 8px;
-        }
-        
-        .bg-primary {
-            background-color: var(--primary-color) !important;
-        }
-        
-        .bg-secondary {
-            background-color: var(--secondary-color) !important;
-        }
-        
-        .bg-success {
-            background-color: var(--success-color) !important;
-        }
-        
-        .bg-danger {
-            background-color: var(--danger-color) !important;
-        }
-        
-        .bg-warning {
-            background-color: var(--warning-color) !important;
-        }
-        
-        .bg-info {
-            background-color: var(--info-color) !important;
-        }
-        
-        .bg-admin {
-            background-color: var(--admin-color) !important;
-        }
-        
-        .bg-supervisor {
-            background-color: var(--supervisor-color) !important;
-        }
-        
-        .bg-manager {
-            background-color: var(--manager-color) !important;
-        }
-        
-        .bg-staff {
-            background-color: var(--staff-color) !important;
-        }
-        
-        /* Footer styling */
-        .app-footer {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 0;
-            text-align: center;
-            font-size: 14px;
-            position: fixed;
-            bottom: 0;
+        input, select {
             width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
         }
-        
-        .app-footer a {
-            color: #a0aec0;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        
-        .app-footer a:hover {
+        button {
+            background-color: #4CAF50;
             color: white;
-        }
-        
-        /* Shift indicator */
-        .shift-indicator {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        /* Modern scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a0aec0;
-        }
-        
-        /* Print styling */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .nota-container, .nota-container *,
-            .report-container, .report-container * {
-                visibility: visible;
-            }
-            .nota-container, .report-container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none;
-                box-shadow: none;
-                padding: 0;
-                margin: 0;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .app-footer {
-                display: none;
-            }
-            .nota-header {
-                padding-top: 0;
-                margin-top: 0;
-            }
-            .nota-footer {
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-            .payment-section {
-                display: none !important;
-            }
-        }
-        
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .sidebar {
-                min-height: auto;
-                margin-bottom: 20px;
-            }
-            .main-content {
-                padding: 18px;
-            }
-            .table-responsive {
-                font-size: 0.85rem;
-            }
-            .card-body {
-                padding: 1.25rem;
-            }
-            .btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.9rem;
-            }
-            .app-footer {
-                position: static;
-                padding: 12px 0;
-            }
-            .nota-container {
-                padding: 20px;
-            }
-            .payment-method {
-                min-width: 100px;
-            }
-        }
-        
-        /* Language switcher */
-        .language-switcher {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 1000;
-        }
-        
-        .language-btn {
-            background-color: var(--primary-color);
-            color: white;
+            padding: 10px 15px;
             border: none;
-            border-radius: 20px;
-            padding: 5px 15px;
-            font-size: 14px;
+            border-radius: 4px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin-right: 10px;
         }
-        
-        .language-btn:hover {
-            background-color: var(--secondary-color);
+        button:hover {
+            background-color: #45a049;
         }
-        
-        /* Role permissions table */
-        .permissions-table th {
-            position: sticky;
-            top: 0;
-            background-color: var(--primary-color);
-            color: white;
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
         }
-        
-        .permissions-table td {
-            vertical-align: middle;
+        .calendar-header {
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background: #f2f2f2;
         }
-        
-        .permission-checkbox {
-            transform: scale(1.3);
+        .calendar-day {
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 100px;
+            background: white;
         }
-        
-        /* Loading spinner */
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
+        .shift {
+            margin: 3px 0;
+            padding: 3px;
+            border-radius: 3px;
+            font-size: 0.8em;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .shift-pagi {
+            background-color: #ffe6cc;
+        }
+        .shift-sore {
+            background-color: #e6f3ff;
+        }
+        .shift-malam {
+            background-color: #f0e6ff;
+        }
+        .special-note {
+            background-color: #ffcccc;
+            font-size: 0.7em;
+            padding: 2px;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <!-- Language Switcher -->
-    <div class="language-switcher no-print">
-        <button class="language-btn" id="language-toggle">
-            <i class="fas fa-globe"></i>
-            <span id="current-language">ID</span>
-        </button>
-    </div>
-
-    <!-- Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" data-translate="login_title">Login Sistem</h5>
+    <div class="container">
+        <h1>Sistem Jadwal Shift Karyawan</h1>
+        
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="openTab('karyawan')">Data Karyawan</button>
+                <button class="tab-btn" onclick="openTab('jadwal')">Jadwal Shift</button>
+                <button class="tab-btn" onclick="openTab('gaji')">Perhitungan Gaji</button>
+                <button class="tab-btn" onclick="openTab('laporan')">Laporan</button>
+            </div>
+            
+            <!-- Tab Data Karyawan -->
+            <div id="karyawan" class="tab-content active">
+                <h2>Manajemen Data Karyawan</h2>
+                <div class="form-group">
+                    <label for="nama">Nama Karyawan:</label>
+                    <input type="text" id="nama" placeholder="Masukkan nama karyawan">
                 </div>
-                <div class="modal-body">
-                    <form id="login-form">
-                        <div class="mb-3">
-                            <label for="login-username" class="form-label" data-translate="username">Username</label>
-                            <input type="text" class="form-control" id="login-username" required autocomplete="off">
-                        </div>
-                        <div class="mb-3">
-                            <label for="login-password" class="form-label" data-translate="password">Password</label>
-                            <input type="password" class="form-control" id="login-password" required autocomplete="new-password">
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100" id="login-button">
-                            <i class="fas fa-sign-in-alt me-2"></i> <span data-translate="login_button">Login</span>
-                        </button>
-                    </form>
+                <div class="form-group">
+                    <label for="posisi">Posisi:</label>
+                    <input type="text" id="posisi" placeholder="Masukkan posisi">
                 </div>
-                <div class="modal-footer">
-                    <small class="text-muted" data-translate="copyright">Sistem Manajemen Hotel © 2025 Lentera Karya Situbondo</small>
+                <div class="form-group">
+                    <label for="tanggal-bergabung">Tanggal Bergabung:</label>
+                    <input type="date" id="tanggal-bergabung">
                 </div>
+                <button onclick="tambahKaryawan()">Tambah Karyawan</button>
+                
+                <h3>Daftar Karyawan</h3>
+                <table id="tabel-karyawan">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>Posisi</th>
+                            <th>Tanggal Bergabung</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Tab Jadwal Shift -->
+            <div id="jadwal" class="tab-content">
+                <h2>Pembuatan Jadwal Shift</h2>
+                <div class="form-group">
+                    <label for="bulan-jadwal">Pilih Bulan:</label>
+                    <input type="month" id="bulan-jadwal" onchange="generateJadwal()">
+                </div>
+                <button onclick="generateJadwal()">Generate Jadwal</button>
+                <button onclick="simpanJadwal()">Simpan Jadwal</button>
+                
+                <div id="calendar-container" style="margin-top: 20px;">
+                    <!-- Kalender akan diisi oleh JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Tab Perhitungan Gaji -->
+            <div id="gaji" class="tab-content">
+                <h2>Perhitungan Gaji Karyawan</h2>
+                <div class="form-group">
+                    <label for="bulan-gaji">Pilih Bulan:</label>
+                    <input type="month" id="bulan-gaji" onchange="hitungGaji()">
+                </div>
+                <div class="form-group">
+                    <label for="gaji-pokok">Gaji Pokok per Hari (Rp):</label>
+                    <input type="number" id="gaji-pokok" value="150000">
+                </div>
+                <div class="form-group">
+                    <label for="bonus-harian">Bonus Harian (Rp):</label>
+                    <input type="number" id="bonus-harian" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="bonus-mingguan">Bonus Mingguan (Rp):</label>
+                    <input type="number" id="bonus-mingguan" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="bonus-bulanan">Bonus Bulanan (Rp):</label>
+                    <input type="number" id="bonus-bulanan" value="0">
+                </div>
+                <button onclick="hitungGaji()">Hitung Gaji</button>
+                
+                <table id="tabel-gaji" style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Nama Karyawan</th>
+                            <th>Total Shift</th>
+                            <th>Gaji Pokok</th>
+                            <th>Bonus Harian</th>
+                            <th>Bonus Mingguan</th>
+                            <th>Bonus Bulanan</th>
+                            <th>Total Gaji</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Tab Laporan -->
+            <div id="laporan" class="tab-content">
+                <h2>Laporan dan Ekspor</h2>
+                <div class="form-group">
+                    <label for="jenis-laporan">Jenis Laporan:</label>
+                    <select id="jenis-laporan">
+                        <option value="jadwal">Jadwal Shift</option>
+                        <option value="gaji">Laporan Gaji</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bulan-laporan">Pilih Bulan:</label>
+                    <input type="month" id="bulan-laporan">
+                </div>
+                <button onclick="generatePDF()">Ekspor ke PDF</button>
+                <button onclick="cetakLaporan()">Cetak Laporan</button>
             </div>
         </div>
     </div>
 
-    <!-- Admin Password Modal -->
-    <div class="modal fade" id="adminPasswordModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-admin text-white">
-                    <h5 class="modal-title" data-translate="admin_verify">Verifikasi Admin</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="admin-password-form">
-                        <div class="mb-3">
-                            <label for="admin-password" class="form-label" data-translate="admin_password">Password Admin</label>
-                            <input type="password" class="form-control" id="admin-password" required autocomplete="new-password">
-                        </div>
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translate="cancel">Batal</button>
-                            <button type="submit" class="btn btn-admin" id="verify-button">
-                                <i class="fas fa-check-circle me-2"></i> <span data-translate="verify">Verifikasi</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Database Backup Modal -->
-    <div class="modal fade" id="databaseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-admin text-white">
-                    <h5 class="modal-title" id="databaseModalTitle" data-translate="backup_data">Backup Data</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="database-form">
-                        <input type="hidden" id="database-action">
-                        <div class="mb-3">
-                            <label for="database-password" class="form-label" data-translate="admin_password">Password Admin</label>
-                            <input type="password" class="form-control" id="database-password" required>
-                        </div>
-                        <div id="backup-section">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i> <span data-translate="backup_info">Backup akan menyimpan semua data saat ini ke file JSON.</span>
-                            </div>
-                        </div>
-                        <div id="restore-section" class="d-none">
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle me-2"></i> <span data-translate="restore_warning">Restore akan mengganti semua data saat ini dengan data dari file.</span>
-                            </div>
-                            <div class="mb-3">
-                                <label for="restore-file" class="form-label" data-translate="select_backup">Pilih File Backup</label>
-                                <input type="file" class="form-control" id="restore-file" accept=".json">
-                            </div>
-                        </div>
-                        <div id="reset-section" class="d-none">
-                            <div class="alert alert-danger">
-                                <i class="fas fa-exclamation-triangle me-2"></i> <strong data-translate="warning">PERINGATAN:</strong> <span data-translate="reset_warning">Reset akan menghapus semua data dan mengembalikan ke pengaturan awal!</span>
-                            </div>
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="confirm-reset" required>
-                                <label class="form-check-label" for="confirm-reset" data-translate="reset_confirm">
-                                    Saya mengerti bahwa semua data akan dihapus
-                                </label>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translate="cancel">Batal</button>
-                    <button type="button" class="btn btn-primary" id="confirm-database-action">
-                        <i class="fas fa-check-circle me-2"></i> <span data-translate="confirm">Konfirmasi</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" data-translate="payment">Pembayaran</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="payment-form">
-                        <div class="mb-3">
-                            <label class="form-label" data-translate="total_amount">Total Pembayaran</label>
-                            <h3 id="payment-total">Rp 0</h3>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" data-translate="payment_method">Metode Pembayaran</label>
-                            <div class="payment-methods">
-                                <div class="payment-method" data-method="cash">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    <span data-translate="cash">Tunai</span>
-                                </div>
-                                <div class="payment-method" data-method="transfer">
-                                    <i class="fas fa-university"></i>
-                                    <span data-translate="transfer">Transfer Bank</span>
-                                </div>
-                                <div class="payment-method" data-method="ewallet">
-                                    <i class="fas fa-wallet"></i>
-                                    <span data-translate="ewallet">E-Wallet</span>
-                                </div>
-                                <div class="payment-method" data-method="qris">
-                                    <i class="fas fa-qrcode"></i>
-                                    <span>QRIS</span>
-                                </div>
-                            </div>
-                            
-                            <input type="hidden" id="payment-method" name="payment-method" required>
-                        </div>
-                        
-                        <div id="cash-details" class="payment-details">
-                            <div class="mb-3">
-                                <label for="cash-amount" class="form-label" data-translate="cash_amount">Jumlah Uang</label>
-                                <input type="number" class="form-control" id="cash-amount" name="cash-amount">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" data-translate="change">Kembalian</label>
-                                <h5 id="payment-change">Rp 0</h5>
-                            </div>
-                        </div>
-                        
-                        <div id="transfer-details" class="payment-details">
-                            <div class="mb-3">
-                                <label for="transfer-bank" class="form-label" data-translate="bank_name">Nama Bank</label>
-                                <input type="text" class="form-control" id="transfer-bank" name="transfer-bank">
-                            </div>
-                            <div class="mb-3">
-                                <label for="transfer-account" class="form-label" data-translate="account_number">Nomor Rekening</label>
-                                <input type="text" class="form-control" id="transfer-account" name="transfer-account">
-                            </div>
-                            <div class="mb-3">
-                                <label for="transfer-proof" class="form-label" data-translate="proof_of_payment">Bukti Transfer</label>
-                                <input type="file" class="form-control" id="transfer-proof" name="transfer-proof" accept="image/*,.pdf">
-                            </div>
-                        </div>
-                        
-                        <div id="ewallet-details" class="payment-details">
-                            <div class="mb-3">
-                                <label for="ewallet-provider" class="form-label" data-translate="ewallet_provider">Provider E-Wallet</label>
-                                <select class="form-select" id="ewallet-provider" name="ewallet-provider">
-                                    <option value="gopay">GoPay</option>
-                                    <option value="ovo">OVO</option>
-                                    <option value="dana">DANA</option>
-                                    <option value="linkaja">LinkAja</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="ewallet-number" class="form-label" data-translate="ewallet_number">Nomor E-Wallet</label>
-                                <input type="text" class="form-control" id="ewallet-number" name="ewallet-number">
-                            </div>
-                        </div>
-                        
-                        <div id="qris-details" class="payment-details">
-                            <div class="text-center mb-3">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=hotelpayment" alt="QR Code" class="img-fluid">
-                                <p class="mt-2" data-translate="scan_qr">Scan QR code untuk melakukan pembayaran</p>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="payment-notes" class="form-label" data-translate="payment_notes">Catatan Pembayaran</label>
-                            <textarea class="form-control" id="payment-notes" name="payment-notes" rows="2"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translate="cancel">Batal</button>
-                    <button type="button" class="btn btn-success" id="process-payment">
-                        <i class="fas fa-check-circle me-2"></i> <span data-translate="process_payment">Proses Pembayaran</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse no-print" id="sidebarMenu">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <h4><i class="fas fa-hotel me-2"></i> <span data-translate="hotel_system">Hotel System</span></h4>
-                        <small id="current-user-role" class="badge bg-secondary mt-2"></small>
-                    </div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#" id="dashboard-tab">
-                                <i class="fas fa-tachometer-alt"></i> <span data-translate="dashboard">Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="checkin-tab">
-                                <i class="fas fa-sign-in-alt"></i> <span data-translate="check_in">Check-In</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="checkout-tab">
-                                <i class="fas fa-sign-out-alt"></i> <span data-translate="check_out">Check-Out</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="transaksi-tab">
-                                <i class="fas fa-cash-register"></i> <span data-translate="transactions">Transaksi</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="nota-tab">
-                                <i class="fas fa-receipt"></i> <span data-translate="create_invoice">Buat Nota</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link admin" href="#" id="kamar-tab">
-                                <i class="fas fa-bed"></i> <span data-translate="room_management">Manajemen Kamar</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link admin" href="#" id="fasilitas-tab">
-                                <i class="fas fa-utensils"></i> <span data-translate="facilities">Fasilitas</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="tamu-tab">
-                                <i class="fas fa-users"></i> <span data-translate="guest_data">Data Tamu</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link supervisor" href="#" id="laporan-tab">
-                                <i class="fas fa-chart-bar"></i> <span data-translate="reports">Laporan</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link manager" href="https://lks-88.github.io/database-karyawan" id="karyawan-tab" target="_blank">
-                                <i class="fas fa-user-tie"></i> <span data-translate="employee_management">Kelola Karyawan</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="backup-tab">
-                                <i class="fas fa-database"></i> <span data-translate="backup_data">Backup Data</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link admin" href="#" id="admin-tab">
-                                <i class="fas fa-user-shield"></i> <span data-translate="admin_panel">Admin Panel</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" id="logout-tab">
-                                <i class="fas fa-sign-out-alt"></i> <span data-translate="logout">Logout</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <!-- Dashboard Section -->
-                <div class="tab-content" id="dashboard-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-tachometer-alt me-2"></i> <span data-translate="dashboard">Dashboard</span></h1>
-                        <div id="current-shift" class="shift-indicator bg-secondary"></div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="card text-white bg-primary mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title" data-translate="today_guests">Tamu Hari Ini</h5>
-                                            <h2 class="card-text" id="today-guests">0</h2>
-                                        </div>
-                                        <i class="fas fa-users fa-3x opacity-50"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-success mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title" data-translate="occupied_rooms">Kamar Terisi</h5>
-                                            <h2 class="card-text" id="occupied-rooms">0</h2>/<span id="total-rooms">0</span>
-                                        </div>
-                                        <i class="fas fa-bed fa-3x opacity-50"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-warning mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title" data-translate="today_income">Pendapatan Hari Ini</h5>
-                                            <h2 class="card-text" id="today-income">Rp 0</h2>
-                                        </div>
-                                        <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-info mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title" data-translate="active_staff">Karyawan Aktif</h5>
-                                            <h2 class="card-text" id="active-staff">0</h2>
-                                        </div>
-                                        <i class="fas fa-user-clock fa-3x opacity-50"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-chart-line me-2"></i> <span data-translate="monthly_stats">Statistik Bulan Ini</span></h5>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="monthlyChart" height="200"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5><i class="fas fa-bell me-2"></i> <span data-translate="notifications">Notifikasi</span></h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="list-group" id="notification-list">
-                                        <a href="#" class="list-group-item list-group-item-action">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h6 class="mb-1" data-translate="welcome_message">Selamat datang di sistem</h6>
-                                                <small data-translate="just_now">Baru saja</small>
-                                            </div>
-                                            <p class="mb-1" data-translate="system_ready">Sistem siap digunakan</p>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Check-In Section -->
-                <div class="tab-content d-none" id="checkin-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-sign-in-alt me-2"></i> <span data-translate="guest_checkin">Check-In Tamu</span></h1>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="checkin_form">Form Check-In</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form id="checkin-form">
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
-                                                <label for="checkin-name" class="form-label" data-translate="guest_name">Nama Tamu</label>
-                                                <input type="text" class="form-control" id="checkin-name" required>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="checkin-identity" class="form-label" data-translate="identity_number">No. Identitas (KTP/SIM/Passport)</label>
-                                                <input type="text" class="form-control" id="checkin-identity" required>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
-                                                <label for="checkin-phone" class="form-label" data-translate="phone_number">No. Telepon</label>
-                                                <input type="tel" class="form-control" id="checkin-phone" required>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="checkin-room" class="form-label" data-translate="room">Kamar</label>
-                                                <select class="form-select" id="checkin-room" required>
-                                                    <option value="" data-translate="select_room">Pilih Kamar</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
-                                                <label for="checkin-duration" class="form-label" data-translate="stay_duration">Durasi Menginap (hari)</label>
-                                                <input type="number" class="form-control" id="checkin-duration" min="1" value="1" required>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label" data-translate="total_cost">Total Biaya</label>
-                                                <h4 id="checkin-total">Rp 0</h4>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label" data-translate="additional_services">Layanan Tambahan</label>
-                                            <div id="additional-services-container" class="mb-3">
-                                                <!-- Services will be added here based on settings -->
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="checkin-notes" class="form-label" data-translate="notes">Catatan</label>
-                                            <textarea class="form-control" id="checkin-notes" rows="2"></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary w-100" id="checkin-button">
-                                            <i class="fas fa-sign-in-alt me-2"></i> <span data-translate="process_checkin">Proses Check-In</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="today_guests">Tamu Hari Ini</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th data-translate="no">No.</th>
-                                                    <th data-translate="name">Nama</th>
-                                                    <th data-translate="room">Kamar</th>
-                                                    <th data-translate="check_in">Check-In</th>
-                                                    <th data-translate="check_out">Check-Out</th>
-                                                    <th data-translate="status">Status</th>
-                                                    <th data-translate="action">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="today-guests-list">
-                                                <!-- Today's guests will be loaded here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Check-Out Section -->
-                <div class="tab-content d-none" id="checkout-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-sign-out-alt me-2"></i> <span data-translate="guest_checkout">Check-Out Tamu</span></h1>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 data-translate="current_guests">Daftar Tamu yang Sedang Menginap</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th data-translate="no">No.</th>
-                                            <th data-translate="guest_name">Nama Tamu</th>
-                                            <th data-translate="identity_number">No. Identitas</th>
-                                            <th data-translate="room">Kamar</th>
-                                            <th data-translate="check_in">Check-In</th>
-                                            <th data-translate="check_out">Check-Out</th>
-                                            <th data-translate="action">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="checkout-guests-list">
-                                        <!-- Checked-in guests will be loaded here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Transaksi Section -->
-                <div class="tab-content d-none" id="transaksi-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-cash-register me-2"></i> <span data-translate="transactions">Transaksi</span></h1>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="add_transaction">Tambah Transaksi Baru</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form id="transaction-form">
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
-                                                <label for="transaction-guest" class="form-label" data-translate="guest">Tamu</label>
-                                                <select class="form-select" id="transaction-guest" required>
-                                                    <option value="" data-translate="select_guest">Pilih Tamu</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="transaction-type" class="form-label" data-translate="transaction_type">Jenis Transaksi</label>
-                                                <select class="form-select" id="transaction-type" required>
-                                                    <option value="room" data-translate="room_charge">Biaya Kamar</option>
-                                                    <option value="food" data-translate="food_drink">Makanan & Minuman</option>
-                                                    <option value="facility" data-translate="facility">Fasilitas</option>
-                                                    <option value="laundry" data-translate="laundry">Laundry</option>
-                                                    <option value="other" data-translate="other">Lainnya</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3" id="facility-select-container" style="display: none;">
-                                            <div class="col-md-12">
-                                                <label for="transaction-facility" class="form-label" data-translate="select_facility">Pilih Fasilitas</label>
-                                                <select class="form-select" id="transaction-facility">
-                                                    <option value="" data-translate="select_facility">Pilih Fasilitas</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row mb-3">
-                                            <div class="col-md-4">
-                                                <label for="transaction-amount" class="form-label" data-translate="amount">Jumlah (Rp)</label>
-                                                <input type="number" class="form-control" id="transaction-amount" required>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="transaction-quantity" class="form-label" data-translate="quantity">Kuantitas</label>
-                                                <input type="number" class="form-control" id="transaction-quantity" min="1" value="1">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label" data-translate="subtotal">Subtotal</label>
-                                                <h5 id="transaction-subtotal">Rp 0</h5>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="transaction-notes" class="form-label" data-translate="description">Keterangan</label>
-                                            <input type="text" class="form-control" id="transaction-notes">
-                                        </div>
-                                        <button type="submit" class="btn btn-primary w-100" id="transaction-button">
-                                            <i class="fas fa-save me-2"></i> <span data-translate="save_transaction">Simpan Transaksi</span>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="filter_transactions">Filter Transaksi</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="transaction-date-filter" class="form-label" data-translate="date">Tanggal</label>
-                                        <input type="date" class="form-control" id="transaction-date-filter">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="transaction-type-filter" class="form-label" data-translate="transaction_type">Jenis Transaksi</label>
-                                        <select class="form-select" id="transaction-type-filter">
-                                            <option value="" data-translate="all">Semua</option>
-                                            <option value="room" data-translate="room_charge">Biaya Kamar</option>
-                                            <option value="food" data-translate="food_drink">Makanan & Minuman</option>
-                                            <option value="facility" data-translate="facility">Fasilitas</option>
-                                            <option value="laundry" data-translate="laundry">Laundry</option>
-                                            <option value="other" data-translate="other">Lainnya</option>
-                                        </select>
-                                    </div>
-                                    <button id="filter-transactions" class="btn btn-primary w-100">
-                                        <i class="fas fa-filter me-2"></i> <span data-translate="filter">Filter</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 data-translate="transaction_list">Daftar Transaksi</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th data-translate="no">No.</th>
-                                            <th data-translate="date">Tanggal</th>
-                                            <th data-translate="guest">Tamu</th>
-                                            <th data-translate="type">Jenis</th>
-                                            <th data-translate="description">Keterangan</th>
-                                            <th data-translate="amount">Jumlah</th>
-                                            <th data-translate="cashier">Kasir</th>
-                                            <th data-translate="action">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="transactions-list">
-                                        <!-- Transactions will be loaded here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Nota Section -->
-                <div class="tab-content d-none" id="nota-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-receipt me-2"></i> <span data-translate="create_invoice">Buat Nota</span></h1>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="search_guest">Cari Tamu</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="invoice-search" class="form-label" data-translate="search_placeholder">Cari (Nama/No. Identitas/Kamar)</label>
-                                        <input type="text" class="form-control" id="invoice-search">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="invoice-date-filter" class="form-label" data-translate="checkin_date">Tanggal Check-In</label>
-                                        <input type="date" class="form-control" id="invoice-date-filter">
-                                    </div>
-                                    <button id="filter-invoice-guests" class="btn btn-primary w-100">
-                                        <i class="fas fa-search me-2"></i> <span data-translate="search">Cari</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="guest_list">Daftar Tamu</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th data-translate="name">Nama</th>
-                                                    <th data-translate="identity_number">No. Identitas</th>
-                                                    <th data-translate="room">Kamar</th>
-                                                    <th data-translate="status">Status</th>
-                                                    <th data-translate="action">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="invoice-guests-list">
-                                                <!-- Guests will be loaded here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-none" id="invoice-container">
-                        <div class="nota-container">
-                            <div class="nota-header">
-                                <img src="https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png" alt="Hotel Logo" class="hotel-logo">
-                                <h3 id="hotel-name-header">HOTEL MEWAH</h3>
-                                <p id="hotel-address-header">Jl. Raya No. 123, Kota Anda</p>
-                                <p id="hotel-contact-header">Telp: (021) 1234567 | Email: info@hotelmewah.com</p>
-                                <hr>
-                                <h4 data-translate="payment_invoice">NOTA PEMBAYARAN</h4>
-                            </div>
-                            
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <p><strong data-translate="invoice_number">No. Nota:</strong> <span id="invoice-number">INV-20230001</span></p>
-                                    <p><strong data-translate="date">Tanggal:</strong> <span id="invoice-date">01 Januari 2023, 10:00</span></p>
-                                    <p><strong data-translate="cashier">Kasir:</strong> <span id="invoice-cashier">Admin</span></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong data-translate="guest_name">Nama Tamu:</strong> <span id="invoice-guest-name">John Doe</span></p>
-                                    <p><strong data-translate="room_number">No. Kamar:</strong> <span id="invoice-room-number">101</span></p>
-                                    <p><strong data-translate="identity_number">No. Identitas:</strong> <span id="invoice-guest-id">1234567890</span></p>
-                                </div>
-                            </div>
-                            
-                            <div class="barcode-container">
-                                <svg id="invoice-barcode"></svg>
-                            </div>
-                            
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th data-translate="no">No.</th>
-                                            <th data-translate="description">Deskripsi</th>
-                                            <th data-translate="quantity">Jumlah</th>
-                                            <th data-translate="price">Harga</th>
-                                            <th data-translate="total">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="invoice-items">
-                                        <!-- Invoice items will be added here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <div class="row justify-content-end mt-4">
-                                <div class="col-md-6">
-                                    <table class="table table-borderless">
-                                        <tr>
-                                            <td><strong data-translate="subtotal">Subtotal:</strong></td>
-                                            <td class="text-end" id="invoice-subtotal">Rp 0</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong data-translate="tax">Pajak (10%):</strong></td>
-                                            <td class="text-end" id="invoice-tax">Rp 0</td>
-                                        </tr>
-                                        <tr class="table-active">
-                                            <td><strong data-translate="total">Total:</strong></td>
-                                            <td class="text-end" id="invoice-total">Rp 0</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong data-translate="payment_method">Metode Pembayaran:</strong></td>
-                                            <td class="text-end" id="invoice-payment-method">-</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong data-translate="amount_paid">Jumlah Dibayar:</strong></td>
-                                            <td class="text-end" id="invoice-amount-paid">Rp 0</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong data-translate="change">Kembalian:</strong></td>
-                                            <td class="text-end" id="invoice-change">Rp 0</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <div class="nota-footer">
-                                <p data-translate="thank_you">Terima kasih atas kunjungan Anda</p>
-                                <p data-translate="invoice_note">Nota ini sah tanpa tanda tangan dan stempel</p>
-                            </div>
-                            
-                            <input type="hidden" id="invoice-guest">
-                        </div>
-                        
-                        <div class="d-flex justify-content-center gap-2 mt-4 no-print">
-                            <button id="print-invoice" class="btn btn-primary">
-                                <i class="fas fa-print me-2"></i> <span data-translate="print">Cetak Nota</span>
-                            </button>
-                            <button id="download-invoice-pdf" class="btn btn-danger">
-                                <i class="fas fa-file-pdf me-2"></i> <span data-translate="download_pdf">Download PDF</span>
-                            </button>
-                            <button id="save-invoice" class="btn btn-success">
-                                <i class="fas fa-save me-2"></i> <span data-translate="save_invoice">Simpan Nota</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kamar Section -->
-                <div class="tab-content d-none" id="kamar-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-bed me-2"></i> <span data-translate="room_management">Manajemen Kamar</span></h1>
-                        <button class="btn btn-primary" id="add-room-btn"><i class="fas fa-plus me-2"></i> <span data-translate="add_room">Tambah Kamar</span></button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 data-translate="room_list">Daftar Kamar</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th data-translate="no">No.</th>
-                                            <th data-translate="room_number">Nomor Kamar</th>
-                                            <th data-translate="type">Tipe</th>
-                                            <th data-translate="price_day">Harga/Hari</th>
-                                            <th data-translate="status">Status</th>
-                                            <th data-translate="action">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="rooms-list">
-                                        <!-- Rooms will be loaded here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Modal Tambah/Ubah Kamar -->
-                    <div class="modal fade" id="roomModal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="roomModalTitle" data-translate="add_room">Tambah Kamar Baru</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="room-form">
-                                        <input type="hidden" id="room-id">
-                                        <div class="mb-3">
-                                            <label for="room-number" class="form-label" data-translate="room_number">Nomor Kamar</label>
-                                            <input type="text" class="form-control" id="room-number" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="room-type" class="form-label" data-translate="room_type">Tipe Kamar</label>
-                                            <select class="form-select" id="room-type" required>
-                                                <option value="standard" data-translate="standard">Standard</option>
-                                                <option value="deluxe" data-translate="deluxe">Deluxe</option>
-                                                <option value="suite" data-translate="suite">Suite</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="room-price" class="form-label" data-translate="price_day">Harga per Hari (Rp)</label>
-                                            <input type="number" class="form-control" id="room-price" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="room-status" class="form-label" data-translate="status">Status</label>
-                                            <select class="form-select" id="room-status" required>
-                                                <option value="available" data-translate="available">Tersedia</option>
-                                                <option value="occupied" data-translate="occupied">Terisi</option>
-                                                <option value="maintenance" data-translate="maintenance">Perbaikan</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="room-notes" class="form-label" data-translate="notes">Catatan</label>
-                                            <textarea class="form-control" id="room-notes" rows="2"></textarea>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translate="cancel">Batal</button>
-                                    <button type="button" class="btn btn-primary" id="save-room" data-translate="save">Simpan</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fasilitas Section -->
-                <div class="tab-content d-none" id="fasilitas-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-utensils me-2"></i> <span data-translate="facilities">Manajemen Fasilitas</span></h1>
-                        <button class="btn btn-primary" id="add-facility-btn"><i class="fas fa-plus me-2"></i> <span data-translate="add_facility">Tambah Fasilitas</span></button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 data-translate="facility_list">Daftar Fasilitas</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th data-translate="no">No.</th>
-                                            <th data-translate="name">Nama</th>
-                                            <th data-translate="category">Kategori</th>
-                                            <th data-translate="price">Harga</th>
-                                            <th data-translate="status">Status</th>
-                                            <th data-translate="description">Deskripsi</th>
-                                            <th data-translate="action">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="facilities-list">
-                                        <!-- Facilities will be loaded here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Modal Tambah/Ubah Fasilitas -->
-                    <div class="modal fade" id="facilityModal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="facilityModalTitle" data-translate="add_facility">Tambah Fasilitas Baru</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="facility-form">
-                                        <input type="hidden" id="facility-id">
-                                        <div class="mb-3">
-                                            <label for="facility-name" class="form-label" data-translate="facility_name">Nama Fasilitas</label>
-                                            <input type="text" class="form-control" id="facility-name" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="facility-category" class="form-label" data-translate="category">Kategori</label>
-                                            <select class="form-select" id="facility-category" required>
-                                                <option value="food" data-translate="food">Makanan</option>
-                                                <option value="beverage" data-translate="beverage">Minuman</option>
-                                                <option value="service" data-translate="service">Layanan</option>
-                                                <option value="other" data-translate="other">Lainnya</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="facility-price" class="form-label" data-translate="price">Harga (Rp)</label>
-                                            <input type="number" class="form-control" id="facility-price" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label" data-translate="status">Status</label>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="facility-status" id="facility-available" value="available" checked>
-                                                <label class="form-check-label" for="facility-available" data-translate="available">
-                                                    Tersedia
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="facility-status" id="facility-unavailable" value="unavailable">
-                                                <label class="form-check-label" for="facility-unavailable" data-translate="unavailable">
-                                                    Tidak Tersedia
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="facility-description" class="form-label" data-translate="description">Deskripsi</label>
-                                            <textarea class="form-control" id="facility-description" rows="2"></textarea>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-translate="cancel">Batal</button>
-                                    <button type="button" class="btn btn-primary" id="save-facility" data-translate="save">Simpan</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tamu Section -->
-                <div class="tab-content d-none" id="tamu-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-users me-2"></i> <span data-translate="guest_data">Data Tamu</span></h1>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="filter_guests">Filter Tamu</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="guest-search" class="form-label" data-translate="search_placeholder">Cari (Nama/No. Identitas/Telepon)</label>
-                                        <input type="text" class="form-control" id="guest-search">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="guest-status-filter" class="form-label" data-translate="status">Status</label>
-                                        <select class="form-select" id="guest-status-filter">
-                                            <option value="" data-translate="all">Semua</option>
-                                            <option value="checked-in" data-translate="checked_in">Check-In</option>
-                                            <option value="checked-out" data-translate="checked_out">Check-Out</option>
-                                        </select>
-                                    </div>
-                                    <button id="filter-guests" class="btn btn-primary w-100">
-                                        <i class="fas fa-filter me-2"></i> <span data-translate="filter">Filter</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="guest_list">Daftar Tamu</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th data-translate="no">No.</th>
-                                                    <th data-translate="name">Nama</th>
-                                                    <th data-translate="identity_number">No. Identitas</th>
-                                                    <th data-translate="phone_number">No. Telepon</th>
-                                                    <th data-translate="room">Kamar</th>
-                                                    <th data-translate="status">Status</th>
-                                                    <th data-translate="action">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="guests-list">
-                                                <!-- Guests will be loaded here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Laporan Section -->
-                <div class="tab-content d-none" id="laporan-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-chart-bar me-2"></i> <span data-translate="reports">Laporan</span></h1>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="report_filter">Filter Laporan</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="report-type" class="form-label" data-translate="report_type">Jenis Laporan</label>
-                                        <select class="form-select" id="report-type">
-                                            <option value="daily" data-translate="daily">Harian</option>
-                                            <option value="weekly" data-translate="weekly">Mingguan</option>
-                                            <option value="monthly" data-translate="monthly">Bulanan</option>
-                                            <option value="custom" data-translate="custom">Custom</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div id="report-date-container">
-                                        <div class="mb-3">
-                                            <label for="report-date" class="form-label" data-translate="date">Tanggal</label>
-                                            <input type="date" class="form-control" id="report-date">
-                                        </div>
-                                    </div>
-                                    
-                                    <div id="report-week-container" class="d-none">
-                                        <div class="mb-3">
-                                            <label for="report-week" class="form-label" data-translate="week">Minggu</label>
-                                            <input type="week" class="form-control" id="report-week">
-                                        </div>
-                                    </div>
-                                    
-                                    <div id="report-month-container" class="d-none">
-                                        <div class="mb-3">
-                                            <label for="report-month" class="form-label" data-translate="month">Bulan</label>
-                                            <input type="month" class="form-control" id="report-month">
-                                        </div>
-                                    </div>
-                                    
-                                    <div id="report-custom-container" class="d-none">
-                                        <div class="mb-3">
-                                            <label for="report-start-date" class="form-label" data-translate="start_date">Tanggal Mulai</label>
-                                            <input type="date" class="form-control" id="report-start-date">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="report-end-date" class="form-label" data-translate="end_date">Tanggal Selesai</label>
-                                            <input type="date" class="form-control" id="report-end-date">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="report-category" class="form-label" data-translate="category">Kategori</label>
-                                        <select class="form-select" id="report-category">
-                                            <option value="all" data-translate="all">Semua</option>
-                                            <option value="room" data-translate="room_charge">Biaya Kamar</option>
-                                            <option value="food" data-translate="food_drink">Makanan & Minuman</option>
-                                                                                       <option value="facility" data-translate="facility">Fasilitas</option>
-                                            <option value="laundry" data-translate="laundry">Laundry</option>
-                                            <option value="other" data-translate="other">Lainnya</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <button id="generate-report" class="btn btn-primary w-100">
-                                        <i class="fas fa-chart-bar me-2"></i> <span data-translate="generate_report">Buat Laporan</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="report_results">Hasil Laporan</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div id="report-results">
-                                        <div class="alert alert-info">
-                                            <i class="fas fa-info-circle me-2"></i> <span data-translate="no_report_generated">Belum ada laporan yang dibuat. Silakan pilih filter dan klik "Buat Laporan".</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Backup Section -->
-                <div class="tab-content d-none" id="backup-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-database me-2"></i> <span data-translate="backup_data">Backup & Restore Data</span></h1>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="backup_options">Opsi Backup</h5>
-                                </div>
-                                <div class="card-body">
-                                    <button id="create-backup" class="btn btn-primary w-100 mb-3">
-                                        <i class="fas fa-download me-2"></i> <span data-translate="create_backup">Buat Backup</span>
-                                    </button>
-                                    <button id="restore-backup" class="btn btn-warning w-100 mb-3">
-                                        <i class="fas fa-upload me-2"></i> <span data-translate="restore_backup">Restore Backup</span>
-                                    </button>
-                                    <button id="reset-data" class="btn btn-danger w-100">
-                                        <i class="fas fa-trash-alt me-2"></i> <span data-translate="reset_data">Reset Data</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 data-translate="backup_info">Informasi Backup</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-info-circle me-2"></i> <span data-translate="backup_instructions">
-                                            Backup data secara berkala untuk mencegah kehilangan data. 
-                                            File backup berformat JSON dan dapat di-restore kapan saja.
-                                        </span>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th data-translate="backup_date">Tanggal Backup</th>
-                                                    <th data-translate="file_size">Ukuran File</th>
-                                                    <th data-translate="action">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="backup-list">
-                                                <!-- Backup files will be listed here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Admin Section -->
-                <div class="tab-content d-none" id="admin-content">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2"><i class="fas fa-user-shield me-2"></i> <span data-translate="admin_panel">Admin Panel</span></h1>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header bg-admin text-white">
-                                    <h5 data-translate="admin_tools">Alat Admin</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="list-group">
-                                        <a href="#" class="list-group-item list-group-item-action" id="user-management-btn">
-                                            <i class="fas fa-users-cog me-2"></i> <span data-translate="user_management">Manajemen Pengguna</span>
-                                        </a>
-                                        <a href="#" class="list-group-item list-group-item-action" id="settings-btn">
-                                            <i class="fas fa-cog me-2"></i> <span data-translate="system_settings">Pengaturan Sistem</span>
-                                        </a>
-                                        <a href="#" class="list-group-item list-group-item-action" id="logs-btn">
-                                            <i class="fas fa-clipboard-list me-2"></i> <span data-translate="system_logs">Log Sistem</span>
-                                        </a>
-                                        <a href="#" class="list-group-item list-group-item-action" id="permissions-btn">
-                                            <i class="fas fa-user-lock me-2"></i> <span data-translate="role_permissions">Perizinan Peran</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 id="admin-section-title" data-translate="admin_dashboard">Dashboard Admin</h5>
-                                </div>
-                                <div class="card-body" id="admin-section-content">
-                                    <div class="alert alert-info">
-                                        <i class="fas fa-info-circle me-2"></i> <span data-translate="select_admin_tool">Silakan pilih alat admin dari menu sebelah kiri.</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="app-footer no-print">
-        <div class="container-fluid">
-            <span data-translate="copyright">Sistem Manajemen Hotel © 2025 Lentera Karya Situbondo</span>
-            <span class="float-end">
-                <a href="#" data-translate="privacy_policy">Kebijakan Privasi</a> | 
-                <a href="#" data-translate="terms_of_service">Syarat Layanan</a> | 
-                <a href="#" data-translate="contact_us">Hubungi Kami</a>
-            </span>
-        </div>
-    </footer>
-
-    <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Main Application Script -->
     <script>
-        // Global variables
-        let currentUser = null;
-        let language = 'id';
-        let translations = {
-            id: {
-                login_title: "Login Sistem",
-                username: "Username",
-                password: "Password",
-                login_button: "Login",
-                copyright: "Sistem Manajemen Hotel © 2025 Lentera Karya Situbondo",
-                dashboard: "Dashboard",
-                check_in: "Check-In",
-                check_out: "Check-Out",
-                transactions: "Transaksi",
-                create_invoice: "Buat Nota",
-                room_management: "Manajemen Kamar",
-                facilities: "Fasilitas",
-                guest_data: "Data Tamu",
-                reports: "Laporan",
-                employee_management: "Kelola Karyawan",
-                backup_data: "Backup Data",
-                admin_panel: "Admin Panel",
-                logout: "Logout",
-                today_guests: "Tamu Hari Ini",
-                occupied_rooms: "Kamar Terisi",
-                today_income: "Pendapatan Hari Ini",
-                active_staff: "Karyawan Aktif",
-                monthly_stats: "Statistik Bulan Ini",
-                notifications: "Notifikasi",
-                welcome_message: "Selamat datang di sistem",
-                just_now: "Baru saja",
-                system_ready: "Sistem siap digunakan",
-                guest_checkin: "Check-In Tamu",
-                checkin_form: "Form Check-In",
-                guest_name: "Nama Tamu",
-                identity_number: "No. Identitas (KTP/SIM/Passport)",
-                phone_number: "No. Telepon",
-                room: "Kamar",
-                select_room: "Pilih Kamar",
-                stay_duration: "Durasi Menginap (hari)",
-                total_cost: "Total Biaya",
-                additional_services: "Layanan Tambahan",
-                notes: "Catatan",
-                process_checkin: "Proses Check-In",
-                no: "No.",
-                name: "Nama",
-                check_in: "Check-In",
-                check_out: "Check-Out",
-                status: "Status",
-                action: "Aksi",
-                guest_checkout: "Check-Out Tamu",
-                current_guests: "Daftar Tamu yang Sedang Menginap",
-                add_transaction: "Tambah Transaksi Baru",
-                guest: "Tamu",
-                select_guest: "Pilih Tamu",
-                transaction_type: "Jenis Transaksi",
-                room_charge: "Biaya Kamar",
-                food_drink: "Makanan & Minuman",
-                facility: "Fasilitas",
-                laundry: "Laundry",
-                other: "Lainnya",
-                select_facility: "Pilih Fasilitas",
-                amount: "Jumlah (Rp)",
-                quantity: "Kuantitas",
-                subtotal: "Subtotal",
-                description: "Keterangan",
-                save_transaction: "Simpan Transaksi",
-                filter_transactions: "Filter Transaksi",
-                date: "Tanggal",
-                all: "Semua",
-                filter: "Filter",
-                transaction_list: "Daftar Transaksi",
-                type: "Jenis",
-                cashier: "Kasir",
-                search_guest: "Cari Tamu",
-                search_placeholder: "Cari (Nama/No. Identitas/Kamar)",
-                checkin_date: "Tanggal Check-In",
-                search: "Cari",
-                guest_list: "Daftar Tamu",
-                payment_invoice: "NOTA PEMBAYARAN",
-                invoice_number: "No. Nota:",
-                cashier: "Kasir:",
-                guest_name: "Nama Tamu:",
-                room_number: "No. Kamar:",
-                identity_number: "No. Identitas:",
-                description: "Deskripsi",
-                price: "Harga",
-                total: "Total",
-                subtotal: "Subtotal:",
-                tax: "Pajak (10%):",
-                total: "Total:",
-                payment_method: "Metode Pembayaran:",
-                amount_paid: "Jumlah Dibayar:",
-                change: "Kembalian:",
-                thank_you: "Terima kasih atas kunjungan Anda",
-                invoice_note: "Nota ini sah tanpa tanda tangan dan stempel",
-                print: "Cetak Nota",
-                download_pdf: "Download PDF",
-                save_invoice: "Simpan Nota",
-                add_room: "Tambah Kamar",
-                room_list: "Daftar Kamar",
-                room_number: "Nomor Kamar",
-                type: "Tipe",
-                price_day: "Harga/Hari",
-                status: "Status",
-                action: "Aksi",
-                room_type: "Tipe Kamar",
-                price_day: "Harga per Hari (Rp)",
-                standard: "Standard",
-                deluxe: "Deluxe",
-                suite: "Suite",
-                available: "Tersedia",
-                occupied: "Terisi",
-                maintenance: "Perbaikan",
-                cancel: "Batal",
-                save: "Simpan",
-                add_facility: "Tambah Fasilitas",
-                facility_list: "Daftar Fasilitas",
-                name: "Nama",
-                category: "Kategori",
-                price: "Harga",
-                description: "Deskripsi",
-                facility_name: "Nama Fasilitas",
-                food: "Makanan",
-                beverage: "Minuman",
-                service: "Layanan",
-                unavailable: "Tidak Tersedia",
-                filter_guests: "Filter Tamu",
-                search_placeholder: "Cari (Nama/No. Identitas/Telepon)",
-                status: "Status",
-                checked_in: "Check-In",
-                checked_out: "Check-Out",
-                phone_number: "No. Telepon",
-                report_filter: "Filter Laporan",
-                report_type: "Jenis Laporan",
-                daily: "Harian",
-                weekly: "Mingguan",
-                monthly: "Bulanan",
-                custom: "Custom",
-                date: "Tanggal",
-                week: "Minggu",
-                month: "Bulan",
-                start_date: "Tanggal Mulai",
-                end_date: "Tanggal Selesai",
-                category: "Kategori",
-                generate_report: "Buat Laporan",
-                report_results: "Hasil Laporan",
-                no_report_generated: "Belum ada laporan yang dibuat. Silakan pilih filter dan klik 'Buat Laporan'.",
-                backup_options: "Opsi Backup",
-                create_backup: "Buat Backup",
-                restore_backup: "Restore Backup",
-                reset_data: "Reset Data",
-                backup_info: "Informasi Backup",
-                backup_instructions: "Backup data secara berkala untuk mencegah kehilangan data. File backup berformat JSON dan dapat di-restore kapan saja.",
-                backup_date: "Tanggal Backup",
-                file_size: "Ukuran File",
-                admin_tools: "Alat Admin",
-                user_management: "Manajemen Pengguna",
-                system_settings: "Pengaturan Sistem",
-                system_logs: "Log Sistem",
-                role_permissions: "Perizinan Peran",
-                admin_dashboard: "Dashboard Admin",
-                select_admin_tool: "Silakan pilih alat admin dari menu sebelah kiri.",
-                privacy_policy: "Kebijakan Privasi",
-                terms_of_service: "Syarat Layanan",
-                contact_us: "Hubungi Kami",
-                admin_verify: "Verifikasi Admin",
-                admin_password: "Password Admin",
-                verify: "Verifikasi",
-                payment: "Pembayaran",
-                total_amount: "Total Pembayaran",
-                payment_method: "Metode Pembayaran",
-                cash: "Tunai",
-                transfer: "Transfer Bank",
-                ewallet: "E-Wallet",
-                cash_amount: "Jumlah Uang",
-                change: "Kembalian",
-                bank_name: "Nama Bank",
-                account_number: "Nomor Rekening",
-                proof_of_payment: "Bukti Transfer",
-                ewallet_provider: "Provider E-Wallet",
-                ewallet_number: "Nomor E-Wallet",
-                scan_qr: "Scan QR code untuk melakukan pembayaran",
-                payment_notes: "Catatan Pembayaran",
-                process_payment: "Proses Pembayaran",
-                warning: "PERINGATAN:",
-                reset_warning: "Reset akan menghapus semua data dan mengembalikan ke pengaturan awal!",
-                reset_confirm: "Saya mengerti bahwa semua data akan dihapus",
-                confirm: "Konfirmasi"
-            },
-            en: {
-                login_title: "System Login",
-                username: "Username",
-                password: "Password",
-                login_button: "Login",
-                copyright: "Hotel Management System © 2025 Lentera Karya Situbondo",
-                dashboard: "Dashboard",
-                check_in: "Check-In",
-                check_out: "Check-Out",
-                transactions: "Transactions",
-                create_invoice: "Create Invoice",
-                room_management: "Room Management",
-                facilities: "Facilities",
-                guest_data: "Guest Data",
-                reports: "Reports",
-                employee_management: "Employee Management",
-                backup_data: "Backup Data",
-                admin_panel: "Admin Panel",
-                logout: "Logout",
-                today_guests: "Today's Guests",
-                occupied_rooms: "Occupied Rooms",
-                today_income: "Today's Income",
-                active_staff: "Active Staff",
-                monthly_stats: "Monthly Statistics",
-                notifications: "Notifications",
-                welcome_message: "Welcome to the system",
-                just_now: "Just now",
-                system_ready: "System is ready to use",
-                guest_checkin: "Guest Check-In",
-                checkin_form: "Check-In Form",
-                guest_name: "Guest Name",
-                identity_number: "ID Number (ID/Passport)",
-                phone_number: "Phone Number",
-                room: "Room",
-                select_room: "Select Room",
-                stay_duration: "Stay Duration (days)",
-                total_cost: "Total Cost",
-                additional_services: "Additional Services",
-                notes: "Notes",
-                process_checkin: "Process Check-In",
-                no: "No.",
-                name: "Name",
-                check_in: "Check-In",
-                check_out: "Check-Out",
-                status: "Status",
-                action: "Action",
-                guest_checkout: "Guest Check-Out",
-                current_guests: "Current Guests List",
-                add_transaction: "Add New Transaction",
-                guest: "Guest",
-                select_guest: "Select Guest",
-                transaction_type: "Transaction Type",
-                room_charge: "Room Charge",
-                food_drink: "Food & Drink",
-                facility: "Facility",
-                laundry: "Laundry",
-                other: "Other",
-                select_facility: "Select Facility",
-                amount: "Amount (Rp)",
-                quantity: "Quantity",
-                subtotal: "Subtotal",
-                description: "Description",
-                save_transaction: "Save Transaction",
-                filter_transactions: "Filter Transactions",
-                date: "Date",
-                all: "All",
-                filter: "Filter",
-                transaction_list: "Transactions List",
-                type: "Type",
-                cashier: "Cashier",
-                search_guest: "Search Guest",
-                search_placeholder: "Search (Name/ID/Room)",
-                checkin_date: "Check-In Date",
-                search: "Search",
-                guest_list: "Guests List",
-                payment_invoice: "PAYMENT INVOICE",
-                invoice_number: "Invoice No:",
-                cashier: "Cashier:",
-                guest_name: "Guest Name:",
-                room_number: "Room No:",
-                identity_number: "ID Number:",
-                description: "Description",
-                price: "Price",
-                total: "Total",
-                subtotal: "Subtotal:",
-                tax: "Tax (10%):",
-                total: "Total:",
-                payment_method: "Payment Method:",
-                amount_paid: "Amount Paid:",
-                change: "Change:",
-                thank_you: "Thank you for your visit",
-                invoice_note: "This invoice is valid without signature and stamp",
-                print: "Print Invoice",
-                download_pdf: "Download PDF",
-                save_invoice: "Save Invoice",
-                add_room: "Add Room",
-                room_list: "Rooms List",
-                room_number: "Room Number",
-                type: "Type",
-                price_day: "Price/Day",
-                status: "Status",
-                action: "Action",
-                room_type: "Room Type",
-                price_day: "Price per Day (Rp)",
-                standard: "Standard",
-                deluxe: "Deluxe",
-                suite: "Suite",
-                available: "Available",
-                occupied: "Occupied",
-                maintenance: "Maintenance",
-                cancel: "Cancel",
-                save: "Save",
-                add_facility: "Add Facility",
-                facility_list: "Facilities List",
-                name: "Name",
-                category: "Category",
-                price: "Price",
-                description: "Description",
-                facility_name: "Facility Name",
-                food: "Food",
-                beverage: "Beverage",
-                service: "Service",
-                unavailable: "Unavailable",
-                filter_guests: "Filter Guests",
-                search_placeholder: "Search (Name/ID/Phone)",
-                status: "Status",
-                checked_in: "Checked-In",
-                checked_out: "Checked-Out",
-                phone_number: "Phone Number",
-                report_filter: "Report Filter",
-                report_type: "Report Type",
-                daily: "Daily",
-                weekly: "Weekly",
-                monthly: "Monthly",
-                custom: "Custom",
-                date: "Date",
-                week: "Week",
-                month: "Month",
-                start_date: "Start Date",
-                end_date: "End Date",
-                category: "Category",
-                generate_report: "Generate Report",
-                report_results: "Report Results",
-                no_report_generated: "No report generated yet. Please select filters and click 'Generate Report'.",
-                backup_options: "Backup Options",
-                create_backup: "Create Backup",
-                restore_backup: "Restore Backup",
-                reset_data: "Reset Data",
-                backup_info: "Backup Information",
-                backup_instructions: "Backup data regularly to prevent data loss. Backup files are in JSON format and can be restored anytime.",
-                backup_date: "Backup Date",
-                file_size: "File Size",
-                admin_tools: "Admin Tools",
-                user_management: "User Management",
-                system_settings: "System Settings",
-                system_logs: "System Logs",
-                role_permissions: "Role Permissions",
-                admin_dashboard: "Admin Dashboard",
-                select_admin_tool: "Please select an admin tool from the left menu.",
-                privacy_policy: "Privacy Policy",
-                terms_of_service: "Terms of Service",
-                contact_us: "Contact Us",
-                admin_verify: "Admin Verification",
-                admin_password: "Admin Password",
-                verify: "Verify",
-                payment: "Payment",
-                total_amount: "Total Amount",
-                payment_method: "Payment Method",
-                cash: "Cash",
-                transfer: "Bank Transfer",
-                ewallet: "E-Wallet",
-                cash_amount: "Cash Amount",
-                change: "Change",
-                bank_name: "Bank Name",
-                account_number: "Account Number",
-                proof_of_payment: "Payment Proof",
-                ewallet_provider: "E-Wallet Provider",
-                ewallet_number: "E-Wallet Number",
-                scan_qr: "Scan QR code to make payment",
-                payment_notes: "Payment Notes",
-                process_payment: "Process Payment",
-                warning: "WARNING:",
-                reset_warning: "Reset will delete all data and restore to initial settings!",
-                reset_confirm: "I understand that all data will be deleted",
-                confirm: "Confirm"
+        // Data storage
+        let karyawan = [];
+        let jadwal = {};
+        
+        // Tab functionality
+        function openTab(tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
             }
-        };
-
-        // Initialize the application when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize modals
-            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-            const adminPasswordModal = new bootstrap.Modal(document.getElementById('adminPasswordModal'));
-            const databaseModal = new bootstrap.Modal(document.getElementById('databaseModal'));
-            const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
-            const roomModal = new bootstrap.Modal(document.getElementById('roomModal'));
-            const facilityModal = new bootstrap.Modal(document.getElementById('facilityModal'));
-
-            // Show login modal on startup
-            loginModal.show();
-
-            // Initialize language switcher
-            document.getElementById('language-toggle').addEventListener('click', toggleLanguage);
-            updateLanguage();
-
-            // Login form handler
-            document.getElementById('login-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = document.getElementById('login-username').value;
-                const password = document.getElementById('login-password').value;
+            
+            const tabButtons = document.getElementsByClassName('tab-btn');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        // Karyawan functions
+        function tambahKaryawan() {
+            const nama = document.getElementById('nama').value;
+            const posisi = document.getElementById('posisi').value;
+            const tanggalBergabung = document.getElementById('tanggal-bergabung').value;
+            
+            if (nama && posisi && tanggalBergabung) {
+                const id = karyawan.length + 1;
+                karyawan.push({
+                    id,
+                    nama,
+                    posisi,
+                    tanggalBergabung
+                });
                 
-                // Simple authentication (in a real app, this would be server-side)
-                if (username && password) {
-                    // Determine user role based on username (for demo purposes)
-                    let role = 'staff';
-                    if (username.toLowerCase().includes('admin')) role = 'admin';
-                    else if (username.toLowerCase().includes('supervisor')) role = 'supervisor';
-                    else if (username.toLowerCase().includes('manager')) role = 'manager';
-                    
-                    currentUser = {
-                        username: username,
-                        role: role,
-                        name: username.charAt(0).toUpperCase() + username.slice(1)
-                    };
-                    
-                    loginModal.hide();
-                    initializeApp();
-                }
-            });
-
-            // Tab switching
-            const tabs = ['dashboard', 'checkin', 'checkout', 'transaksi', 'nota', 'kamar', 'fasilitas', 'tamu', 'laporan', 'backup', 'admin'];
-            tabs.forEach(tab => {
-                document.getElementById(`${tab}-tab`).addEventListener('click', function(e) {
-                    e.preventDefault();
-                    showTab(tab);
-                });
-            });
-
-            // Logout handler
-            document.getElementById('logout-tab').addEventListener('click', function(e) {
-                e.preventDefault();
-                currentUser = null;
-                loginModal.show();
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.add('d-none');
-                });
-            });
-
-            // Initialize other event listeners
-            initializeEventListeners();
-        });
-
-        // Toggle between languages
-        function toggleLanguage() {
-            language = language === 'id' ? 'en' : 'id';
-            updateLanguage();
-        }
-
-        // Update all elements with data-translate attribute
-        function updateLanguage() {
-            document.querySelectorAll('[data-translate]').forEach(element => {
-                const key = element.getAttribute('data-translate');
-                element.textContent = translations[language][key] || key;
-            });
-            document.getElementById('current-language').textContent = language.toUpperCase();
-        }
-
-        // Show the selected tab content
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('d-none');
-            });
-            document.getElementById(`${tabName}-content`).classList.remove('d-none');
-            
-            // Update active tab in sidebar
-            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-            
-            // Load data for the tab if needed
-            loadTabData(tabName);
-        }
-
-        // Load data for the selected tab
-        function loadTabData(tabName) {
-            switch(tabName) {
-                case 'dashboard':
-                    loadDashboardData();
-                    break;
-                case 'checkin':
-                    loadCheckInData();
-                    break;
-                case 'checkout':
-                    loadCheckOutData();
-                    break;
-                case 'transaksi':
-                    loadTransactionsData();
-                    break;
-                case 'nota':
-                    loadInvoiceData();
-                    break;
-                case 'kamar':
-                    loadRoomsData();
-                    break;
-                case 'fasilitas':
-                    loadFacilitiesData();
-                    break;
-                case 'tamu':
-                    loadGuestsData();
-                    break;
-                case 'laporan':
-                    loadReportsData();
-                    break;
-                case 'backup':
-                    loadBackupData();
-                    break;
-                case 'admin':
-                    loadAdminData();
-                    break;
+                updateTabelKaryawan();
+                document.getElementById('nama').value = '';
+                document.getElementById('posisi').value = '';
+            } else {
+                alert('Harap isi semua field!');
             }
         }
-
-        // Initialize the application after login
-        function initializeApp() {
-            // Set current user info
-            document.getElementById('current-user-role').textContent = currentUser.role.toUpperCase();
-            document.getElementById('current-user-role').className = `badge bg-${currentUser.role}`;
+        
+        function updateTabelKaryawan() {
+            const tbody = document.querySelector('#tabel-karyawan tbody');
+            tbody.innerHTML = '';
             
-            // Set current shift (for demo purposes)
-            const shifts = ['Pagi (08:00-16:00)', 'Siang (16:00-24:00)', 'Malam (00:00-08:00)'];
-            document.getElementById('current-shift').textContent = shifts[Math.floor(Math.random() * shifts.length)];
-            
-            // Show dashboard by default
-            showTab('dashboard');
-            
-            // Hide admin-only tabs based on user role
-            document.querySelectorAll('.admin').forEach(element => {
-                element.style.display = currentUser.role === 'admin' ? 'block' : 'none';
-            });
-            
-            document.querySelectorAll('.supervisor').forEach(element => {
-                element.style.display = ['admin', 'supervisor'].includes(currentUser.role) ? 'block' : 'none';
-            });
-            
-            document.querySelectorAll('.manager').forEach(element => {
-                element.style.display = ['admin', 'manager'].includes(currentUser.role) ? 'block' : 'none';
+            karyawan.forEach(k => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${k.id}</td>
+                    <td>${k.nama}</td>
+                    <td>${k.posisi}</td>
+                    <td>${k.tanggalBergabung}</td>
+                    <td>
+                        <button onclick="editKaryawan(${k.id})">Edit</button>
+                        <button onclick="hapusKaryawan(${k.id})">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
             });
         }
-
-        // Initialize event listeners for various components
-        function initializeEventListeners() {
-            // Payment method selection
-            document.querySelectorAll('.payment-method').forEach(method => {
-                method.addEventListener('click', function() {
-                    document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
-                    this.classList.add('active');
-                    document.getElementById('payment-method').value = this.getAttribute('data-method');
+        
+        function editKaryawan(id) {
+            const karyawanEdit = karyawan.find(k => k.id === id);
+            if (karyawanEdit) {
+                document.getElementById('nama').value = karyawanEdit.nama;
+                document.getElementById('posisi').value = karyawanEdit.posisi;
+                document.getElementById('tanggal-bergabung').value = karyawanEdit.tanggalBergabung;
+                
+                // Hapus karyawan yang akan diedit
+                karyawan = karyawan.filter(k => k.id !== id);
+            }
+        }
+        
+        function hapusKaryawan(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus karyawan ini?')) {
+                karyawan = karyawan.filter(k => k.id !== id);
+                updateTabelKaryawan();
+            }
+        }
+        
+        // Jadwal functions
+        function generateJadwal() {
+            const bulanInput = document.getElementById('bulan-jadwal').value;
+            if (!bulanInput) {
+                alert('Pilih bulan terlebih dahulu!');
+                return;
+            }
+            
+            const [tahun, bulan] = bulanInput.split('-');
+            const hariDalamBulan = new Date(tahun, bulan, 0).getDate();
+            const tanggalPertama = new Date(tahun, bulan - 1, 1);
+            const hariPertama = tanggalPertama.getDay(); // 0 = Minggu, 1 = Senin, dst.
+            
+            // Generate jadwal otomatis dengan rotasi shift
+            const container = document.getElementById('calendar-container');
+            container.innerHTML = '<h3>Jadwal Bulan ' + getNamaBulan(bulan - 1) + ' ' + tahun + '</h3>';
+            
+            const calendar = document.createElement('div');
+            calendar.className = 'calendar';
+            
+            // Header hari
+            const hariMinggu = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            hariMinggu.forEach(hari => {
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                header.textContent = hari;
+                calendar.appendChild(header);
+            });
+            
+            // Isi kalender
+            for (let i = 0; i < hariPertama; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day';
+                calendar.appendChild(emptyDay);
+            }
+            
+            for (let tanggal = 1; tanggal <= hariDalamBulan; tanggal++) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day';
+                day.innerHTML = `<strong>${tanggal}</strong>`;
+                
+                // Tambahkan form untuk edit jadwal
+                const editForm = document.createElement('div');
+                editForm.style.marginTop = '10px';
+                
+                const selectShift = document.createElement('select');
+                selectShift.id = `shift-${tanggal}`;
+                
+                const optionDefault = document.createElement('option');
+                optionDefault.value = '';
+                optionDefault.textContent = 'Pilih Shift';
+                selectShift.appendChild(optionDefault);
+                
+                const optionPagi = document.createElement('option');
+                optionPagi.value = 'pagi';
+                optionPagi.textContent = 'Shift Pagi';
+                selectShift.appendChild(optionPagi);
+                
+                const optionSore = document.createElement('option');
+                optionSore.value = 'sore';
+                optionSore.textContent = 'Shift Sore';
+                selectShift.appendChild(optionSore);
+                
+                const optionMalam = document.createElement('option');
+                optionMalam.value = 'malam';
+                optionMalam.textContent = 'Shift Malam';
+                selectShift.appendChild(optionMalam);
+                
+                editForm.appendChild(selectShift);
+                
+                const inputKaryawan = document.createElement('select');
+                inputKaryawan.id = `karyawan-${tanggal}`;
+                karyawan.forEach(k => {
+                    const option = document.createElement('option');
+                    option.value = k.id;
+                    option.textContent = k.nama;
+                    inputKaryawan.appendChild(option);
+                });
+                editForm.appendChild(inputKaryawan);
+                
+                const inputKeterangan = document.createElement('input');
+                inputKeterangan.type = 'text';
+                inputKeterangan.id = `keterangan-${tanggal}`;
+                inputKeterangan.placeholder = 'Keterangan (opsional)';
+                editForm.appendChild(inputKeterangan);
+                
+                day.appendChild(editForm);
+                
+                calendar.appendChild(day);
+            }
+            
+            container.appendChild(calendar);
+        }
+        
+        function simpanJadwal() {
+            const bulanInput = document.getElementById('bulan-jadwal').value;
+            if (!bulanInput) {
+                alert('Pilih bulan terlebih dahulu!');
+                return;
+            }
+            
+            const [tahun, bulan] = bulanInput.split('-');
+            const hariDalamBulan = new Date(tahun, bulan, 0).getDate();
+            
+            if (!jadwal[bulanInput]) {
+                jadwal[bulanInput] = {};
+            }
+            
+            for (let tanggal = 1; tanggal <= hariDalamBulan; tanggal++) {
+                const shiftSelect = document.getElementById(`shift-${tanggal}`);
+                const karyawanSelect = document.getElementById(`karyawan-${tanggal}`);
+                const keteranganInput = document.getElementById(`keterangan-${tanggal}`);
+                
+                if (shiftSelect && karyawanSelect && shiftSelect.value) {
+                    const karyawanId = parseInt(karyawanSelect.value);
+                    const karyawanData = karyawan.find(k => k.id === karyawanId);
                     
-                    // Show the corresponding payment details
-                    document.querySelectorAll('.payment-details').forEach(details => {
-                        details.classList.remove('active');
+                    if (!jadwal[bulanInput][tanggal]) {
+                        jadwal[bulanInput][tanggal] = [];
+                    }
+                    
+                    jadwal[bulanInput][tanggal].push({
+                        karyawanId,
+                        nama: karyawanData.nama,
+                        shift: shiftSelect.value,
+                        keterangan: keteranganInput.value || ''
                     });
-                    document.getElementById(`${this.getAttribute('data-method')}-details`).classList.add('active');
-                });
-            });
+                }
+            }
             
-            // Cash amount calculation
-            document.getElementById('cash-amount').addEventListener('input', function() {
-                const total = parseFloat(document.getElementById('payment-total').textContent.replace(/[^\d.]/g, ''));
-                const cash = parseFloat(this.value) || 0;
-                const change = cash - total;
-                document.getElementById('payment-change').textContent = `Rp ${change.toLocaleString('id-ID')}`;
-                document.getElementById('invoice-change').textContent = `Rp ${change.toLocaleString('id-ID')}`;
-            });
-            
-            // Add room button
-            document.getElementById('add-room-btn').addEventListener('click', function() {
-                document.getElementById('roomModalTitle').textContent = translations[language]['add_room'];
-                document.getElementById('room-form').reset();
-                document.getElementById('room-id').value = '';
-                roomModal.show();
-            });
-            
-            // Add facility button
-            document.getElementById('add-facility-btn').addEventListener('click', function() {
-                document.getElementById('facilityModalTitle').textContent = translations[language]['add_facility'];
-                document.getElementById('facility-form').reset();
-                document.getElementById('facility-id').value = '';
-                facilityModal.show();
-            });
-            
-            // Database backup/restore buttons
-            document.getElementById('create-backup').addEventListener('click', function() {
-                document.getElementById('databaseModalTitle').textContent = translations[language]['create_backup'];
-                document.getElementById('database-action').value = 'backup';
-                document.getElementById('backup-section').classList.remove('d-none');
-                document.getElementById('restore-section').classList.add('d-none');
-                document.getElementById('reset-section').classList.add('d-none');
-                databaseModal.show();
-            });
-            
-            document.getElementById('restore-backup').addEventListener('click', function() {
-                document.getElementById('databaseModalTitle').textContent = translations[language]['restore_backup'];
-                document.getElementById('database-action').value = 'restore';
-                document.getElementById('backup-section').classList.add('d-none');
-                document.getElementById('restore-section').classList.remove('d-none');
-                document.getElementById('reset-section').classList.add('d-none');
-                databaseModal.show();
-            });
-            
-            document.getElementById('reset-data').addEventListener('click', function() {
-                document.getElementById('databaseModalTitle').textContent = translations[language]['reset_data'];
-                document.getElementById('database-action').value = 'reset';
-                document.getElementById('backup-section').classList.add('d-none');
-                document.getElementById('restore-section').classList.add('d-none');
-                document.getElementById('reset-section').classList.remove('d-none');
-                databaseModal.show();
-            });
-            
-            // Print invoice button
-            document.getElementById('print-invoice').addEventListener('click', function() {
-                window.print();
-            });
-            
-            // Transaction type change
-            document.getElementById('transaction-type').addEventListener('change', function() {
-                const type = this.value;
-                document.getElementById('facility-select-container').style.display = type === 'facility' ? 'block' : 'none';
-            });
-            
-            // Report type change
-            document.getElementById('report-type').addEventListener('change', function() {
-                const type = this.value;
-                document.getElementById('report-date-container').classList.toggle('d-none', type !== 'daily');
-                document.getElementById('report-week-container').classList.toggle('d-none', type !== 'weekly');
-                document.getElementById('report-month-container').classList.toggle('d-none', type !== 'monthly');
-                document.getElementById('report-custom-container').classList.toggle('d-none', type !== 'custom');
-            });
+            alert('Jadwal berhasil disimpan!');
         }
-
-        // Load dashboard data
-        function loadDashboardData() {
-            // For demo purposes, generate random data
-            document.getElementById('today-guests').textContent = Math.floor(Math.random() * 20) + 5;
-            document.getElementById('occupied-rooms').textContent = Math.floor(Math.random() * 15) + 3;
-            document.getElementById('total-rooms').textContent = 30;
-            document.getElementById('today-income').textContent = `Rp ${(Math.random() * 10000000).toLocaleString('id-ID')}`;
-            document.getElementById('active-staff').textContent = Math.floor(Math.random() * 10) + 3;
+        
+        // Gaji functions
+        function hitungGaji() {
+            const bulanInput = document.getElementById('bulan-gaji').value;
+            if (!bulanInput) {
+                alert('Pilih bulan terlebih dahulu!');
+                return;
+            }
             
-            // Initialize chart
-            const ctx = document.getElementById('monthlyChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Array.from({length: 30}, (_, i) => i + 1),
-                    datasets: [{
-                        label: translations[language]['today_income'],
-                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 1000000)),
-                        backgroundColor: '#4299e1',
-                        borderColor: '#2b6cb0',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            const gajiPokok = parseInt(document.getElementById('gaji-pokok').value) || 0;
+            const bonusHarian = parseInt(document.getElementById('bonus-harian').value) || 0;
+            const bonusMingguan = parseInt(document.getElementById('bonus-mingguan').value) || 0;
+            const bonusBulanan = parseInt(document.getElementById('bonus-bulanan').value) || 0;
+            
+            const tbody = document.querySelector('#tabel-gaji tbody');
+            tbody.innerHTML = '';
+            
+            // Hitung total shift per karyawan
+            const shiftPerKaryawan = {};
+            
+            if (jadwal[bulanInput]) {
+                for (const tanggal in jadwal[bulanInput]) {
+                    jadwal[bulanInput][tanggal].forEach(shift => {
+                        if (!shiftPerKaryawan[shift.karyawanId]) {
+                            shiftPerKaryawan[shift.karyawanId] = {
+                                nama: shift.nama,
+                                totalShift: 0
+                            };
                         }
-                    }
+                        shiftPerKaryawan[shift.karyawanId].totalShift++;
+                    });
                 }
-            });
-        }
-
-        // Load check-in data
-        function loadCheckInData() {
-            // For demo purposes, generate random rooms
-            const roomSelect = document.getElementById('checkin-room');
-            roomSelect.innerHTML = '<option value="" data-translate="select_room">Pilih Kamar</option>';
-            
-            const roomTypes = ['Standard', 'Deluxe', 'Suite'];
-            for (let i = 1; i <= 30; i++) {
-                const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = `Kamar ${i} (${type})`;
-                roomSelect.appendChild(option);
             }
             
-            // Add event listener for room selection
-            document.getElementById('checkin-room').addEventListener('change', function() {
-                const roomNumber = this.value;
-                if (roomNumber) {
-                    // For demo purposes, set a random price based on room type
-                    const roomType = this.options[this.selectedIndex].textContent.match(/\((.*?)\)/)[1];
-                    let price = 300000;
-                    if (roomType === 'Deluxe') price = 500000;
-                    else if (roomType === 'Suite') price = 800000;
-                    
-                    const duration = parseInt(document.getElementById('checkin-duration').value) || 1;
-                    document.getElementById('checkin-total').textContent = `Rp ${(price * duration).toLocaleString('id-ID')}`;
-                }
-            });
-            
-            // Add event listener for duration change
-            document.getElementById('checkin-duration').addEventListener('input', function() {
-                const roomSelect = document.getElementById('checkin-room');
-                if (roomSelect.value) {
-                    const roomType = roomSelect.options[roomSelect.selectedIndex].textContent.match(/\((.*?)\)/)[1];
-                    let price = 300000;
-                    if (roomType === 'Deluxe') price = 500000;
-                    else if (roomType === 'Suite') price = 800000;
-                    
-                    const duration = parseInt(this.value) || 1;
-                    document.getElementById('checkin-total').textContent = `Rp ${(price * duration).toLocaleString('id-ID')}`;
-                }
-            });
-            
-            // For demo purposes, generate today's guests
-            const todayGuestsList = document.getElementById('today-guests-list');
-            todayGuestsList.innerHTML = '';
-            
-            const guestNames = ['John Doe', 'Jane Smith', 'Robert Johnson', 'Emily Davis', 'Michael Wilson'];
-            for (let i = 0; i < 5; i++) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${guestNames[i]}</td>
-                    <td>Kamar ${Math.floor(Math.random() * 30) + 1}</td>
-                    <td>${new Date().toLocaleDateString()}</td>
-                    <td>${new Date(Date.now() + 86400000).toLocaleDateString()}</td>
-                    <td><span class="badge bg-success">Checked-In</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" data-translate="view">Lihat</button>
-                    </td>
-                `;
-                todayGuestsList.appendChild(row);
-            }
-            
-            // Translate all elements in the table
-            updateLanguage();
-        }
-
-        // Load check-out data
-        function loadCheckOutData() {
-            // For demo purposes, generate current guests
-            const checkoutGuestsList = document.getElementById('checkout-guests-list');
-            checkoutGuestsList.innerHTML = '';
-            
-            const guestNames = ['John Doe', 'Jane Smith', 'Robert Johnson', 'Emily Davis', 'Michael Wilson'];
-            for (let i = 0; i < 5; i++) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${guestNames[i]}</td>
-                    <td>${Math.floor(1000000000000000 + Math.random() * 9000000000000000)}</td>
-                    <td>Kamar ${Math.floor(Math.random() * 30) + 1}</td>
-                    <td>${new Date(Date.now() - 86400000).toLocaleDateString()}</td>
-                    <td>${new Date().toLocaleDateString()}</td>
-                    <td>
-                        <button class="btn btn-sm btn-success" data-translate="check_out">Check-Out</button>
-                    </td>
-                `;
-                checkoutGuestsList.appendChild(row);
-            }
-            
-            // Translate all elements in the table
-            updateLanguage();
-        }
-
-        // Load transactions data
-        function loadTransactionsData() {
-            // For demo purposes, generate transactions
-            const transactionsList = document.getElementById('transactions-list');
-            transactionsList.innerHTML = '';
-            
-            const guestNames = ['John Doe', 'Jane Smith', 'Robert Johnson', 'Emily Davis', 'Michael Wilson'];
-            const transactionTypes = ['room', 'food', 'facility', 'laundry', 'other'];
-            const typeNames = {
-                'room': translations[language]['room_charge'],
-                'food': translations[language]['food_drink'],
-                'facility': translations[language]['facility'],
-                'laundry': translations[language]['laundry'],
-                'other': translations[language]['other']
-            };
-            
-            for (let i = 0; i < 10; i++) {
-                const type = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
-                const amount = Math.floor(Math.random() * 1000000) + 100000;
-                const date = new Date(Date.now() - Math.floor(Math.random() * 7) * 86400000);
+            // Hitung gaji untuk setiap karyawan
+            for (const karyawanId in shiftPerKaryawan) {
+                const data = shiftPerKaryawan[karyawanId];
+                const totalGajiPokok = data.totalShift * gajiPokok;
+                const totalBonusHarian = data.totalShift * bonusHarian;
+                
+                // Hitung jumlah minggu dalam bulan (sederhana)
+                const totalBonusMingguan = 4 * bonusMingguan;
+                
+                const totalGaji = totalGajiPokok + totalBonusHarian + totalBonusMingguan + bonusBulanan;
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${date.toLocaleDateString()}</td>
-                    <td>${guestNames[Math.floor(Math.random() * guestNames.length)]}</td>
-                    <td>${typeNames[type]}</td>
-                    <td>${translations[language][type] === 'room_charge' ? 'Biaya kamar' : 'Layanan tambahan'}</td>
-                    <td>Rp ${amount.toLocaleString('id-ID')}</td>
-                    <td>${currentUser.name}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" data-translate="view">Lihat</button>
-                    </td>
+                    <td>${data.nama}</td>
+                    <td>${data.totalShift}</td>
+                    <td>${formatRupiah(totalGajiPokok)}</td>
+                    <td>${formatRupiah(totalBonusHarian)}</td>
+                    <td>${formatRupiah(totalBonusMingguan)}</td>
+                    <td>${formatRupiah(bonusBulanan)}</td>
+                    <td><strong>${formatRupiah(totalGaji)}</strong></td>
                 `;
-                transactionsList.appendChild(row);
+                tbody.appendChild(row);
             }
-            
-            // Translate all elements in the table
-            updateLanguage();
         }
-
-        // Load invoice data
-        function loadInvoiceData() {
-            // For demo purposes, generate guests for invoice
-            const invoiceGuestsList = document.getElementById('invoice-guests-list');
-            invoiceGuestsList.innerHTML = '';
-            
-            const guestNames = ['John Doe', 'Jane Smith', 'Robert Johnson', 'Emily Davis', 'Michael Wilson'];
-            for (let i = 0; i < 5; i++) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${guestNames[i]}</td>
-                    <td>${Math.floor(1000000000000000 + Math.random() * 9000000000000000)}</td>
-                    <td>Kamar ${Math.floor(Math.random() * 30) + 1}</td>
-                    <td><span class="badge bg-success">Checked-In</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary create-invoice-btn" data-guest="${guestNames[i]}" data-room="${Math.floor(Math.random() * 30) + 1}" data-id="${Math.floor(1000000000000000 + Math.random() * 9000000000000000)}">
-                            <span data-translate="create_invoice">Buat Nota</span>
-                        </button>
-                    </td>
-                `;
-                invoiceGuestsList.appendChild(row);
-            }
-            
-            // Add event listeners to create invoice buttons
-            document.querySelectorAll('.create-invoice-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    createInvoice(
-                        this.getAttribute('data-guest'),
-                        this.getAttribute('data-room'),
-                        this.getAttribute('data-id')
-                    );
-                });
-            });
-            
-            // Translate all elements in the table
-            updateLanguage();
+        
+        // Laporan functions
+        function generatePDF() {
+            alert('Fitur ekspor ke PDF akan diimplementasikan menggunakan library seperti jsPDF atau browser print.');
+            // Implementasi aktual akan menggunakan library seperti jsPDF
         }
-
-        // Create invoice for a guest
-        function createInvoice(guestName, roomNumber, guestId) {
-            document.getElementById('invoice-container').classList.remove('d-none');
-            document.getElementById('invoice-guest-name').textContent = guestName;
-            document.getElementById('invoice-room-number').textContent = roomNumber;
-            document.getElementById('invoice-guest-id').textContent = guestId;
-            document.getElementById('invoice-guest').value = guestName;
-            
-            // Generate invoice number
-            const now = new Date();
-            const invoiceNumber = `INV-${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-            document.getElementById('invoice-number').textContent = invoiceNumber;
-            document.getElementById('invoice-date').textContent = now.toLocaleString();
-            document.getElementById('invoice-cashier').textContent = currentUser.name;
-            
-            // Generate barcode
-            JsBarcode("#invoice-barcode", invoiceNumber, {
-                format: "CODE128",
-                lineColor: "#2a4365",
-                width: 2,
-                height: 50,
-                displayValue: true
-            });
-            
-            // Generate invoice items (for demo purposes)
-            const invoiceItems = document.getElementById('invoice-items');
-            invoiceItems.innerHTML = '';
-            
-            const items = [
-                { description: 'Biaya Kamar', quantity: 1, price: 500000 },
-                { description: 'Makan Malam', quantity: 2, price: 75000 },
-                { description: 'Laundry', quantity: 3, price: 25000 },
-                { description: 'Minibar', quantity: 1, price: 120000 }
+        
+        function cetakLaporan() {
+            window.print();
+        }
+        
+        // Helper functions
+        function getNamaBulan(bulanIndex) {
+            const namaBulan = [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
             ];
-            
-            let subtotal = 0;
-            items.forEach((item, index) => {
-                const row = document.createElement('tr');
-                const total = item.quantity * item.price;
-                subtotal += total;
-                
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${item.description}</td>
-                    <td>${item.quantity}</td>
-                    <td>Rp ${item.price.toLocaleString('id-ID')}</td>
-                    <td>Rp ${total.toLocaleString('id-ID')}</td>
-                `;
-                invoiceItems.appendChild(row);
-            });
-            
-            const tax = subtotal * 0.1;
-            const total = subtotal + tax;
-            
-            document.getElementById('invoice-subtotal').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
-            document.getElementById('invoice-tax').textContent = `Rp ${tax.toLocaleString('id-ID')}`;
-            document.getElementById('invoice-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
-            document.getElementById('payment-total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
-            
-            // Scroll to invoice section
-            document.getElementById('invoice-container').scrollIntoView();
+            return namaBulan[bulanIndex];
         }
-
-        // Load rooms data
-        function loadRoomsData() {
-            // For demo purposes, generate rooms
-            const roomsList = document.getElementById('rooms-list');
-            roomsList.innerHTML = '';
-            
-            const roomTypes = ['Standard', 'Deluxe', 'Suite'];
-            const statuses = ['available', 'occupied', 'maintenance'];
-            const statusClasses = {
-                'available': 'success',
-                'occupied': 'warning',
-                'maintenance': 'danger'
-            };
-            
-            for (let i = 1; i <= 30; i++) {
-                const type = roomTypes[Math.floor(Math.random() * roomTypes.length)];
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
-                let price = 300000;
-                if (type === 'Deluxe') price = 500000;
-                else if (type === 'Suite') price = 800000;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${i}</td>
-                    <td>${i}</td>
-                    <td>${type}</td>
-                    <td>Rp ${price.toLocaleString('id-ID')}</td>
-                    <td><span class="badge bg-${statusClasses[status]}">${translations[language][status]}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary edit-room-btn" data-id="${i}" data-number="${i}" data-type="${type.toLowerCase()}" data-price="${price}" data-status="${status}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-room-btn" data-id="${i}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                `;
-                roomsList.appendChild(row);
-            }
-            
-            // Add event listeners to edit buttons
-            document.querySelectorAll('.edit-room-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    document.getElementById('roomModalTitle').textContent = translations[language]['edit_room'];
-                    document.getElementById('room-id').value = this.getAttribute('data-id');
-                    document.getElementById('room-number').value = this.getAttribute('data-number');
-                    document.getElementById('room-type').value = this.getAttribute('data-type');
-                    document.getElementById('room-price').value = this.getAttribute('data-price');
-                    document.getElementById('room-status').value = this.getAttribute('data-status');
-                    roomModal.show();
-                });
-            });
-            
-            // Add event listeners to delete buttons
-            document.querySelectorAll('.delete-room-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    if (confirm(translations[language]['confirm_delete'])) {
-                        // In a real app, this would delete from database
-                        this.closest('tr').remove();
-                    }
-                });
-            });
-            
-            // Save room handler
-            document.getElementById('save-room').addEventListener('click', function() {
-                // In a real app, this would save to database
-                roomModal.hide();
-                loadRoomsData(); // Refresh the list
-            });
-            
-            // Translate all elements in the table
-            updateLanguage();
-        }
-
-        // Load facilities data
-        function loadFacilitiesData() {
-            // For demo purposes, generate facilities
-            const facilitiesList = document.getElementById('facilities-list');
-            facilitiesList.innerHTML = '';
-            
-            const categories = ['food', 'beverage', 'service', 'other'];
-            const categoryNames = {
-                'food': translations[language]['food'],
-                'beverage': translations[language]['beverage'],
-                'service': translations[language]['service'],
-                'other': translations[language]['other']
-            };
-            
-            const facilityNames = [
-                'Sarapan Pagi', 'Makan Siang', 'Makan Malam', 'Kopi', 'Teh', 
-                'Jus Buah', 'Minuman Ringan', 'Laundry', 'Spa', 'Parkir'
-            ];
-            
-            for (let i = 0; i < 10; i++) {
-                const category = categories[Math.floor(Math.random() * categories.length)];
-                const status = Math.random() > 0.2 ? 'available' : 'unavailable';
-                const price = Math.floor(Math.random() * 200000) + 10000;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${facilityNames[i]}</td>
-                    <td>${categoryNames[category]}</td>
-                    <td>Rp ${price.toLocaleString('id-ID')}</td>
-                    <td><span class="badge bg-${status === 'available' ? 'success' : 'danger'}">${translations[language][status]}</span></td>
-                    <td>${translations[language][category] === 'food' ? 'Menu makanan' : 'Layanan tambahan'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary edit-facility-btn" data-id="${i + 1}" data-name="${facilityNames[i]}" data-category="${category}" data-price="${price}" data-status="${status}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-facility-btn" data-id="${i + 1}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                `;
-                facilitiesList.appendChild(row);
-            }
-            
-            // Add event listeners to edit buttons
-            document.querySelectorAll('.edit-facility-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    document.getElementById('facilityModalTitle').textContent = translations[language]['edit_facility'];
-                    document.getElementById('facility-id').value = this.getAttribute('data-id');
-                    document.getElementById('facility-name').value = this.getAttribute('data-name');
-                    document.getElementById('facility-category').value = this.getAttribute('data-category');
-                    document.getElementById('facility-price').value = this.getAttribute('data-price');
-                    document.getElementById(`${this.getAttribute('data-status') === 'available' ? 'facility-available' : 'facility-unavailable'}`).checked = true;
-                    facilityModal.show();
-                });
-            });
-            
-            // Add event listeners to delete buttons
-            document.querySelectorAll('.delete-facility-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    if (confirm(translations[language]['confirm_delete'])) {
-                        // In a real app, this would delete from database
-                        this.closest('tr').remove();
-                    }
-                });
-            });
-            
-            // Save facility handler
-            document.getElementById('save-facility').addEventListener('click', function() {
-                // In a real app, this would save to database
-                facilityModal.hide();
-                loadFacilitiesData(); // Refresh the list
-            });
-            
-            // Translate all elements in the table
-            updateLanguage();
-        }
-
-        // Load guests data
-        function loadGuestsData() {
-            // For demo purposes, generate guests
-            const guestsList = document.getElementById('guests-list');
-            guestsList.innerHTML = '';
-            
-            const guestNames = ['John Doe', 'Jane Smith', 'Robert Johnson', 'Emily Davis', 'Michael Wilson'];
-            for (let i = 0; i < 10; i++) {
-                const name = guestNames[Math.floor(Math.random() * guestNames.length)];
-                const status = Math.random() > 0.3 ? 'checked-in' : 'checked-out';
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${name}</td>
-                    <td>${Math.floor(1000000000000000 + Math.random() * 9000000000000000)}</td>
-                    <td>${Math.floor(100000000000 + Math.random() * 900000000000)}</td>
-                    <td>Kamar ${Math.floor(Math.random() * 30) + 1}</td>
-                    <td><span class="badge bg-${status === 'checked-in' ? 'success' : 'warning'}">${translations[language][status]}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" data-translate="view">Lihat</button>
-                    </td>
-                `;
-                guestsList.appendChild(row);
-            }
-            
-            // Translate all elements in the table
-            updateLanguage();
-        }
-
-        // Load reports data
-        function loadReportsData() {
-            // This would be populated when generating a report
-            document.getElementById('report-results').innerHTML = `
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> <span data-translate="no_report_generated">Belum ada laporan yang dibuat. Silakan pilih filter dan klik "Buat Laporan".</span>
-                </div>
-            `;
-            
-            // Translate all elements
-            updateLanguage();
-        }
-
-        // Load backup data
-        function loadBackupData() {
-            // For demo purposes, generate backup files
-            const backupList = document.getElementById('backup-list');
-            backupList.innerHTML = '';
-            
-            const now = new Date();
-            for (let i = 0; i < 3; i++) {
-                const date = new Date(now.getTime() - (i * 7 * 86400000));
-                const size = Math.floor(Math.random() * 5) + 1;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${date.toLocaleDateString()}</td>
-                    <td>${size} MB</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" data-translate="download">Download</button>
-                    </td>
-                `;
-                backupList.appendChild(row);
-            }
-            
-            // Translate all elements in the table
-            updateLanguage();
-        }
-
-        // Load admin data
-        function loadAdminData() {
-            // Default admin panel content
-            document.getElementById('admin-section-title').textContent = translations[language]['admin_dashboard'];
-            document.getElementById('admin-section-content').innerHTML = `
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> <span data-translate="select_admin_tool">Silakan pilih alat admin dari menu sebelah kiri.</span>
-                </div>
-            `;
-            
-            // Add event listeners to admin tools
-            document.getElementById('user-management-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('admin-section-title').textContent = translations[language]['user_management'];
-                document.getElementById('admin-section-content').innerHTML = `
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> <span>User management functionality would be implemented here.</span>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('settings-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('admin-section-title').textContent = translations[language]['system_settings'];
-                document.getElementById('admin-section-content').innerHTML = `
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> <span>System settings functionality would be implemented here.</span>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('logs-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('admin-section-title').textContent = translations[language]['system_logs'];
-                document.getElementById('admin-section-content').innerHTML = `
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> <span>System logs functionality would be implemented here.</span>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('permissions-btn').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('admin-section-title').textContent = translations[language]['role_permissions'];
-                document.getElementById('admin-section-content').innerHTML = `
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> <span>Role permissions functionality would be implemented here.</span>
-                    </div>
-                `;
-            });
-            
-            // Translate all elements
-            updateLanguage();
+        
+        function formatRupiah(angka) {
+            return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
     </script>
 </body>
