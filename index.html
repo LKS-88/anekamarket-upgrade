@@ -459,6 +459,14 @@
             .filter-select {
                 width: 100%;
             }
+            
+            .row {
+                flex-direction: column;
+            }
+            
+            .calendar-day {
+                min-height: 80px;
+            }
         }
     </style>
 </head>
@@ -471,12 +479,12 @@
         
         <div class="tab-container">
             <div class="tab-buttons">
-                <button class="tab-btn active" onclick="openTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
-                <button class="tab-btn" onclick="openTab('karyawan')"><i class="fas fa-users"></i> Data Karyawan</button>
-                <button class="tab-btn" onclick="openTab('jadwal')"><i class="fas fa-calendar"></i> Jadwal Shift</button>
-                <button class="tab-btn" onclick="openTab('absensi')"><i class="fas fa-fingerprint"></i> Absensi</button>
-                <button class="tab-btn" onclick="openTab('penggajian')"><i class="fas fa-calculator"></i> Penggajian</button>
-                <button class="tab-btn" onclick="openTab('laporan')"><i class="fas fa-file-pdf"></i> Laporan</button>
+                <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+                <button class="tab-btn" data-tab="karyawan"><i class="fas fa-users"></i> Data Karyawan</button>
+                <button class="tab-btn" data-tab="jadwal"><i class="fas fa-calendar"></i> Jadwal Shift</button>
+                <button class="tab-btn" data-tab="absensi"><i class="fas fa-fingerprint"></i> Absensi</button>
+                <button class="tab-btn" data-tab="penggajian"><i class="fas fa-calculator"></i> Penggajian</button>
+                <button class="tab-btn" data-tab="laporan"><i class="fas fa-file-pdf"></i> Laporan</button>
             </div>
             
             <!-- Tab Dashboard -->
@@ -533,7 +541,7 @@
                             <option value="active">Aktif</option>
                             <option value="inactive">Non-Aktif</option>
                         </select>
-                        <button class="btn btn-success" onclick="tambahKaryawanModal()"><i class="fas fa-plus"></i> Tambah</button>
+                        <button class="btn btn-success" id="tambah-karyawan-btn"><i class="fas fa-plus"></i> Tambah</button>
                     </div>
                     
                     <div class="table-responsive">
@@ -564,8 +572,8 @@
                         <label for="bulan-jadwal">Pilih Bulan dan Tahun:</label>
                         <div style="display: flex; gap: 10px;">
                             <input type="month" id="bulan-jadwal" class="form-control" style="flex: 1;">
-                            <button class="btn" onclick="generateJadwal()"><i class="fas fa-sync-alt"></i> Generate</button>
-                            <button class="btn btn-success" onclick="simpanJadwal()"><i class="fas fa-save"></i> Simpan</button>
+                            <button class="btn" id="generate-jadwal-btn"><i class="fas fa-sync-alt"></i> Generate</button>
+                            <button class="btn btn-success" id="simpan-jadwal-btn"><i class="fas fa-save"></i> Simpan</button>
                         </div>
                     </div>
                     
@@ -592,7 +600,7 @@
                         <label for="tanggal-absensi">Pilih Tanggal:</label>
                         <div style="display: flex; gap: 10px;">
                             <input type="date" id="tanggal-absensi" class="form-control" style="flex: 1;">
-                            <button class="btn" onclick="loadAbsensi()"><i class="fas fa-search"></i> Tampilkan</button>
+                            <button class="btn" id="load-absensi-btn"><i class="fas fa-search"></i> Tampilkan</button>
                         </div>
                     </div>
                     
@@ -672,7 +680,7 @@
                         </div>
                     </div>
                     
-                    <button class="btn" onclick="hitungGaji()"><i class="fas fa-calculator"></i> Hitung Gaji</button>
+                    <button class="btn" id="hitung-gaji-btn"><i class="fas fa-calculator"></i> Hitung Gaji</button>
                     
                     <div class="table-responsive" style="margin-top: 20px;">
                         <table id="tabel-gaji">
@@ -723,8 +731,8 @@
                         </select>
                     </div>
                     
-                    <button class="btn" onclick="generateLaporan()"><i class="fas fa-file-export"></i> Generate Laporan</button>
-                    <button class="btn btn-success" onclick="cetakLaporan()"><i class="fas fa-print"></i> Cetak</button>
+                    <button class="btn" id="generate-laporan-btn"><i class="fas fa-file-export"></i> Generate Laporan</button>
+                    <button class="btn btn-success" id="cetak-laporan-btn"><i class="fas fa-print"></i> Cetak</button>
                 </div>
             </div>
         </div>
@@ -735,7 +743,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalKaryawanTitle">Tambah Karyawan Baru</h3>
-                <button class="close-btn" onclick="closeModal('karyawanModal')">&times;</button>
+                <button class="close-btn" data-modal="karyawanModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -780,8 +788,8 @@
                 <input type="hidden" id="modal-karyawan-id">
             </div>
             <div class="modal-footer" style="text-align: right; margin-top: 20px;">
-                <button class="btn btn-danger" onclick="closeModal('karyawanModal')">Batal</button>
-                <button class="btn btn-success" onclick="simpanKaryawan()">Simpan</button>
+                <button class="btn btn-danger" data-modal="karyawanModal">Batal</button>
+                <button class="btn btn-success" id="simpan-karyawan-btn">Simpan</button>
             </div>
         </div>
     </div>
@@ -791,7 +799,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalJadwalTitle">Detail Jadwal</h3>
-                <button class="close-btn" onclick="closeModal('jadwalModal')">&times;</button>
+                <button class="close-btn" data-modal="jadwalModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -820,8 +828,8 @@
                 <input type="hidden" id="modal-jadwal-id">
             </div>
             <div class="modal-footer" style="text-align: right; margin-top: 20px;">
-                <button class="btn btn-danger" onclick="closeModal('jadwalModal')">Batal</button>
-                <button class="btn btn-success" onclick="simpanDetailJadwal()">Simpan</button>
+                <button class="btn btn-danger" data-modal="jadwalModal">Batal</button>
+                <button class="btn btn-success" id="simpan-detail-jadwal-btn">Simpan</button>
             </div>
         </div>
     </div>
@@ -831,7 +839,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalAbsensiTitle">Rekam Absensi</h3>
-                <button class="close-btn" onclick="closeModal('absensiModal')">&times;</button>
+                <button class="close-btn" data-modal="absensiModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -872,8 +880,8 @@
                 <input type="hidden" id="modal-absensi-id">
             </div>
             <div class="modal-footer" style="text-align: right; margin-top: 20px;">
-                <button class="btn btn-danger" onclick="closeModal('absensiModal')">Batal</button>
-                <button class="btn btn-success" onclick="simpanAbsensi()">Simpan</button>
+                <button class="btn btn-danger" data-modal="absensiModal">Batal</button>
+                <button class="btn btn-success" id="simpan-absensi-btn">Simpan</button>
             </div>
         </div>
     </div>
@@ -964,29 +972,85 @@
         }
         
         // Tab functionality
-        function openTab(tabName) {
-            const tabContents = document.getElementsByClassName('tab-content');
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].classList.remove('active');
-            }
-            
-            const tabButtons = document.getElementsByClassName('tab-btn');
-            for (let i = 0; i < tabButtons.length; i++) {
-                tabButtons[i].classList.remove('active');
-            }
-            
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-            
-            // Load data spesifik tab jika diperlukan
-            if (tabName === 'absensi') {
-                const today = new Date();
-                document.getElementById('tanggal-absensi').value = today.toISOString().split('T')[0];
-                loadAbsensi();
-            }
+        function setupTabNavigation() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and buttons
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked tab and button
+                    document.getElementById(tabName).classList.add('active');
+                    this.classList.add('active');
+                    
+                    // Load specific tab data if needed
+                    if (tabName === 'absensi') {
+                        const today = new Date();
+                        document.getElementById('tanggal-absensi').value = today.toISOString().split('T')[0];
+                        loadAbsensi();
+                    } else if (tabName === 'jadwal') {
+                        const today = new Date();
+                        const currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+                        document.getElementById('bulan-jadwal').value = currentMonth;
+                        generateJadwal();
+                    } else if (tabName === 'penggajian') {
+                        const today = new Date();
+                        const currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+                        document.getElementById('bulan-gaji').value = currentMonth;
+                        hitungGaji();
+                    }
+                });
+            });
         }
         
         // Modal functions
+        function setupModalFunctionality() {
+            // Open modal buttons
+            document.getElementById('tambah-karyawan-btn').addEventListener('click', tambahKaryawanModal);
+            
+            // Close modal buttons
+            document.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modalId = this.getAttribute('data-modal');
+                    closeModal(modalId);
+                });
+            });
+            
+            // Modal cancel buttons
+            document.querySelectorAll('[data-modal]').forEach(btn => {
+                if (btn.classList.contains('btn-danger')) {
+                    btn.addEventListener('click', function() {
+                        const modalId = this.getAttribute('data-modal');
+                        closeModal(modalId);
+                    });
+                }
+            });
+            
+            // Save buttons
+            document.getElementById('simpan-karyawan-btn').addEventListener('click', simpanKaryawan);
+            document.getElementById('simpan-detail-jadwal-btn').addEventListener('click', simpanDetailJadwal);
+            document.getElementById('simpan-absensi-btn').addEventListener('click', simpanAbsensi);
+            
+            // Other buttons
+            document.getElementById('generate-jadwal-btn').addEventListener('click', generateJadwal);
+            document.getElementById('simpan-jadwal-btn').addEventListener('click', simpanJadwal);
+            document.getElementById('load-absensi-btn').addEventListener('click', loadAbsensi);
+            document.getElementById('hitung-gaji-btn').addEventListener('click', hitungGaji);
+            document.getElementById('generate-laporan-btn').addEventListener('click', generateLaporan);
+            document.getElementById('cetak-laporan-btn').addEventListener('click', cetakLaporan);
+            
+            // Search and filter
+            document.getElementById('search-karyawan').addEventListener('input', updateTabelKaryawan);
+            document.getElementById('filter-status').addEventListener('change', updateTabelKaryawan);
+        }
+        
         function openModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
         }
@@ -1241,10 +1305,10 @@
                     editBtn.style.marginTop = '5px';
                     editBtn.style.width = '100%';
                     editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
-                    editBtn.onclick = (e) => {
+                    editBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         editJadwalModal(dateStr, item.karyawanId);
-                    };
+                    });
                     
                     shiftItem.appendChild(editBtn);
                     day.appendChild(shiftItem);
@@ -1320,15 +1384,15 @@
                 // Update jadwal yang ada
                 jadwal[bulanInput][dateStr][existingIndex] = {
                     karyawanId: karyawanBaruId,
-                    shift,
-                    keterangan
+                    shift: shift,
+                    keterangan: keterangan
                 };
             } else {
                 // Tambahkan jadwal baru
                 jadwal[bulanInput][dateStr].push({
                     karyawanId: karyawanBaruId,
-                    shift,
-                    keterangan
+                    shift: shift,
+                    keterangan: keterangan
                 });
             }
             
@@ -1808,14 +1872,14 @@
                 
                 // Highlight hari ini
                 if (tanggal === today.getDate()) {
-                    day.style.backgroundColor = var(--primary-color);
+                    day.style.backgroundColor = 'var(--primary-color)';
                     day.style.color = 'white';
                     day.style.fontWeight = 'bold';
                 }
                 
                 // Weekend
                 if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    day.style.color = var(--danger-color);
+                    day.style.color = 'var(--danger-color)';
                 }
                 
                 day.textContent = tanggal;
@@ -1935,6 +1999,10 @@
             document.getElementById('bulan-gaji').value = currentMonth;
             document.getElementById('bulan-laporan').value = currentMonth;
             document.getElementById('tanggal-absensi').value = today.toISOString().split('T')[0];
+            
+            // Setup event listeners
+            setupTabNavigation();
+            setupModalFunctionality();
             
             // Inisialisasi data contoh
             initSampleData();
