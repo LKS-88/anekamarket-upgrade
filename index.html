@@ -1206,18 +1206,18 @@
             }, 3000);
         }
         
-        // Inisialisasi data
+        // Initialize the application
         function initSampleData() {
             const today = new Date();
             const currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
             
-            // Set nilai default untuk input bulan ke bulan ini
+            // Set default values for month inputs
             document.getElementById('bulan-jadwal').value = currentMonth;
             document.getElementById('bulan-gaji').value = currentMonth;
             document.getElementById('bulan-laporan').value = currentMonth;
             document.getElementById('tanggal-absensi').value = today.toISOString().split('T')[0];
             
-            // Set uang transport default ke 0
+            // Set default transport allowance to 0
             document.getElementById('uang-transport').value = '0';
             
             updateDashboard();
@@ -1307,7 +1307,7 @@
             // Cetak ID Card button
             document.getElementById('cetak-id-card-btn').addEventListener('click', function() {
                 cetakIDCard();
-                // Setelah cetak, simpan data dan tutup modal
+                // After printing, save data and close modal
                 updateTabelKaryawan();
                 updateDashboard();
                 closeModal('karyawanModal');
@@ -1388,7 +1388,7 @@
             document.getElementById('modal-id-posisi').textContent = posisi;
             document.getElementById('barcode-text').textContent = id;
             
-            // Hapus barcode lama jika ada
+            // Remove old barcode if exists
             const barcodeElement = document.getElementById('barcode');
             barcodeElement.innerHTML = '';
             
@@ -1408,9 +1408,9 @@
         function generateEmployeeID(nik) {
             if (!nik || nik.length < 16) return 'EMP' + Math.floor(1000 + Math.random() * 9000);
             
-            // Ambil 4 digit terakhir tahun lahir (asumsi NIK digit 11-14 adalah tahun lahir)
+            // Take last 4 digits of birth year (assuming NIK digits 11-14 are birth year)
             const tahunLahir = nik.substr(10, 4);
-            // Ambil 3 digit terakhir NIK
+            // Take last 3 digits of NIK
             const nikAkhir = nik.substr(13, 3);
             
             return 'EMP' + tahunLahir + nikAkhir;
@@ -1474,7 +1474,7 @@
             
             let newId = id;
             if (!id) {
-                // Generate ID baru jika menambah karyawan baru
+                // Generate new ID if adding new employee
                 newId = generateEmployeeID(nik);
             }
             
@@ -1493,13 +1493,13 @@
             };
             
             if (id) {
-                // Edit karyawan yang ada
+                // Edit existing employee
                 const index = karyawan.findIndex(k => k.id === id);
                 if (index !== -1) {
                     karyawan[index] = karyawanData;
                 }
             } else {
-                // Tambah karyawan baru
+                // Add new employee
                 karyawan.push(karyawanData);
             }
             
@@ -1511,14 +1511,14 @@
             
             saveData();
             
-            // Jika edit, langsung simpan dan tutup modal
+            // If editing, save and close modal
             if (id) {
                 updateTabelKaryawan();
                 updateDashboard();
                 closeModal('karyawanModal');
                 resetKaryawanForm();
             }
-            // Jika tambah baru, biarkan modal terbuka untuk cetak ID card
+            // If adding new, keep modal open for ID card printing
         }
         
         function cetakIDCard() {
