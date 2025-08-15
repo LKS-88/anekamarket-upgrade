@@ -20,6 +20,9 @@
             --libur-color: #e74c3c;
             --cuti-color: #9b59b6;
             --sakit-color: #3498db;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
         }
 
         * {
@@ -34,15 +37,19 @@
             color: #333;
             background-color: #f5f7fa;
             padding: 20px;
+            min-height: 100vh;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 10px;
+            border-radius: var(--border-radius);
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
         }
 
         header {
@@ -55,16 +62,29 @@
         h1 {
             font-size: 28px;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .tab-container {
             margin-top: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .tab-buttons {
             display: flex;
             background-color: var(--light-color);
             border-bottom: 1px solid #ddd;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tab-buttons::-webkit-scrollbar {
+            display: none;
         }
 
         .tab-btn {
@@ -74,8 +94,12 @@
             cursor: pointer;
             font-weight: 600;
             color: var(--dark-color);
-            transition: all 0.3s ease;
+            transition: var(--transition);
             position: relative;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .tab-btn:hover {
@@ -100,18 +124,22 @@
         .tab-content {
             display: none;
             padding: 25px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .tab-content.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
 
         .card {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
             padding: 20px;
             margin-bottom: 20px;
+            flex: 1;
         }
 
         .card-title {
@@ -120,6 +148,9 @@
             color: var(--dark-color);
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .form-group {
@@ -137,7 +168,7 @@
             width: 100%;
             padding: 10px 15px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             font-size: 16px;
             transition: border 0.3s ease;
         }
@@ -148,16 +179,19 @@
         }
 
         .btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             padding: 10px 20px;
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
-            transition: background-color 0.3s ease;
+            transition: var(--transition);
         }
 
         .btn:hover {
@@ -190,12 +224,14 @@
 
         .table-responsive {
             overflow-x: auto;
+            margin-top: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
 
         th, td {
@@ -208,6 +244,8 @@
             background-color: var(--light-color);
             font-weight: 600;
             color: var(--dark-color);
+            position: sticky;
+            top: 0;
         }
 
         tr:hover {
@@ -260,25 +298,32 @@
             text-align: center;
             padding: 10px;
             background-color: var(--light-color);
-            border-radius: 5px;
+            border-radius: var(--border-radius);
         }
 
         .calendar-day {
             border: 1px solid #eee;
             padding: 10px;
-            min-height: 120px;
+            min-height: 100px;
             background: white;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .calendar-day:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow);
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--primary-color);
         }
 
         .day-number {
             font-weight: 600;
             margin-bottom: 5px;
+            align-self: flex-end;
         }
 
         .shift-item {
@@ -287,6 +332,8 @@
             border-radius: 3px;
             font-size: 12px;
             background-color: rgba(52, 152, 219, 0.1);
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .shift-pagi {
@@ -344,7 +391,7 @@
         .modal-content {
             background-color: white;
             padding: 25px;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             width: 90%;
             max-width: 500px;
             max-height: 90vh;
@@ -372,6 +419,7 @@
             font-size: 24px;
             cursor: pointer;
             color: #777;
+            transition: var(--transition);
         }
 
         .close-btn:hover {
@@ -405,6 +453,11 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: var(--transition);
         }
 
         .edit-btn {
@@ -412,9 +465,17 @@
             color: white;
         }
 
+        .edit-btn:hover {
+            background-color: #e67e22;
+        }
+
         .delete-btn {
             background-color: var(--danger-color);
             color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
         }
 
         .view-btn {
@@ -426,14 +487,17 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .search-input {
             flex: 1;
+            min-width: 200px;
         }
 
         .filter-select {
             width: 200px;
+            min-width: 150px;
         }
 
         .absen-form {
@@ -444,14 +508,14 @@
             margin: 0 auto;
             padding: 20px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
 
         .absen-input {
             padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             font-size: 16px;
             text-align: center;
         }
@@ -461,16 +525,21 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .absen-btn:hover {
+            background-color: var(--secondary-color);
         }
 
         .absen-result {
             margin-top: 20px;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             background: #f8f9fa;
             text-align: center;
         }
@@ -490,11 +559,14 @@
             top: 20px;
             right: 20px;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             color: white;
             z-index: 10000;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .alert-success {
@@ -523,27 +595,125 @@
             to { opacity: 0; }
         }
 
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .col {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            min-width: 200px;
+        }
+
+        .col h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .col p {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .flex-row .form-control {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* Responsive styles */
         @media (max-width: 768px) {
             .tab-buttons {
-                flex-direction: column;
+                flex-direction: row;
+                overflow-x: auto;
             }
             
             .tab-btn {
-                width: 100%;
-                text-align: left;
-                border-bottom: 1px solid #ddd;
+                min-width: max-content;
+                border-bottom: none;
+                border-right: 1px solid #ddd;
             }
             
             .search-filter {
-                flex-direction: column;
+                flex-direction: row;
             }
             
-            .filter-select {
+            .filter-select, .search-input {
                 width: 100%;
             }
             
             .calendar-day {
                 min-height: 80px;
+                padding: 5px;
+            }
+            
+            .shift-item {
+                font-size: 10px;
+                padding: 3px;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                min-height: calc(100vh - 20px);
+            }
+            
+            .tab-content {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .calendar {
+                gap: 5px;
+            }
+            
+            .calendar-header {
+                padding: 5px;
+                font-size: 12px;
+            }
+            
+            .day-number {
+                font-size: 14px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 3px;
+            }
+            
+            .action-btn {
+                padding: 3px 5px;
+                font-size: 10px;
             }
         }
     </style>
@@ -567,50 +737,52 @@
             <!-- Tab Dashboard -->
             <div id="dashboard" class="tab-content active">
                 <div class="card">
-                    <h2 class="card-title">Ringkasan</h2>
-                    <div class="row" style="display: flex; gap: 20px; margin-bottom: 20px;">
-                        <div class="col" style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h2 class="card-title"><i class="fas fa-chart-pie"></i> Ringkasan</h2>
+                    <div class="row">
+                        <div class="col">
                             <h3><i class="fas fa-users"></i> Total Karyawan</h3>
-                            <p style="font-size: 24px; font-weight: bold;" id="total-karyawan">0</p>
+                            <p id="total-karyawan">0</p>
                         </div>
-                        <div class="col" style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div class="col">
                             <h3><i class="fas fa-calendar-check"></i> Shift Hari Ini</h3>
-                            <p style="font-size: 24px; font-weight: bold;" id="shift-hari-ini">0</p>
+                            <p id="shift-hari-ini">0</p>
                         </div>
-                        <div class="col" style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div class="col">
                             <h3><i class="fas fa-user-clock"></i> Belum Absen</h3>
-                            <p style="font-size: 24px; font-weight: bold;" id="belum-absen">0</p>
+                            <p id="belum-absen">0</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="card">
-                    <h2 class="card-title">Kalender Bulan Ini</h2>
+                    <h2 class="card-title"><i class="fas fa-calendar"></i> Kalender Bulan Ini</h2>
                     <div id="mini-calendar"></div>
                 </div>
                 
                 <div class="card">
-                    <h2 class="card-title">Aktivitas Terkini</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Karyawan</th>
-                                <th>Aktivitas</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="aktivitas-terkini">
-                            <!-- Data akan diisi oleh JavaScript -->
-                        </tbody>
-                    </table>
+                    <h2 class="card-title"><i class="fas fa-list"></i> Aktivitas Terkini</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Karyawan</th>
+                                    <th>Aktivitas</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aktivitas-terkini">
+                                <!-- Data akan diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             
             <!-- Tab Data Karyawan -->
             <div id="karyawan" class="tab-content">
                 <div class="card">
-                    <h2 class="card-title">Manajemen Data Karyawan</h2>
+                    <h2 class="card-title"><i class="fas fa-users-cog"></i> Manajemen Data Karyawan</h2>
                     <div class="search-filter">
                         <input type="text" id="search-karyawan" class="form-control search-input" placeholder="Cari karyawan...">
                         <select id="filter-status" class="form-control filter-select">
@@ -644,11 +816,11 @@
             <!-- Tab Jadwal Shift -->
             <div id="jadwal" class="tab-content">
                 <div class="card">
-                    <h2 class="card-title">Pembuatan Jadwal Shift</h2>
+                    <h2 class="card-title"><i class="fas fa-calendar-plus"></i> Pembuatan Jadwal Shift</h2>
                     <div class="form-group">
                         <label for="bulan-jadwal">Pilih Bulan dan Tahun:</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="month" id="bulan-jadwal" class="form-control" style="flex: 1;">
+                        <div class="flex-row">
+                            <input type="month" id="bulan-jadwal" class="form-control">
                             <button class="btn" id="generate-jadwal-btn"><i class="fas fa-sync-alt"></i> Generate</button>
                             <button class="btn btn-success" id="simpan-jadwal-btn"><i class="fas fa-save"></i> Simpan</button>
                             <button class="btn btn-warning" id="copy-jadwal-btn"><i class="fas fa-copy"></i> Copy Bulan Sebelumnya</button>
@@ -656,13 +828,13 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Jumlah Karyawan:</label>
+                        <label for="jumlah-karyawan">Jumlah Karyawan:</label>
                         <input type="number" id="jumlah-karyawan" class="form-control" min="1" value="3">
                     </div>
                     
                     <div class="form-group">
                         <label>Libur Manual:</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="flex-row">
                             <input type="date" id="libur-tanggal" class="form-control">
                             <button class="btn btn-warning" id="tambah-libur-btn"><i class="fas fa-calendar-minus"></i> Tambah Libur</button>
                         </div>
@@ -680,22 +852,22 @@
             <!-- Tab Absensi -->
             <div id="absensi" class="tab-content">
                 <div class="card">
-                    <h2 class="card-title">Absensi Karyawan</h2>
+                    <h2 class="card-title"><i class="fas fa-fingerprint"></i> Absensi Karyawan</h2>
                     <div class="absen-form">
-                        <h3 style="text-align: center;">Scan ID Karyawan</h3>
+                        <h3 style="text-align: center;"><i class="fas fa-id-card"></i> Scan ID Karyawan</h3>
                         <input type="text" id="id-karyawan-absen" class="absen-input" placeholder="Masukkan ID Karyawan atau Scan Barcode" autofocus>
-                        <button class="absen-btn" id="absen-masuk-btn">Absen Masuk</button>
-                        <button class="absen-btn" id="absen-pulang-btn">Absen Pulang</button>
+                        <button class="absen-btn" id="absen-masuk-btn"><i class="fas fa-sign-in-alt"></i> Absen Masuk</button>
+                        <button class="absen-btn" id="absen-pulang-btn"><i class="fas fa-sign-out-alt"></i> Absen Pulang</button>
                         <div id="absen-result" class="absen-result" style="display: none;"></div>
                     </div>
                 </div>
                 
                 <div class="card">
-                    <h2 class="card-title">Rekap Absensi Harian</h2>
+                    <h2 class="card-title"><i class="fas fa-clipboard-list"></i> Rekap Absensi Harian</h2>
                     <div class="form-group">
                         <label for="tanggal-absensi">Pilih Tanggal:</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="date" id="tanggal-absensi" class="form-control" style="flex: 1;">
+                        <div class="flex-row">
+                            <input type="date" id="tanggal-absensi" class="form-control">
                             <button class="btn" id="load-absensi-btn"><i class="fas fa-search"></i> Tampilkan</button>
                         </div>
                     </div>
@@ -721,7 +893,7 @@
                 </div>
                 
                 <div class="card">
-                    <h2 class="card-title">Rekap Absensi Bulan Ini</h2>
+                    <h2 class="card-title"><i class="fas fa-chart-bar"></i> Rekap Absensi Bulan Ini</h2>
                     <div class="form-group">
                         <label for="bulan-rekap">Pilih Bulan:</label>
                         <input type="month" id="bulan-rekap" class="form-control">
@@ -748,7 +920,7 @@
             <!-- Tab Laporan -->
             <div id="laporan" class="tab-content">
                 <div class="card">
-                    <h2 class="card-title">Generasi Laporan</h2>
+                    <h2 class="card-title"><i class="fas fa-file-export"></i> Generasi Laporan</h2>
                     <div class="form-group">
                         <label for="jenis-laporan">Jenis Laporan:</label>
                         <select id="jenis-laporan" class="form-control">
@@ -778,8 +950,10 @@
                         </select>
                     </div>
                     
-                    <button class="btn" id="generate-laporan-btn"><i class="fas fa-file-export"></i> Generate Laporan</button>
-                    <button class="btn btn-success" id="cetak-laporan-btn"><i class="fas fa-print"></i> Cetak</button>
+                    <div class="flex-row" style="margin-top: 20px;">
+                        <button class="btn" id="generate-laporan-btn"><i class="fas fa-file-export"></i> Generate Laporan</button>
+                        <button class="btn btn-success" id="cetak-laporan-btn"><i class="fas fa-print"></i> Cetak</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1008,7 +1182,17 @@
         function showAlert(message, type = 'info') {
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type}`;
-            alertDiv.textContent = message;
+            
+            // Add icon based on alert type
+            let icon = '';
+            switch(type) {
+                case 'success': icon = '<i class="fas fa-check-circle"></i>'; break;
+                case 'error': icon = '<i class="fas fa-exclamation-circle"></i>'; break;
+                case 'warning': icon = '<i class="fas fa-exclamation-triangle"></i>'; break;
+                default: icon = '<i class="fas fa-info-circle"></i>';
+            }
+            
+            alertDiv.innerHTML = `${icon} ${message}`;
             document.body.appendChild(alertDiv);
             
             setTimeout(() => {
@@ -1366,7 +1550,7 @@
                 const dayOfWeek = new Date(tahun, bulan - 1, tanggal).getDay();
                 
                 const day = document.createElement('div');
-                day.className = 'calendar-day';
+                day.className = `calendar-day ${dayOfWeek === 0 || dayOfWeek === 6 ? 'weekend' : ''}`;
                 day.innerHTML = `<div class="day-number">${tanggal}</div>`;
                 
                 // Tampilkan jadwal untuk hari ini jika ada
