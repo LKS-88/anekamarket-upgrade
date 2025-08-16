@@ -687,56 +687,158 @@
         </div>
     </div>
 
-    <!-- Add Employee Modal -->
-    <div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addEmployeeModalLabel">Tambah Karyawan Baru</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="employee-form">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="employee-name" class="form-label">Nama Lengkap</label>
-                                    <input type="text" class="form-control" id="employee-name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="employee-nik" class="form-label">NIK</label>
-                                    <input type="text" class="form-control" id="employee-nik" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="employee-address" class="form-label">Alamat</label>
-                                    <textarea class="form-control" id="employee-address" rows="3" required></textarea>
-                                </div>
+   <!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEmployeeModalLabel">Tambah Karyawan Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="employee-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="employee-name" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="employee-name" required>
+                                <div class="invalid-feedback">Harap isi nama lengkap</div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="employee-phone" class="form-label">Nomor HP</label>
-                                    <input type="tel" class="form-control" id="employee-phone" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="employee-email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="employee-email">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="employee-position" class="form-label">Jabatan</label>
-                                    <input type="text" class="form-control" id="employee-position" required>
-                                </div>
+                            <div class="mb-3">
+                                <label for="employee-nik" class="form-label">NIK <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="employee-nik" required>
+                                <div class="invalid-feedback">Harap isi NIK</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="employee-address" class="form-label">Alamat <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="employee-address" rows="3" required></textarea>
+                                <div class="invalid-feedback">Harap isi alamat</div>
                             </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" id="save-employee">Simpan</button>
-                </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="employee-phone" class="form-label">Nomor HP <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="employee-phone" required>
+                                <div class="invalid-feedback">Harap isi nomor HP</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="employee-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="employee-email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="employee-position" class="form-label">Jabatan <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="employee-position" required>
+                                <div class="invalid-feedback">Harap isi jabatan</div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="save-employee">Simpan</button>
             </div>
         </div>
     </div>
+</div>
 
+<script>
+    // Fungsi untuk mereset form karyawan
+    function clearEmployeeForm() {
+        document.getElementById('employee-form').reset();
+        const inputs = document.querySelectorAll('#employee-form input, #employee-form textarea');
+        inputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+    }
+
+    // Fungsi untuk validasi form karyawan
+    function validateEmployeeForm() {
+        let isValid = true;
+        const requiredFields = [
+            'employee-name',
+            'employee-nik',
+            'employee-address',
+            'employee-phone',
+            'employee-position'
+        ];
+
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        return isValid;
+    }
+
+    // Fungsi untuk menyimpan karyawan baru
+    function saveEmployee() {
+        // Validasi form
+        if (!validateEmployeeForm()) {
+            return;
+        }
+
+        // Ambil nilai dari form
+        const name = document.getElementById('employee-name').value.trim();
+        const nik = document.getElementById('employee-nik').value.trim();
+        const address = document.getElementById('employee-address').value.trim();
+        const phone = document.getElementById('employee-phone').value.trim();
+        const email = document.getElementById('employee-email').value.trim();
+        const position = document.getElementById('employee-position').value.trim();
+
+        // Generate employee ID
+        const id = 'EMP' + Date.now().toString().slice(-6);
+        
+        // Buat objek karyawan baru
+        const newEmployee = {
+            id,
+            name,
+            nik,
+            address,
+            phone,
+            email: email || '',
+            position
+        };
+
+        // Tambahkan ke array employees
+        employees.push(newEmployee);
+
+        // Simpan ke localStorage
+        localStorage.setItem('employees', JSON.stringify(employees));
+
+        // Tampilkan pesan sukses
+        alert('Karyawan berhasil ditambahkan!');
+
+        // Reset form
+        clearEmployeeForm();
+
+        // Tutup modal
+        $('#addEmployeeModal').modal('hide');
+
+        // Perbarui tampilan
+        renderEmployeeTable();
+        updateDashboardStats();
+        populateEmployeeDropdown();
+    }
+
+    // Event listener untuk tombol simpan
+    document.getElementById('save-employee').addEventListener('click', saveEmployee);
+
+    // Event listener untuk form validation saat input
+    const employeeFormInputs = document.querySelectorAll('#employee-form input[required], #employee-form textarea[required]');
+    employeeFormInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+</script>
     <!-- Edit Employee Modal -->
     <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
