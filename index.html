@@ -6,9 +6,6 @@
     <title>ShiftSync Pro - Sistem Manajemen Shift & Absensi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root {
             --primary-color: #3498db;
@@ -103,15 +100,6 @@
             background-color: var(--light-color);
         }
         
-        .barcode-container {
-            display: flex;
-            justify-content: center;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-        
         .password-protected {
             position: relative;
         }
@@ -137,25 +125,6 @@
             content: "Fitur ini dilindungi password";
         }
         
-        .scan-area {
-            border: 2px dashed var(--primary-color);
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-        
-        .scan-area:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-        }
-        
-        .scan-area.active {
-            background-color: rgba(46, 204, 113, 0.2);
-            border-color: var(--success-color);
-        }
-
         /* Mobile menu button */
         .navbar-toggler {
             border: none;
@@ -251,28 +220,26 @@
             margin-right: 5px;
             margin-bottom: 5px;
         }
-        
-        /* Scanner container */
-        #scanner-container {
-            width: 100%;
-            height: 300px;
-            background-color: #000;
-            position: relative;
-            overflow: hidden;
+
+        /* Attendance status badges */
+        .badge-present {
+            background-color: var(--success-color);
+            color: white;
         }
         
-        #scanner-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .badge-late {
+            background-color: #ffc107;
+            color: #212529;
         }
         
-        #scanner-container canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .badge-absent {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .badge-leave {
+            background-color: #17a2b8;
+            color: white;
         }
     </style>
 </head>
@@ -464,7 +431,6 @@
                                                 <th>Nama</th>
                                                 <th>Jabatan</th>
                                                 <th>Kontak</th>
-                                                <th>Barcode</th>
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
@@ -539,9 +505,6 @@
                                         Berikutnya <i class="bi bi-chevron-right"></i>
                                     </button>
                                 </div>
-                                <button class="btn btn-sm btn-primary" id="scan-attendance-btn">
-                                    <i class="bi bi-upc-scan"></i> Mode Scan
-                                </button>
                             </div>
                         </div>
 
@@ -549,24 +512,18 @@
                             <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="card-title mb-0">Absensi</h5>
+                                        <h5 class="card-title mb-0">Absensi Manual</h5>
                                     </div>
                                     <div class="card-body">
-                                        <div id="scan-area" class="scan-area">
-                                            <i class="bi bi-upc-scan" style="font-size: 3rem;"></i>
-                                            <h5 class="mt-3">Klik untuk memulai scan</h5>
-                                            <p class="text-muted">Arahkan kamera ke barcode ID karyawan</p>
-                                        </div>
-                                        <div class="alert alert-success d-none" id="scan-success">
+                                        <div class="alert alert-success d-none" id="attendance-success">
                                             Absensi berhasil dicatat!
                                         </div>
-                                        <div class="alert alert-danger d-none" id="scan-error">
-                                            Gagal membaca barcode. Silakan coba lagi.
+                                        <div class="alert alert-danger d-none" id="attendance-error">
+                                            Gagal mencatat absensi. Silakan coba lagi.
                                         </div>
 
                                         <!-- Manual Attendance Section -->
                                         <div class="manual-attendance-container">
-                                            <h6>Absensi Manual</h6>
                                             <div class="mb-3">
                                                 <label for="manual-employee-select" class="form-label">Pilih Karyawan</label>
                                                 <select class="form-select" id="manual-employee-select">
@@ -771,9 +728,6 @@
                             </div>
                         </div>
                     </form>
-                    <div class="barcode-container mt-3 d-none" id="barcode-preview">
-                        <svg id="barcode"></svg>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -825,37 +779,10 @@
                             </div>
                         </div>
                     </form>
-                    <div class="barcode-container mt-3" id="edit-barcode-preview">
-                        <svg id="edit-barcode"></svg>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn btn-primary" id="update-employee">Perbarui</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Barcode Modal -->
-    <div class="modal fade" id="viewBarcodeModal" tabindex="-1" aria-labelledby="viewBarcodeModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewBarcodeModalLabel">Barcode ID Karyawan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <div class="barcode-container">
-                        <svg id="view-barcode"></svg>
-                    </div>
-                    <p class="mt-3">Gunakan barcode ini untuk absensi karyawan</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary" id="print-barcode">
-                        <i class="bi bi-printer"></i> Cetak Barcode
-                    </button>
                 </div>
             </div>
         </div>
@@ -997,33 +924,7 @@
         </div>
     </div>
 
-    <!-- Scanner Modal -->
-    <div class="modal fade" id="scannerModal" tabindex="-1" aria-labelledby="scannerModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="scannerModalLabel">Scan Barcode ID Karyawan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <div id="scanner-container" style="width: 100%; height: 400px; border: 2px solid #3498db; margin: 0 auto;"></div>
-                    <div class="mt-3">
-                        <button class="btn btn-primary" id="start-scan">Mulai Scan</button>
-                        <button class="btn btn-danger" id="stop-scan">Stop Scan</button>
-                    </div>
-                    <div class="alert alert-info mt-3">
-                        Arahkan kamera ke barcode ID karyawan untuk melakukan absensi
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <script>
         // Global variables
         const PASSWORD = "Admin.13579";
@@ -1032,7 +933,6 @@
         let attendance = JSON.parse(localStorage.getItem('attendance')) || {};
         let currentDate = new Date();
         let currentViewDate = new Date();
-        let scanner = null;
         let passwordVerified = false;
         let currentProtectedAction = null;
 
@@ -1099,7 +999,6 @@
             });
             
             document.getElementById('week-btn').addEventListener('click', function() {
-                // For week view, we'll just show today's data in this version
                 currentDate = new Date();
                 updateDashboardStats();
                 updateRecentAttendance();
@@ -1107,7 +1006,6 @@
             });
             
             document.getElementById('month-btn').addEventListener('click', function() {
-                // For month view, we'll just show today's data in this version
                 currentDate = new Date();
                 updateDashboardStats();
                 updateRecentAttendance();
@@ -1128,10 +1026,6 @@
             // Attendance
             document.getElementById('prev-day').addEventListener('click', prevDay);
             document.getElementById('next-day').addEventListener('click', nextDay);
-            document.getElementById('scan-attendance-btn').addEventListener('click', openScannerModal);
-            document.getElementById('start-scan').addEventListener('click', startScanner);
-            document.getElementById('stop-scan').addEventListener('click', stopScanner);
-            document.getElementById('scan-area').addEventListener('click', openScannerModal);
             document.getElementById('print-attendance').addEventListener('click', printAttendance);
             document.getElementById('download-attendance').addEventListener('click', downloadAttendance);
             document.getElementById('update-attendance').addEventListener('click', updateAttendanceRecord);
@@ -1174,9 +1068,6 @@
             });
             
             document.getElementById('submit-password').addEventListener('click', verifyPassword);
-            
-            // Print barcode
-            document.getElementById('print-barcode').addEventListener('click', printBarcode);
             
             // Logout
             document.getElementById('logout-btn').addEventListener('click', function() {
@@ -1249,8 +1140,7 @@
                 address,
                 phone,
                 email: email || '',
-                position,
-                barcode: id // Using employee ID as barcode value
+                position
             };
             
             // Add to employees array
@@ -1258,16 +1148,6 @@
             
             // Save to localStorage
             localStorage.setItem('employees', JSON.stringify(employees));
-            
-            // Generate and show barcode preview
-            document.getElementById('barcode-preview').classList.remove('d-none');
-            JsBarcode('#barcode', id, {
-                format: 'CODE128',
-                lineColor: '#000',
-                width: 2,
-                height: 50,
-                displayValue: true
-            });
             
             // Reset form
             document.getElementById('employee-form').reset();
@@ -1332,7 +1212,7 @@
             
             if (employees.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="6" class="text-center">Tidak ada data karyawan</td>`;
+                row.innerHTML = `<td colspan="5" class="text-center">Tidak ada data karyawan</td>`;
                 tableBody.appendChild(row);
                 return;
             }
@@ -1344,11 +1224,6 @@
                     <td>${employee.name}</td>
                     <td>${employee.position}</td>
                     <td>${employee.phone}<br>${employee.email || '-'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary view-barcode" data-id="${employee.id}">
-                            <i class="bi bi-upc-scan"></i> Lihat
-                        </button>
-                    </td>
                     <td>
                         <button class="btn btn-sm btn-warning edit-employee" data-id="${employee.id}">
                             <i class="bi bi-pencil"></i> Edit
@@ -1362,13 +1237,6 @@
             });
             
             // Add event listeners to buttons
-            document.querySelectorAll('.view-barcode').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const employeeId = this.getAttribute('data-id');
-                    viewBarcode(employeeId);
-                });
-            });
-            
             document.querySelectorAll('.edit-employee').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const employeeId = this.getAttribute('data-id');
@@ -1384,41 +1252,6 @@
             });
         }
 
-        function viewBarcode(employeeId) {
-            const employee = employees.find(emp => emp.id === employeeId);
-            if (employee) {
-                // Show barcode in a modal
-                $('#viewBarcodeModal').modal('show');
-                JsBarcode('#view-barcode', employee.id, {
-                    format: 'CODE128',
-                    lineColor: '#000',
-                    width: 2,
-                    height: 50,
-                    displayValue: true
-                });
-            }
-        }
-
-        function printBarcode() {
-            // Create a temporary div to hold the barcode for printing
-            const printContents = document.getElementById('view-barcode').outerHTML;
-            const originalContents = document.body.innerHTML;
-            
-            document.body.innerHTML = `
-                <div style="text-align:center; padding:20px;">
-                    <h3>Barcode ID Karyawan</h3>
-                    ${printContents}
-                    <p>Gunakan barcode ini untuk absensi karyawan</p>
-                </div>
-            `;
-            
-            window.print();
-            document.body.innerHTML = originalContents;
-            
-            // Re-attach event listeners
-            setupEventListeners();
-        }
-
         function editEmployee(employeeId) {
             const employee = employees.find(emp => emp.id === employeeId);
             if (employee) {
@@ -1429,15 +1262,6 @@
                 document.getElementById('edit-employee-phone').value = employee.phone;
                 document.getElementById('edit-employee-email').value = employee.email || '';
                 document.getElementById('edit-employee-position').value = employee.position;
-                
-                // Generate barcode
-                JsBarcode('#edit-barcode', employee.id, {
-                    format: 'CODE128',
-                    lineColor: '#000',
-                    width: 2,
-                    height: 50,
-                    displayValue: true
-                });
                 
                 $('#editEmployeeModal').modal('show');
             }
@@ -1758,117 +1582,6 @@
             renderAttendanceTable();
         }
 
-        function openScannerModal() {
-            $('#scannerModal').modal('show');
-        }
-
-        function startScanner() {
-            const scannerContainer = document.getElementById('scanner-container');
-            scannerContainer.innerHTML = '';
-            
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: scannerContainer,
-                    constraints: {
-                        width: 480,
-                        height: 320,
-                        facingMode: "environment"
-                    },
-                },
-                decoder: {
-                    readers: ["code_128_reader"]
-                },
-                locate: true
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    alert('Gagal menginisialisasi scanner: ' + err.message);
-                    return;
-                }
-                
-                document.getElementById('start-scan').disabled = true;
-                document.getElementById('stop-scan').disabled = false;
-                
-                Quagga.start();
-                
-                // Set scanner variable
-                scanner = Quagga;
-                
-                // Listen for detections
-                Quagga.onDetected(function(result) {
-                    const code = result.codeResult.code;
-                    stopScanner();
-                    $('#scannerModal').modal('hide');
-                    recordAttendance(code);
-                });
-            });
-        }
-
-        function stopScanner() {
-            if (scanner) {
-                scanner.stop();
-                scanner = null;
-            }
-            
-            document.getElementById('start-scan').disabled = false;
-            document.getElementById('stop-scan').disabled = true;
-        }
-
-        function recordAttendance(employeeId, status = 'present') {
-            const employee = employees.find(emp => emp.id === employeeId);
-            if (!employee) {
-                document.getElementById('scan-error').classList.remove('d-none');
-                document.getElementById('scan-success').classList.add('d-none');
-                setTimeout(() => {
-                    document.getElementById('scan-error').classList.add('d-none');
-                }, 3000);
-                return;
-            }
-            
-            const dateKey = formatDateKey(currentDate);
-            if (!attendance[dateKey]) {
-                attendance[dateKey] = [];
-            }
-            
-            // Check if employee already has attendance record for today
-            const existingRecordIndex = attendance[dateKey].findIndex(record => record.employeeId === employeeId);
-            
-            if (existingRecordIndex !== -1) {
-                // Update existing record (pulang)
-                const now = new Date();
-                attendance[dateKey][existingRecordIndex].checkOut = now.toISOString();
-                attendance[dateKey][existingRecordIndex].status = status;
-            } else {
-                // Create new record (masuk)
-                const now = new Date();
-                attendance[dateKey].push({
-                    employeeId,
-                    employeeName: employee.name,
-                    checkIn: now.toISOString(),
-                    checkOut: null,
-                    status: status,
-                    notes: ''
-                });
-            }
-            
-            // Save to localStorage
-            localStorage.setItem('attendance', JSON.stringify(attendance));
-            
-            // Show success message
-            document.getElementById('scan-success').classList.remove('d-none');
-            document.getElementById('scan-error').classList.add('d-none');
-            setTimeout(() => {
-                document.getElementById('scan-success').classList.add('d-none');
-            }, 3000);
-            
-            // Update views
-            renderAttendanceTable();
-            updateDashboardStats();
-            updateRecentAttendance();
-        }
-
         function recordManualAttendance(status, isCheckOut = false) {
             const employeeId = document.getElementById('manual-employee-select').value;
             
@@ -1896,6 +1609,9 @@
                 const now = new Date();
                 attendance[dateKey][existingRecordIndex].checkOut = now.toISOString();
                 attendance[dateKey][existingRecordIndex].status = status;
+                
+                // Show success message
+                showAttendanceSuccess('Absensi pulang berhasil dicatat!');
             } else if (existingRecordIndex === -1 && !isCheckOut) {
                 // Create new record (masuk)
                 const now = new Date();
@@ -1907,23 +1623,19 @@
                     status: status,
                     notes: ''
                 });
+                
+                // Show success message
+                showAttendanceSuccess('Absensi masuk berhasil dicatat!');
             } else if (existingRecordIndex !== -1 && !isCheckOut) {
-                alert('Karyawan ini sudah melakukan absensi masuk hari ini.');
+                showAttendanceError('Karyawan ini sudah melakukan absensi masuk hari ini.');
                 return;
             } else if (existingRecordIndex === -1 && isCheckOut) {
-                alert('Karyawan ini belum melakukan absensi masuk hari ini.');
+                showAttendanceError('Karyawan ini belum melakukan absensi masuk hari ini.');
                 return;
             }
             
             // Save to localStorage
             localStorage.setItem('attendance', JSON.stringify(attendance));
-            
-            // Show success message
-            document.getElementById('scan-success').classList.remove('d-none');
-            document.getElementById('scan-error').classList.add('d-none');
-            setTimeout(() => {
-                document.getElementById('scan-success').classList.add('d-none');
-            }, 3000);
             
             // Update views
             renderAttendanceTable();
@@ -1932,6 +1644,24 @@
             
             // Reset dropdown
             document.getElementById('manual-employee-select').value = '';
+        }
+
+        function showAttendanceSuccess(message) {
+            document.getElementById('attendance-success').textContent = message;
+            document.getElementById('attendance-success').classList.remove('d-none');
+            document.getElementById('attendance-error').classList.add('d-none');
+            setTimeout(() => {
+                document.getElementById('attendance-success').classList.add('d-none');
+            }, 3000);
+        }
+
+        function showAttendanceError(message) {
+            document.getElementById('attendance-error').textContent = message;
+            document.getElementById('attendance-error').classList.remove('d-none');
+            document.getElementById('attendance-success').classList.add('d-none');
+            setTimeout(() => {
+                document.getElementById('attendance-error').classList.add('d-none');
+            }, 3000);
         }
 
         function populateEmployeeDropdown() {
@@ -1975,13 +1705,13 @@
                 // Status badge
                 let statusBadge = '';
                 if (record.status === 'present') {
-                    statusBadge = '<span class="badge bg-success">Hadir</span>';
+                    statusBadge = '<span class="badge badge-present">Hadir</span>';
                 } else if (record.status === 'late') {
-                    statusBadge = '<span class="badge bg-warning text-dark">Terlambat</span>';
+                    statusBadge = '<span class="badge badge-late">Terlambat</span>';
                 } else if (record.status === 'absent') {
-                    statusBadge = '<span class="badge bg-danger">Tidak Hadir</span>';
+                    statusBadge = '<span class="badge badge-absent">Tidak Hadir</span>';
                 } else if (record.status === 'leave') {
-                    statusBadge = '<span class="badge bg-info">Izin</span>';
+                    statusBadge = '<span class="badge badge-leave">Izin</span>';
                 }
                 
                 // Check-in/check-out times
@@ -2610,7 +2340,7 @@
 
         // Initialize modals
         const modals = ['addEmployeeModal', 'editEmployeeModal', 'generateShiftModal', 
-                       'editAttendanceModal', 'passwordModal', 'scannerModal', 'viewBarcodeModal'];
+                       'editAttendanceModal', 'passwordModal'];
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
             modal.addEventListener('shown.bs.modal', function() {
@@ -2627,11 +2357,6 @@
                 const errors = modal.querySelectorAll('.alert');
                 errors.forEach(error => error.classList.add('d-none'));
             });
-        });
-
-        // Scanner modal specific handlers
-        document.getElementById('scannerModal').addEventListener('hidden.bs.modal', function() {
-            stopScanner();
         });
     </script>
 </body>
