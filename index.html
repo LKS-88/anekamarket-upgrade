@@ -352,15 +352,6 @@
             align-items: center;
         }
         
-        .booking-guest img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-            background-color: #e2e8f0;
-        }
-        
         .guest-info h4 {
             font-weight: 500;
             margin-bottom: 2px;
@@ -837,35 +828,10 @@
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Pemesanan</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-door-open"></i>
-                    <span>Kamar</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-users"></i>
-                    <span>Tamu</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-concierge-bell"></i>
-                    <span>Layanan</span>
-                </a>
-                
                 <div class="menu-title">Manajemen</div>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-user-tie"></i>
-                    <span>Staf</span>
-                </a>
                 <a href="#" class="menu-item">
                     <i class="fas fa-chart-line"></i>
                     <span>Laporan</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Pengaturan</span>
                 </a>
             </div>
         </div>
@@ -956,10 +922,6 @@
                     <div class="recent-bookings">
                         <div class="section-header">
                             <h3 class="section-title">Pemesanan Terbaru</h3>
-                            <div class="section-actions">
-                                <a href="#" id="addBookingBtn">Tambah Baru</a>
-                                <a href="#">Lihat Semua</a>
-                            </div>
                         </div>
                         
                         <div class="table-responsive">
@@ -971,104 +933,68 @@
                                         <th>Check-In</th>
                                         <th>Check-Out</th>
                                         <th>Status</th>
-                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
                                         <td>
-                                            <div class="booking-guest">
-                                                <img src="https://via.placeholder.com/36" alt="Guest John Smith">
-                                                <div class="guest-info">
-                                                    <h4>John Smith</h4>
-                                                    <p>john@example.com</p>
-                                                </div>
+                                            <div class="guest-info">
+                                                <h4>John Smith</h4>
+                                                <p>john@example.com</p>
                                             </div>
                                         </td>
                                         <td>Deluxe Suite #302</td>
                                         <td>15 Jun 2023</td>
                                         <td>20 Jun 2023</td>
                                         <td><span class="status confirmed">Dikonfirmasi</span></td>
-                                        <td>
-                                            <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
-                                            <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                        </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <div class="booking-guest">
-                                                <img src="https://via.placeholder.com/36" alt="Guest Sarah Johnson">
-                                                <div class="guest-info">
-                                                    <h4>Sarah Johnson</h4>
-                                                    <p>sarah@example.com</p>
-                                                </div>
+                                            <div class="guest-info">
+                                                <h4>Sarah Johnson</h4>
+                                                <p>sarah@example.com</p>
                                             </div>
                                         </td>
                                         <td>Family Room #105</td>
                                         <td>16 Jun 2023</td>
                                         <td>18 Jun 2023</td>
                                         <td><span class="status checked-in">Check-In</span></td>
-                                        <td>
-                                            <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
-                                            <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                        </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <div class="booking-guest">
-                                                <img src="https://via.placeholder.com/36" alt="Guest Michael Brown">
-                                                <div class="guest-info">
-                                                    <h4>Michael Brown</h4>
-                                                    <p>michael@example.com</p>
-                                                </div>
+                                            <div class="guest-info">
+                                                <h4>Michael Brown</h4>
+                                                <p>michael@example.com</p>
                                             </div>
                                         </td>
                                         <td>Single Room #208</td>
                                         <td>18 Jun 2023</td>
                                         <td>22 Jun 2023</td>
                                         <td><span class="status pending">Tertunda</span></td>
-                                        <td>
-                                            <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
-                                            <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                        </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <div class="booking-guest">
-                                                <img src="https://via.placeholder.com/36" alt="Guest Emily Davis">
-                                                <div class="guest-info">
-                                                    <h4>Emily Davis</h4>
-                                                    <p>emily@example.com</p>
-                                                </div>
+                                            <div class="guest-info">
+                                                <h4>Emily Davis</h4>
+                                                <p>emily@example.com</p>
                                             </div>
                                         </td>
                                         <td>Executive Suite #401</td>
                                         <td>20 Jun 2023</td>
                                         <td>25 Jun 2023</td>
                                         <td><span class="status confirmed">Dikonfirmasi</span></td>
-                                        <td>
-                                            <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
-                                            <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                        </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <div class="booking-guest">
-                                                <img src="https://via.placeholder.com/36" alt="Guest Robert Wilson">
-                                                <div class="guest-info">
-                                                    <h4>Robert Wilson</h4>
-                                                    <p>robert@example.com</p>
-                                                </div>
+                                            <div class="guest-info">
+                                                <h4>Robert Wilson</h4>
+                                                <p>robert@example.com</p>
                                             </div>
                                         </td>
                                         <td>Deluxe Room #204</td>
                                         <td>22 Jun 2023</td>
                                         <td>24 Jun 2023</td>
                                         <td><span class="status cancelled">Dibatalkan</span></td>
-                                        <td>
-                                            <button class="action-btn view-btn"><i class="fas fa-eye"></i></button>
-                                            <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1082,9 +1008,6 @@
                     <div class="room-availability">
                         <div class="section-header">
                             <h3 class="section-title">Ketersediaan Kamar</h3>
-                            <div class="section-actions">
-                                <a href="#">Detail</a>
-                            </div>
                         </div>
                         
                         <div class="availability-list">
@@ -1123,9 +1046,6 @@
                     <div class="recent-activities">
                         <div class="section-header">
                             <h3 class="section-title">Aktivitas Terkini</h3>
-                            <div class="section-actions">
-                                <a href="#">Lihat Semua</a>
-                            </div>
                         </div>
                         
                         <div class="activities-list">
@@ -1192,111 +1112,8 @@
         </div>
     </div>
     
-    <!-- Add Booking Modal -->
-    <div class="modal" id="addBookingModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Tambah Pemesanan Baru</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="bookingForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Nama Tamu</label>
-                            <input type="text" class="form-control" placeholder="Masukkan nama tamu" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" placeholder="Masukkan email" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Telepon</label>
-                            <input type="tel" class="form-control" placeholder="Masukkan nomor telepon" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tipe Kamar</label>
-                            <select class="form-control" required>
-                                <option value="">Pilih tipe kamar</option>
-                                <option value="deluxe">Kamar Deluxe</option>
-                                <option value="suite">Suite</option>
-                                <option value="family">Kamar Keluarga</option>
-                                <option value="single">Kamar Single</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Tanggal Check-In</label>
-                            <input type="date" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Tanggal Check-Out</label>
-                            <input type="date" class="form-control" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Permintaan Khusus</label>
-                        <textarea class="form-control" rows="3" placeholder="Ada permintaan khusus?"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Metode Pembayaran</label>
-                        <select class="form-control" required>
-                            <option value="">Pilih metode pembayaran</option>
-                            <option value="credit">Kartu Kredit</option>
-                            <option value="debit">Kartu Debit</option>
-                            <option value="cash">Tunai</option>
-                            <option value="transfer">Transfer Bank</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelBooking">Batal</button>
-                <button class="btn btn-primary" id="saveBooking">Simpan Pemesanan</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- View Booking Modal -->
-    <div class="modal" id="viewBookingModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Detail Pemesanan</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body" id="bookingDetails">
-                <!-- Booking details will be filled by JavaScript -->
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="closeViewModal">Tutup</button>
-            </div>
-        </div>
-    </div>
-    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Modal elements
-            const addBookingModal = document.getElementById('addBookingModal');
-            const viewBookingModal = document.getElementById('viewBookingModal');
-            const bookingForm = document.getElementById('bookingForm');
-            
-            // Buttons to open modals
-            const addBookingBtn = document.getElementById('addBookingBtn');
-            const viewButtons = document.querySelectorAll('.view-btn');
-            const editButtons = document.querySelectorAll('.edit-btn');
-            
-            // Buttons to close modals
-            const modalCloses = document.querySelectorAll('.modal-close');
-            const cancelBooking = document.getElementById('cancelBooking');
-            const closeViewModal = document.getElementById('closeViewModal');
-            
             // Calendar elements
             const calendarGrid = document.getElementById('calendarGrid');
             const prevMonthBtn = document.getElementById('prevMonth');
@@ -1306,102 +1123,6 @@
             
             // Current date
             let currentDate = new Date();
-            
-            // Open Add Booking Modal
-            addBookingBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                addBookingModal.style.display = 'flex';
-            });
-            
-            // Open View Booking Modal
-            viewButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const row = this.closest('tr');
-                    const guestName = row.querySelector('h4').textContent;
-                    const guestEmail = row.querySelector('p').textContent;
-                    const room = row.querySelector('td:nth-child(2)').textContent;
-                    const checkIn = row.querySelector('td:nth-child(3)').textContent;
-                    const checkOut = row.querySelector('td:nth-child(4)').textContent;
-                    const status = row.querySelector('.status').textContent;
-                    
-                    const bookingDetails = `
-                        <div class="form-group">
-                            <label class="form-label">Nama Tamu</label>
-                            <p>${guestName}</p>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <p>${guestEmail}</p>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Kamar</label>
-                            <p>${room}</p>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Check-In</label>
-                                <p>${checkIn}</p>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Check-Out</label>
-                                <p>${checkOut}</p>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status</label>
-                            <p>${status}</p>
-                        </div>
-                    `;
-                    
-                    document.getElementById('bookingDetails').innerHTML = bookingDetails;
-                    viewBookingModal.style.display = 'flex';
-                });
-            });
-            
-            // Open Edit Booking Modal (same as Add but with filled data)
-            editButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const row = this.closest('tr');
-                    const guestName = row.querySelector('h4').textContent;
-                    
-                    // In a real app, you would fill the form with existing data
-                    alert(`Fitur edit pemesanan untuk ${guestName} sedang dalam pengembangan`);
-                });
-            });
-            
-            // Close modals
-            function closeAllModals() {
-                addBookingModal.style.display = 'none';
-                viewBookingModal.style.display = 'none';
-            }
-            
-            modalCloses.forEach(closeBtn => {
-                closeBtn.addEventListener('click', closeAllModals);
-            });
-            
-            cancelBooking.addEventListener('click', closeAllModals);
-            closeViewModal.addEventListener('click', closeAllModals);
-            
-            // Close modal when clicking outside
-            window.addEventListener('click', function(event) {
-                if (event.target === addBookingModal || event.target === viewBookingModal) {
-                    closeAllModals();
-                }
-            });
-            
-            // Save booking
-            document.getElementById('saveBooking').addEventListener('click', function(e) {
-                e.preventDefault();
-                if (bookingForm.checkValidity()) {
-                    alert('Pemesanan berhasil disimpan! (Fitur simulasi)');
-                    closeAllModals();
-                    bookingForm.reset();
-                } else {
-                    alert('Harap isi semua field yang wajib diisi!');
-                }
-            });
             
             // Calendar functionality
             function renderCalendar(date) {
@@ -1516,26 +1237,6 @@
                 renderCalendar(currentDate);
             });
             
-            // Sidebar menu functionality
-            const menuItems = document.querySelectorAll('.menu-item');
-            menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove active class from all items
-                    menuItems.forEach(i => i.classList.remove('active'));
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Show message for non-dashboard items
-                    if (!this.querySelector('i').classList.contains('fa-home')) {
-                        const menuText = this.querySelector('span').textContent;
-                        alert(`Fitur ${menuText} sedang dalam pengembangan`);
-                    }
-                });
-            });
-            
             // Notification click
             document.querySelector('.notification').addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1554,19 +1255,6 @@
                     e.preventDefault();
                     alert(`Fitur pencarian: "${this.value}" sedang dalam pengembangan`);
                 }
-            });
-            
-            // Handle all other links
-            document.querySelectorAll('a[href="#"]').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    if (!this.id) { // Skip links with IDs (like addBookingBtn)
-                        e.preventDefault();
-                        const text = this.textContent.trim();
-                        if (text && text !== "Lihat Semua" && text !== "Detail") {
-                            alert(`Fitur ${text} sedang dalam pengembangan`);
-                        }
-                    }
-                });
             });
         });
     </script>
