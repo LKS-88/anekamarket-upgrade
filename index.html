@@ -170,14 +170,21 @@
             .ticket-card {
                 page-break-inside: avoid;
                 margin: 10px 0;
-                width: 48%;
-                display: inline-block;
+                width: 100%;
+                display: block;
                 box-sizing: border-box;
             }
             
+            .receipt-print {
+                width: 100%;
+                max-width: 100%;
+                padding: 10px;
+                font-size: 12px;
+            }
+            
             @page {
-                size: F4;
-                margin: 10mm;
+                size: auto;
+                margin: 5mm;
             }
         }
         
@@ -1691,7 +1698,7 @@
                 this.addEventListener('reportType', 'change', (e) => {
                     if (e.target.value === 'custom') {
                         document.getElementById('reportDateContainer').classList.add('d-none');
-			                        document.getElementById('reportDateRangeContainer').classList.remove('d-none');
+                        document.getElementById('reportDateRangeContainer').classList.remove('d-none');
                     } else {
                         document.getElementById('reportDateContainer').classList.remove('d-none');
                         document.getElementById('reportDateRangeContainer').classList.add('d-none');
@@ -1953,19 +1960,19 @@
                 });
 
                 // Add user form
-                this.addEventListener('addUserForm', 'submit', (e) => {
+                this.addEventListener('saveNewUserBtn', 'click', (e) => {
                     e.preventDefault();
                     this.addUser();
                 });
 
                 // Edit user form
-                this.addEventListener('editUserForm', 'submit', (e) => {
+                this.addEventListener('saveEditUserBtn', 'click', (e) => {
                     e.preventDefault();
                     this.editUser();
                 });
 
                 // Change password form
-                this.addEventListener('changePasswordForm', 'submit', (e) => {
+                this.addEventListener('savePasswordBtn', 'click', (e) => {
                     e.preventDefault();
                     this.changePassword();
                 });
@@ -2172,9 +2179,46 @@
             }
 
             printAllTickets() {
-                // In a real app, this would print all generated tickets
-                // For demo, we'll just show a message
-                this.showToast('Info', 'Fitur cetak tiket akan membuka dialog print', 'info');
+                // Create a new window for printing
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Cetak Tiket</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; }
+                                .ticket-card {
+                                    border: 1px solid #ddd;
+                                    border-radius: 10px;
+                                    padding: 20px;
+                                    margin-bottom: 20px;
+                                    page-break-inside: avoid;
+                                    width: 100%;
+                                }
+                                .ticket-code {
+                                    font-family: 'Courier New', monospace;
+                                    font-size: 1.5rem;
+                                    font-weight: bold;
+                                    color: #1a237e;
+                                }
+                                @page { size: auto; margin: 5mm; }
+                            </style>
+                        </head>
+                        <body>
+                            <h2>Daftar Tiket</h2>
+                            ${document.getElementById('generatedTicketsContainer').innerHTML}
+                            <script>
+                                window.onload = function() {
+                                    window.print();
+                                    setTimeout(function() {
+                                        window.close();
+                                    }, 1000);
+                                };
+                            </script>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
             }
 
             loadTicketStock() {
@@ -2552,14 +2596,14 @@
 
                 // Format receipt
                 const receipt = `
-                    <div class="receipt-header">
+                    <div class="receipt-header receipt-print">
                         ${this.settings.venueLogo ? `<img src="${this.settings.venueLogo}" class="receipt-logo mb-2">` : ''}
                         <div class="receipt-title">${this.settings.venueName || 'TourTicket Pro'}</div>
                         <div class="receipt-subtitle">${this.settings.venueLocation || ''}</div>
                         <div class="receipt-transaction-id">${transaction.transactionId}</div>
                     </div>
                     
-                    <table class="receipt-items">
+                    <table class="receipt-items receipt-print">
                         <thead>
                             <tr>
                                 <th>Tiket</th>
@@ -2578,7 +2622,7 @@
                         </tbody>
                     </table>
                     
-                    <table class="receipt-totals">
+                    <table class="receipt-totals receipt-print">
                         <tr>
                             <td>Subtotal:</td>
                             <td class="text-right">${this.formatCurrency(transaction.subtotal)}</td>
@@ -2603,7 +2647,7 @@
                         </tr>
                     </table>
                     
-                    <div class="receipt-footer">
+                    <div class="receipt-footer receipt-print">
                         <p>${this.formatDateTime(transaction.date)}</p>
                         <p>Kasir: ${transaction.cashier}</p>
                         ${this.settings.enableReceiptFooter !== false ? `<p>${this.settings.receiptFooterText || ''}</p>` : ''}
@@ -2619,11 +2663,9 @@
 
                 // If printAfterView is true, print after modal is shown
                 if (printAfterView) {
-                    document.getElementById('printTransactionBtn').addEventListener('click', function printAndClose() {
+                    setTimeout(() => {
                         window.print();
-                        modal.hide();
-                        this.removeEventListener('click', printAndClose);
-                    }, { once: true });
+                    }, 500);
                 }
             }
 
@@ -2790,11 +2832,11 @@
                     tableBody.appendChild(row);
                 });
 
-                // Add event listeners to buttons
+		                // Add event listeners to buttons
                 document.querySelectorAll('.edit-user-btn').forEach(btn => {
                     this.addEventListenerToElement(btn, 'click', (e) => {
                         const userId = e.target.closest('button').dataset.id;
-                        this.editUserForm(userId);
+                        this.editUserModal(userId);
                     });
                 });
 
@@ -2804,33 +2846,23 @@
                         this.deleteUser(userId);
                     });
                 });
-
-                // Populate user filter dropdowns
-                this.populateUserFilters();
             }
 
-            populateUserFilters() {
-                // Populate user filter in transactions section
-                const transactionUserFilter = document.getElementById('transactionFilterUser');
-                transactionUserFilter.innerHTML = '<option value="all">Semua</option>';
-                
-                this.users.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.username;
-                    option.textContent = user.username;
-                    transactionUserFilter.appendChild(option);
-                });
+            editUserModal(userId) {
+                const user = this.users.find(u => u.id === userId);
+                if (!user) return;
 
-                // Populate user filter in reports section
-                const reportUserFilter = document.getElementById('reportUser');
-                reportUserFilter.innerHTML = '<option value="all">Semua</option>';
-                
-                this.users.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.username;
-                    option.textContent = user.username;
-                    reportUserFilter.appendChild(option);
-                });
+                // Populate edit form
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUsername').value = user.username;
+                document.getElementById('editFullName').value = user.fullName;
+                document.getElementById('editUserRole').value = user.role;
+                document.getElementById('editUserStatus').value = user.status;
+                document.getElementById('editUserPassword').value = '';
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                modal.show();
             }
 
             addUser() {
@@ -2840,7 +2872,7 @@
                 const password = document.getElementById('newUserPassword').value;
                 const confirmPassword = document.getElementById('confirmUserPassword').value;
 
-                // Validate
+                // Validation
                 if (password !== confirmPassword) {
                     this.showToast('Error', 'Password tidak cocok', 'danger');
                     return;
@@ -2863,47 +2895,21 @@
                     createdAt: new Date().toISOString()
                 };
 
-                // Add to users array
+                // Add to users
                 this.users.push(newUser);
-
-                // Save data
                 this.saveData();
 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
                 modal.hide();
 
-                // Reset form
-                document.getElementById('addUserForm').reset();
-
-                // Reload users table
+                // Reload users
                 this.loadUsers();
 
                 // Add activity
                 this.addActivity(`Added new user ${username}`);
 
                 this.showToast('Success', 'Pengguna berhasil ditambahkan', 'success');
-            }
-
-            editUserForm(userId) {
-                const user = this.users.find(u => u.id === userId);
-
-                if (!user) {
-                    this.showToast('Error', 'Pengguna tidak ditemukan', 'danger');
-                    return;
-                }
-
-                // Populate form
-                document.getElementById('editUserId').value = user.id;
-                document.getElementById('editUsername').value = user.username;
-                document.getElementById('editFullName').value = user.fullName;
-                document.getElementById('editUserRole').value = user.role;
-                document.getElementById('editUserStatus').value = user.status;
-                document.getElementById('editUserPassword').value = '';
-
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                modal.show();
             }
 
             editUser() {
@@ -2915,11 +2921,7 @@
 
                 // Find user
                 const userIndex = this.users.findIndex(u => u.id === userId);
-
-                if (userIndex === -1) {
-                    this.showToast('Error', 'Pengguna tidak ditemukan', 'danger');
-                    return;
-                }
+                if (userIndex === -1) return;
 
                 // Update user
                 this.users[userIndex].fullName = fullName;
@@ -2931,17 +2933,13 @@
                     this.users[userIndex].password = this.hashPassword(newPassword);
                 }
 
-                // Save data
                 this.saveData();
 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
                 modal.hide();
 
-                // Reset form
-                document.getElementById('editUserForm').reset();
-
-                // Reload users table
+                // Reload users
                 this.loadUsers();
 
                 // Add activity
@@ -2951,18 +2949,12 @@
             }
 
             deleteUser(userId) {
-                // Prevent deleting the default admin user
-                if (userId === 1) {
-                    this.showToast('Error', 'Tidak dapat menghapus admin utama', 'danger');
-                    return;
-                }
+                // Prevent deleting admin user
+                if (userId === 1) return;
 
+                // Find user
                 const user = this.users.find(u => u.id === userId);
-
-                if (!user) {
-                    this.showToast('Error', 'Pengguna tidak ditemukan', 'danger');
-                    return;
-                }
+                if (!user) return;
 
                 this.showConfirmation(
                     'Hapus Pengguna',
@@ -2970,11 +2962,9 @@
                     () => {
                         // Remove user
                         this.users = this.users.filter(u => u.id !== userId);
-
-                        // Save data
                         this.saveData();
 
-                        // Reload users table
+                        // Reload users
                         this.loadUsers();
 
                         // Add activity
@@ -2990,7 +2980,7 @@
                 const newPassword = document.getElementById('newPassword').value;
                 const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
-                // Validate
+                // Validation
                 if (this.hashPassword(currentPassword) !== this.currentUser.password) {
                     this.showToast('Error', 'Password saat ini salah', 'danger');
                     return;
@@ -3001,38 +2991,28 @@
                     return;
                 }
 
-                // Find user
-                const userIndex = this.users.findIndex(u => u.username === this.currentUser.username);
-
-                if (userIndex === -1) {
-                    this.showToast('Error', 'Pengguna tidak ditemukan', 'danger');
-                    return;
-                }
-
                 // Update password
-                this.users[userIndex].password = this.hashPassword(newPassword);
+                const userIndex = this.users.findIndex(u => u.id === this.currentUser.id);
+                if (userIndex !== -1) {
+                    this.users[userIndex].password = this.hashPassword(newPassword);
+                    this.saveData();
 
-                // Update current user
-                this.currentUser.password = this.hashPassword(newPassword);
-
-                // Save data
-                this.saveData();
+                    // Update current user
+                    this.currentUser = this.users[userIndex];
+                    localStorage.setItem('loggedInUser', JSON.stringify(this.currentUser));
+                }
 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
                 modal.hide();
 
-                // Reset form
-                document.getElementById('changePasswordForm').reset();
-
                 // Add activity
-                this.addActivity(`Changed password`);
+                this.addActivity('Changed password');
 
                 this.showToast('Success', 'Password berhasil diubah', 'success');
             }
 
             saveVenueInfo() {
-                // Get form values
                 const venueName = document.getElementById('venueName').value;
                 const venueLocation = document.getElementById('venueLocation').value;
                 const venueDescription = document.getElementById('venueDescription').value;
@@ -3044,22 +3024,20 @@
                 this.settings.venueDescription = venueDescription;
                 this.settings.venueLogo = venueLogo;
 
-                // Save data
                 this.saveData();
 
                 // Add activity
-                this.addActivity(`Updated venue information`);
+                this.addActivity('Updated venue information');
 
                 this.showToast('Success', 'Informasi tempat wisata berhasil disimpan', 'success');
             }
 
             saveSystemSettings() {
-                // Get form values
                 const currency = document.getElementById('currency').value;
                 const dateFormat = document.getElementById('dateFormat').value;
                 const timeFormat = document.getElementById('timeFormat').value;
                 const enableTax = document.getElementById('enableTax').checked;
-                const taxRate = parseFloat(document.getElementById('taxRate').value);
+                const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
                 const taxName = document.getElementById('taxName').value;
                 const enableReceiptFooter = document.getElementById('enableReceiptFooter').checked;
                 const receiptFooterText = document.getElementById('receiptFooterText').value;
@@ -3074,57 +3052,53 @@
                 this.settings.enableReceiptFooter = enableReceiptFooter;
                 this.settings.receiptFooterText = receiptFooterText;
 
-                // Save data
                 this.saveData();
-
-                // Update date format for display
                 this.setDateFormat();
 
                 // Add activity
-                this.addActivity(`Updated system settings`);
+                this.addActivity('Updated system settings');
 
                 this.showToast('Success', 'Pengaturan sistem berhasil disimpan', 'success');
             }
 
-            setDateFormat() {
-                // Set date format based on settings
-                this.dateFormat = this.settings.dateFormat || 'DD-MM-YYYY';
-            }
-
             createBackup() {
-                const fileName = document.getElementById('backupFileName').value || 'TourTicketPro_Backup';
-                const password = document.getElementById('backupPassword').value;
+                const backupName = document.getElementById('backupFileName').value || 'TourTicketPro_Backup';
+                const backupPassword = document.getElementById('backupPassword').value;
 
-                // Get all data
-                const data = {
-                    settings: this.settings,
-                    users: this.users,
-                    tickets: this.tickets,
-                    transactions: this.transactions,
-                    activities: this.activities
+                // Create backup data
+                const backupData = {
+                    version: '1.0',
+                    date: new Date().toISOString(),
+                    data: {
+                        settings: this.settings,
+                        users: this.users,
+                        tickets: this.tickets,
+                        transactions: this.transactions,
+                        activities: this.activities
+                    }
                 };
 
                 // Convert to JSON
-                let backupData = JSON.stringify(data);
+                let backupContent = JSON.stringify(backupData);
 
-                // Simple encryption if password is provided
-                if (password) {
-                    backupData = this.simpleEncrypt(backupData, password);
+                // Simple encryption if password provided
+                if (backupPassword) {
+                    backupContent = this.encryptData(backupContent, backupPassword);
                 }
 
-                // Create blob and download
-                const blob = new Blob([backupData], { type: 'application/json' });
+                // Create download link
+                const blob = new Blob([backupContent], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${fileName}_${new Date().toISOString().split('T')[0]}.json`;
+                a.download = `${backupName}_${new Date().toISOString().split('T')[0]}.ttbackup`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
                 // Add activity
-                this.addActivity(`Created system backup`);
+                this.addActivity('Created system backup');
 
                 this.showToast('Success', 'Backup berhasil dibuat', 'success');
             }
@@ -3133,7 +3107,7 @@
                 const fileInput = document.getElementById('restoreFile');
                 const password = document.getElementById('restorePassword').value;
 
-                if (!fileInput.files || fileInput.files.length === 0) {
+                if (fileInput.files.length === 0) {
                     this.showToast('Error', 'Pilih file backup terlebih dahulu', 'danger');
                     return;
                 }
@@ -3143,58 +3117,46 @@
 
                 reader.onload = (e) => {
                     try {
-                        let backupData = e.target.result;
+                        let backupContent = e.target.result;
 
-                        // Decrypt if password is provided
+                        // Try to decrypt if password provided
                         if (password) {
-                            backupData = this.simpleDecrypt(backupData, password);
+                            backupContent = this.decryptData(backupContent, password);
                         }
 
-                        // Parse JSON
-                        const data = JSON.parse(backupData);
+                        const backupData = JSON.parse(backupContent);
 
-                        // Validate data structure
-                        if (!data.settings || !data.users || !data.tickets || !data.transactions || !data.activities) {
-                            throw new Error('Format backup tidak valid');
+                        // Validate backup
+                        if (!backupData.data || !backupData.data.settings || !backupData.data.users) {
+                            throw new Error('Invalid backup file');
                         }
 
                         // Show confirmation
                         this.showConfirmation(
                             'Restore Data',
-                            'Apakah Anda yakin ingin merestore data? Semua data saat ini akan diganti dengan data dari backup.',
+                            'Apakah Anda yakin ingin memulihkan data dari backup? Semua data saat ini akan diganti.',
                             () => {
                                 // Restore data
-                                this.settings = data.settings;
-                                this.users = data.users;
-                                this.tickets = data.tickets;
-                                this.transactions = data.transactions;
-                                this.activities = data.activities;
+                                this.settings = backupData.data.settings;
+                                this.users = backupData.data.users;
+                                this.tickets = backupData.data.tickets || [];
+                                this.transactions = backupData.data.transactions || [];
+                                this.activities = backupData.data.activities || [];
 
-                                // Save to localStorage
                                 this.saveData();
-
-                                // Reload UI
                                 this.loadData();
                                 this.loadSettingsIntoForm();
-                                this.loadDashboardData();
-                                this.loadTicketStock();
-                                this.loadTransactions();
-                                this.loadUsers();
 
                                 // Add activity
-                                this.addActivity(`Restored system from backup`);
+                                this.addActivity('Restored system from backup');
 
-                                this.showToast('Success', 'Data berhasil direstore', 'success');
+                                this.showToast('Success', 'Data berhasil dipulihkan dari backup', 'success');
                             }
                         );
                     } catch (error) {
-                        console.error('Restore error:', error);
-                        this.showToast('Error', 'Gagal memproses file backup. Pastikan password benar jika file dienkripsi.', 'danger');
+                        console.error(error);
+                        this.showToast('Error', 'Gagal memulihkan backup. File tidak valid atau password salah.', 'danger');
                     }
-                };
-
-                reader.onerror = () => {
-                    this.showToast('Error', 'Gagal membaca file', 'danger');
                 };
 
                 reader.readAsText(file);
@@ -3212,72 +3174,30 @@
 
                 this.showConfirmation(
                     'Reset Sistem',
-                    'Apakah Anda yakin ingin mereset sistem? SEMUA DATA AKAN DIHAPUS dan sistem akan dikembalikan ke pengaturan awal.',
+                    'Apakah Anda yakin ingin mereset sistem? Semua data akan dihapus dan sistem akan dikembalikan ke pengaturan awal.',
                     () => {
-                        // Clear all data except the admin user
-                        const initialData = {
-                            settings: {
-                                venueName: 'Tempat Wisata Contoh',
-                                venueLocation: 'Jl. Contoh No. 123, Kota Contoh',
-                                venueDescription: 'Tempat wisata keluarga dengan berbagai wahana menarik',
-                                venueLogo: 'https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png',
-                                currency: 'IDR',
-                                dateFormat: 'DD-MM-YYYY',
-                                timeFormat: '24',
-                                enableTax: false,
-                                taxRate: 10,
-                                taxName: 'PPN',
-                                enableReceiptFooter: true,
-                                receiptFooterText: 'Terima kasih telah berkunjung!'
-                            },
-                            users: [
-                                {
-                                    id: 1,
-                                    username: 'admin',
-                                    password: adminUser.password, // Keep the same password
-                                    fullName: 'Administrator',
-                                    role: 'admin',
-                                    status: 'active',
-                                    lastLogin: null,
-                                    createdAt: new Date().toISOString()
-                                }
-                            ],
-                            tickets: [],
-                            transactions: [],
-                            activities: []
-                        };
-
-                        // Save initial data
-                        localStorage.setItem('ticketSalesData', JSON.stringify(initialData));
-
-                        // Reload data
+                        // Reset system
+                        localStorage.removeItem('ticketSalesData');
+                        this.initData();
                         this.loadData();
 
-                        // Logout current user
-                        this.handleLogout();
+                        // Clear current user
+                        this.currentUser = null;
+                        localStorage.removeItem('loggedInUser');
 
-                        // Add activity
-                        this.addActivity(`System was reset to factory settings`);
+                        // Show login modal
+                        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'), {
+                            backdrop: 'static',
+                            keyboard: false
+                        });
+                        loginModal.show();
+
+                        // Reset forms
+                        document.getElementById('loginForm').reset();
 
                         this.showToast('Success', 'Sistem berhasil direset', 'success');
                     }
                 );
-            }
-
-            simpleEncrypt(text, password) {
-                // Simple encryption for demo purposes
-                // In a real app, use proper encryption like AES
-                let result = '';
-                for (let i = 0; i < text.length; i++) {
-                    const charCode = text.charCodeAt(i) ^ password.charCodeAt(i % password.length);
-                    result += String.fromCharCode(charCode);
-                }
-                return result;
-            }
-
-            simpleDecrypt(text, password) {
-                // Same as encryption since XOR is reversible
-                return this.simpleEncrypt(text, password);
             }
 
             generateReport() {
@@ -3289,142 +3209,142 @@
                 const user = document.getElementById('reportUser').value;
                 const paymentMethod = document.getElementById('reportPaymentMethod').value;
 
-                // Determine date range based on report type
-                let startDate, endDate;
-
-                if (reportType === 'custom') {
-                    startDate = dateFrom;
-                    endDate = dateTo;
-                } else {
-                    const today = new Date();
-                    
-                    if (reportType === 'daily') {
-                        startDate = endDate = date || today.toISOString().split('T')[0];
-                    } else if (reportType === 'weekly') {
-                        // Start from Monday of current week
-                        const day = today.getDay();
-                        const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
-                        const monday = new Date(today.setDate(diff));
-                        startDate = monday.toISOString().split('T')[0];
-                        endDate = today.toISOString().split('T')[0];
-                    } else if (reportType === 'monthly') {
-                        // First day of current month
-                        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-                        startDate = firstDay.toISOString().split('T')[0];
-                        endDate = today.toISOString().split('T')[0];
-                    } else if (reportType === 'yearly') {
-                        // First day of current year
-                        const firstDay = new Date(today.getFullYear(), 0, 1);
-                        startDate = firstDay.toISOString().split('T')[0];
-                        endDate = today.toISOString().split('T')[0];
-                    }
-                }
-
                 // Filter transactions
                 let filteredTransactions = [...this.transactions];
 
-                // Filter by date range
-                if (startDate) {
-                    filteredTransactions = filteredTransactions.filter(t => t.date.split('T')[0] >= startDate);
+                // Apply date filter
+                if (reportType === 'custom') {
+                    if (dateFrom && dateTo) {
+                        filteredTransactions = filteredTransactions.filter(t => 
+                            t.date.split('T')[0] >= dateFrom && t.date.split('T')[0] <= dateTo
+                        );
+                    }
+                } else {
+                    let startDate, endDate = new Date().toISOString().split('T')[0];
+
+                    if (reportType === 'daily') {
+                        startDate = endDate;
+                    } else if (reportType === 'weekly') {
+                        const date = new Date();
+                        date.setDate(date.getDate() - 6);
+                        startDate = date.toISOString().split('T')[0];
+                    } else if (reportType === 'monthly') {
+                        const date = new Date();
+                        date.setMonth(date.getMonth() - 1);
+                        startDate = date.toISOString().split('T')[0];
+                    } else if (reportType === 'yearly') {
+                        const date = new Date();
+                        date.setFullYear(date.getFullYear() - 1);
+                        startDate = date.toISOString().split('T')[0];
+                    }
+
+                    filteredTransactions = filteredTransactions.filter(t => 
+                        t.date.split('T')[0] >= startDate && t.date.split('T')[0] <= endDate
+                    );
                 }
 
-                if (endDate) {
-                    filteredTransactions = filteredTransactions.filter(t => t.date.split('T')[0] <= endDate);
-                }
-
-                // Filter by ticket type
+                // Apply other filters
                 if (ticketType !== 'all') {
                     filteredTransactions = filteredTransactions.filter(t => 
                         t.items.some(item => item.type === ticketType)
                     );
                 }
 
-                // Filter by user
                 if (user !== 'all') {
                     filteredTransactions = filteredTransactions.filter(t => t.cashier === user);
                 }
 
-                // Filter by payment method
                 if (paymentMethod !== 'all') {
                     filteredTransactions = filteredTransactions.filter(t => t.paymentMethod === paymentMethod);
                 }
 
-                // Calculate totals
+                // Calculate report data
                 const totalTransactions = filteredTransactions.length;
                 const totalTickets = filteredTransactions.reduce((sum, t) => sum + t.items.length, 0);
                 const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
 
-                // Group by date for chart
-                const dateGroups = {};
-                filteredTransactions.forEach(t => {
-                    const date = t.date.split('T')[0];
-                    if (!dateGroups[date]) {
-                        dateGroups[date] = {
-                            date: date,
-                            transactions: 0,
-                            tickets: 0,
-                            revenue: 0
-                        };
-                    }
-                    
-                    dateGroups[date].transactions++;
-                    dateGroups[date].tickets += t.items.length;
-                    dateGroups[date].revenue += t.total;
+                // Group by ticket type
+                const ticketsByType = {};
+                this.ticketTypes.forEach(type => {
+                    ticketsByType[type] = 0;
                 });
 
-                const sortedDates = Object.keys(dateGroups).sort();
-                const chartLabels = sortedDates.map(d => this.formatDate(d));
-                const chartData = sortedDates.map(d => dateGroups[d].revenue);
+                filteredTransactions.forEach(t => {
+                    t.items.forEach(item => {
+                        ticketsByType[item.type] = (ticketsByType[item.type] || 0) + 1;
+                    });
+                });
+
+                // Group by payment method
+                const revenueByMethod = {};
+                this.paymentMethods.forEach(method => {
+                    revenueByMethod[method] = 0;
+                });
+
+                filteredTransactions.forEach(t => {
+                    revenueByMethod[t.paymentMethod] += t.total;
+                });
 
                 // Generate report HTML
-                const reportHTML = `
-                    <div class="report-header mb-4">
-                        <h4>Laporan ${this.formatReportType(reportType)}</h4>
-                        <p class="mb-1"><strong>Periode:</strong> ${this.formatDate(startDate)} - ${this.formatDate(endDate)}</p>
-                        ${ticketType !== 'all' ? `<p class="mb-1"><strong>Jenis Tiket:</strong> ${this.formatTicketType(ticketType)}</p>` : ''}
-                        ${user !== 'all' ? `<p class="mb-1"><strong>Kasir:</strong> ${user}</p>` : ''}
-                        ${paymentMethod !== 'all' ? `<p class="mb-1"><strong>Metode Pembayaran:</strong> ${this.formatPaymentMethod(paymentMethod)}</p>` : ''}
+                let reportHTML = `
+                    <div class="report-header">
+                        <h4>Laporan Penjualan Tiket</h4>
+                        <p>Periode: ${reportType === 'custom' ? 
+                            `${this.formatDate(dateFrom)} - ${this.formatDate(dateTo)}` : 
+                            this.formatReportPeriod(reportType)}</p>
                     </div>
                     
-                    <div class="row mb-4">
+                    <div class="row mt-4">
                         <div class="col-md-4">
                             <div class="card">
-                                <div class="card-body text-center">
-                                    <h3>${totalTransactions}</h3>
-                                    <p class="mb-0">Total Transaksi</p>
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Ringkasan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table">
+                                        <tr>
+                                            <td>Total Transaksi</td>
+                                            <td>${totalTransactions}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Tiket Terjual</td>
+                                            <td>${totalTickets}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Pendapatan</td>
+                                            <td>${this.formatCurrency(totalRevenue)}</td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="col-md-4">
                             <div class="card">
-                                <div class="card-body text-center">
-                                    <h3>${totalTickets}</h3>
-                                    <p class="mb-0">Total Tiket Terjual</p>
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Tiket Terjual per Jenis</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="ticketsByTypeChart" height="250"></canvas>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="col-md-4">
                             <div class="card">
-                                <div class="card-body text-center">
-                                    <h3>${this.formatCurrency(totalRevenue)}</h3>
-                                    <p class="mb-0">Total Pendapatan</p>
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Pendapatan per Metode Pembayaran</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="revenueByMethodChart" height="250"></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="card mb-4">
+                    <div class="card mt-4">
                         <div class="card-header">
-                            <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Grafik Pendapatan Harian</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="reportChart" height="250"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0"><i class="fas fa-table me-2"></i>Detail Transaksi</h5>
+                            <h5 class="card-title mb-0">Detail Transaksi</h5>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -3457,18 +3377,29 @@
                     </div>
                 `;
 
-                // Display report
+                // Set report content
                 document.getElementById('reportResults').innerHTML = reportHTML;
 
-                // Create chart
-                const reportChartCanvas = document.getElementById('reportChart');
-                new Chart(reportChartCanvas, {
+                // Create charts
+                this.createTicketsByTypeChart(ticketsByType);
+                this.createRevenueByMethodChart(revenueByMethod);
+
+                // Add activity
+                this.addActivity(`Generated ${reportType} report`);
+
+                this.showToast('Success', 'Laporan berhasil digenerate', 'success');
+            }
+
+            createTicketsByTypeChart(data) {
+                const ctx = document.getElementById('ticketsByTypeChart').getContext('2d');
+                
+                const chart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: chartLabels,
+                        labels: Object.keys(data).map(type => this.formatTicketType(type)),
                         datasets: [{
-                            label: 'Pendapatan',
-                            data: chartData,
+                            label: 'Jumlah Tiket',
+                            data: Object.values(data),
                             backgroundColor: 'rgba(58, 83, 155, 0.7)',
                             borderColor: 'rgba(58, 83, 155, 1)',
                             borderWidth: 1
@@ -3476,24 +3407,50 @@
                     },
                     options: {
                         responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                this.activeCharts.push(chart);
+            }
+
+            createRevenueByMethodChart(data) {
+                const ctx = document.getElementById('revenueByMethodChart').getContext('2d');
+                
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(data).map(method => this.formatPaymentMethod(method)),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: [
+                                'rgba(58, 83, 155, 0.7)',
+                                'rgba(56, 142, 60, 0.7)',
+                                'rgba(25, 118, 210, 0.7)',
+                                'rgba(255, 160, 0, 0.7)',
+                                'rgba(211, 47, 47, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(58, 83, 155, 1)',
+                                'rgba(56, 142, 60, 1)',
+                                'rgba(25, 118, 210, 1)',
+                                'rgba(255, 160, 0, 1)',
+                                'rgba(211, 47, 47, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
                         plugins: {
-                            legend: {
-                                display: false
-                            },
                             tooltip: {
                                 callbacks: {
                                     label: (context) => {
-                                        return `Rp ${context.raw.toLocaleString('id-ID')}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: (value) => {
-                                        return `Rp ${value.toLocaleString('id-ID')}`;
+                                        return `${context.label}: ${this.formatCurrency(context.raw)}`;
                                     }
                                 }
                             }
@@ -3501,113 +3458,161 @@
                     }
                 });
 
-                // Add activity
-                this.addActivity(`Generated ${this.formatReportType(reportType)} report`);
+                this.activeCharts.push(chart);
             }
 
             printReport() {
-                // In a real app, this would print the report
-                // For demo, we'll just show a message
-                this.showToast('Info', 'Fitur cetak laporan akan membuka dialog print', 'info');
+                window.print();
             }
 
             exportReportToPDF() {
-                // In a real app, this would export the report to PDF using jsPDF
-                // For demo, we'll just show a message
-                this.showToast('Info', 'Fitur export PDF akan mengunduh laporan dalam format PDF', 'info');
+                // In a real app, you would use jsPDF to generate a PDF
+                this.showToast('Info', 'Fitur export PDF akan diimplementasikan', 'info');
             }
 
             exportStock() {
-                // In a real app, this would export stock data to CSV or Excel
-                // For demo, we'll just show a message
-                this.showToast('Info', 'Fitur export stok akan mengunduh data dalam format CSV', 'info');
+                const headers = ['Kode Tiket', 'Jenis', 'Harga', 'Status', 'Generate Pada', 'Kedaluwarsa'];
+                const data = this.tickets.map(ticket => [
+                    ticket.code,
+                    this.formatTicketType(ticket.type),
+                    this.formatCurrency(ticket.price),
+                    this.formatTicketStatus(ticket.status),
+                    this.formatDateTime(ticket.generatedAt),
+                    ticket.expiryDate ? this.formatDate(ticket.expiryDate) : '-'
+                ]);
+
+                this.exportToCSV('stok_tiket', headers, data);
             }
 
             exportTransactions() {
-                // In a real app, this would export transactions to CSV or Excel
-                // For demo, we'll just show a message
-                this.showToast('Info', 'Fitur export transaksi akan mengunduh data dalam format CSV', 'info');
+                const headers = ['ID Transaksi', 'Tanggal', 'Kasir', 'Jumlah Tiket', 'Total', 'Metode Pembayaran'];
+                const data = this.transactions.map(transaction => [
+                    transaction.transactionId,
+                    this.formatDateTime(transaction.date),
+                    transaction.cashier,
+                    transaction.items.length,
+                    this.formatCurrency(transaction.total),
+                    this.formatPaymentMethod(transaction.paymentMethod)
+                ]);
+
+                this.exportToCSV('riwayat_transaksi', headers, data);
             }
 
-            searchTickets(query) {
-                // Filter tickets by code
-                const filteredTickets = this.tickets.filter(t => 
-                    t.code.toLowerCase().includes(query.toLowerCase())
-                );
+            exportToCSV(filename, headers, data) {
+                let csvContent = headers.join(',') + '\n';
+                data.forEach(row => {
+                    csvContent += row.join(',') + '\n';
+                });
 
-                // Update table
-                this.displayFilteredTickets(filteredTickets);
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                this.showToast('Success', 'Data berhasil diexport', 'success');
             }
 
-            searchTransactions(query) {
-                // Filter transactions by ID or cashier
-                const filteredTransactions = this.transactions.filter(t => 
-                    t.transactionId.toLowerCase().includes(query.toLowerCase()) || 
-                    t.cashier.toLowerCase().includes(query.toLowerCase())
-                );
+            viewTicket(ticketId) {
+                const ticket = this.tickets.find(t => t.id === ticketId);
+                if (!ticket) return;
 
-                // Update table
-                this.displayFilteredTransactions(filteredTransactions);
+                // Format ticket content
+                const ticketContent = `
+                    <div class="ticket-card">
+                        <div class="ticket-watermark">${ticket.type.toUpperCase()}</div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="ticket-code">${ticket.code}</span>
+                            <span class="badge bg-primary">${this.formatTicketType(ticket.type)}</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Harga:</strong> ${this.formatCurrency(ticket.price)}</p>
+                                <p class="mb-1"><strong>Status:</strong> <span class="badge ${ticket.status === 'available' ? 'bg-success' : ticket.status === 'sold' ? 'bg-primary' : 'bg-danger'}">${this.formatTicketStatus(ticket.status)}</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Generate Pada:</strong> ${this.formatDateTime(ticket.generatedAt)}</p>
+                                ${ticket.expiryDate ? `<p class="mb-1"><strong>Kedaluwarsa:</strong> ${this.formatDate(ticket.expiryDate)}</p>` : ''}
+                                ${ticket.soldAt ? `<p class="mb-1"><strong>Terjual Pada:</strong> ${this.formatDateTime(ticket.soldAt)}</p>` : ''}
+                                ${ticket.transactionId ? `<p class="mb-1"><strong>ID Transaksi:</strong> ${this.transactions.find(t => t.id === ticket.transactionId)?.transactionId || ticket.transactionId}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Set modal content
+                document.getElementById('ticketModalContent').innerHTML = ticketContent;
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('viewTicketModal'));
+                modal.show();
             }
 
-            searchUsers(query) {
-                // Filter users by username or full name
-                const filteredUsers = this.users.filter(u => 
-                    u.username.toLowerCase().includes(query.toLowerCase()) || 
-                    u.fullName.toLowerCase().includes(query.toLowerCase())
-                );
-
-                // Update table
-                this.displayFilteredUsers(filteredUsers);
+            printCurrentTicket() {
+                // Print the currently viewed ticket
+                window.print();
             }
 
             searchAvailableTickets(query) {
-                // Filter available tickets by code
-                const availableTickets = this.tickets.filter(t => 
-                    t.status === 'available' && 
-                    t.code.toLowerCase().includes(query.toLowerCase())
-                );
-
-                // Show search results
                 const resultsContainer = document.getElementById('ticketSearchResults');
                 resultsContainer.innerHTML = '';
 
-                if (query.length === 0) {
+                if (!query || query.length < 2) {
                     resultsContainer.style.display = 'none';
                     return;
                 }
 
-                if (availableTickets.length === 0) {
-                    const noResults = document.createElement('div');
-                    noResults.className = 'search-result-item';
-                    noResults.textContent = 'Tidak ditemukan tiket yang tersedia';
-                    resultsContainer.appendChild(noResults);
-                } else {
-                    availableTickets.slice(0, 10).forEach(ticket => {
-                        const resultItem = document.createElement('div');
-                        resultItem.className = 'search-result-item';
-                        resultItem.innerHTML = `
-                            ${ticket.code} 
-                            <span class="badge bg-primary">${this.formatTicketType(ticket.type)}</span>
-                            <span class="float-end">${this.formatCurrency(ticket.price)}</span>
-                        `;
-                        resultItem.addEventListener('click', () => {
-                            this.addToCart(ticket.id);
-                            resultsContainer.style.display = 'none';
-                            document.getElementById('ticketSearchInput').value = '';
-                        });
-                        resultsContainer.appendChild(resultItem);
-                    });
+                // Search available tickets
+                const results = this.tickets.filter(ticket => 
+                    ticket.status === 'available' && 
+                    ticket.code.toLowerCase().includes(query.toLowerCase())
+                ).slice(0, 5); // Limit to 5 results
+
+                if (results.length === 0) {
+                    resultsContainer.innerHTML = '<div class="search-result-item">Tiket tidak ditemukan</div>';
+                    resultsContainer.style.display = 'block';
+                    return;
                 }
+
+                results.forEach(ticket => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item';
+                    item.innerHTML = `
+                        ${ticket.code} 
+                        <span class="badge bg-primary">${this.formatTicketType(ticket.type)}</span>
+                        <span class="badge bg-success">${this.formatCurrency(ticket.price)}</span>
+                    `;
+                    item.addEventListener('click', () => {
+                        this.addToCart(ticket.id);
+                        document.getElementById('ticketSearchInput').value = '';
+                        resultsContainer.style.display = 'none';
+                    });
+                    resultsContainer.appendChild(item);
+                });
 
                 resultsContainer.style.display = 'block';
             }
 
-            displayFilteredTickets(tickets) {
+            searchTickets(query) {
+                if (!query) {
+                    this.loadTicketStock();
+                    return;
+                }
+
+                // Filter tickets by code
+                const filteredTickets = this.tickets.filter(ticket => 
+                    ticket.code.toLowerCase().includes(query.toLowerCase())
+                );
+
+                // Update table
                 const tableBody = document.getElementById('stockTableBody');
                 tableBody.innerHTML = '';
 
-                tickets.forEach(ticket => {
+                filteredTickets.forEach(ticket => {
                     const row = document.createElement('tr');
                     
                     let statusBadge = '';
@@ -3657,11 +3662,23 @@
                 });
             }
 
-            displayFilteredTransactions(transactions) {
+            searchTransactions(query) {
+                if (!query) {
+                    this.loadTransactions();
+                    return;
+                }
+
+                // Filter transactions by ID or cashier
+                const filteredTransactions = this.transactions.filter(transaction => 
+                    transaction.transactionId.toLowerCase().includes(query.toLowerCase()) ||
+                    transaction.cashier.toLowerCase().includes(query.toLowerCase())
+                );
+
+                // Update table
                 const tableBody = document.getElementById('transactionsTableBody');
                 tableBody.innerHTML = '';
 
-                transactions.forEach(transaction => {
+                filteredTransactions.forEach(transaction => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${transaction.transactionId}</td>
@@ -3688,11 +3705,23 @@
                 });
             }
 
-            displayFilteredUsers(users) {
+            searchUsers(query) {
+                if (!query) {
+                    this.loadUsers();
+                    return;
+                }
+
+                // Filter users by username or full name
+                const filteredUsers = this.users.filter(user => 
+                    user.username.toLowerCase().includes(query.toLowerCase()) ||
+                    user.fullName.toLowerCase().includes(query.toLowerCase())
+                );
+
+                // Update table
                 const tableBody = document.getElementById('usersTableBody');
                 tableBody.innerHTML = '';
 
-                users.forEach(user => {
+                filteredUsers.forEach(user => {
                     let statusBadge = '';
                     if (user.status === 'active') {
                         statusBadge = 'bg-success';
@@ -3725,7 +3754,7 @@
                 document.querySelectorAll('.edit-user-btn').forEach(btn => {
                     this.addEventListenerToElement(btn, 'click', (e) => {
                         const userId = e.target.closest('button').dataset.id;
-                        this.editUserForm(userId);
+                        this.editUserModal(userId);
                     });
                 });
 
@@ -3737,71 +3766,19 @@
                 });
             }
 
-            viewTicket(ticketId) {
-                const ticket = this.tickets.find(t => t.id === ticketId);
-
-                if (!ticket) {
-                    this.showToast('Error', 'Tiket tidak ditemukan', 'danger');
-                    return;
-                }
-
-                // Format ticket for display
-                const ticketHTML = `
-                    <div class="ticket-card">
-                        <div class="ticket-watermark">${ticket.type.toUpperCase()}</div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="ticket-code">${ticket.code}</span>
-                            <span class="badge bg-primary">${this.formatTicketType(ticket.type)}</span>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <p class="mb-1"><strong>Harga:</strong> ${this.formatCurrency(ticket.price)}</p>
-                                <p class="mb-1"><strong>Status:</strong> <span class="badge ${ticket.status === 'available' ? 'bg-success' : ticket.status === 'sold' ? 'bg-primary' : 'bg-danger'}">${this.formatTicketStatus(ticket.status)}</span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="mb-1"><strong>Generate Pada:</strong> ${this.formatDateTime(ticket.generatedAt)}</p>
-                                ${ticket.expiryDate ? `<p class="mb-1"><strong>Kedaluwarsa:</strong> ${this.formatDate(ticket.expiryDate)}</p>` : ''}
-                            </div>
-                        </div>
-                        ${ticket.status === 'sold' ? `
-                        <div class="alert alert-info">
-                            <p class="mb-1"><strong>Terjual Pada:</strong> ${this.formatDateTime(ticket.soldAt)}</p>
-                            <p class="mb-0"><strong>ID Transaksi:</strong> ${ticket.transactionId}</p>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
-
-                // Set modal content
-                document.getElementById('ticketModalContent').innerHTML = ticketHTML;
-
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('viewTicketModal'));
-                modal.show();
-            }
-
-            printCurrentTicket() {
-                // Print the currently viewed ticket
-                window.print();
-            }
-
             showConfirmation(title, message, confirmCallback) {
-                // Set confirmation modal content
                 document.getElementById('confirmationModalTitle').textContent = title;
                 document.getElementById('confirmationModalBody').textContent = message;
-
-                // Show modal
+                
                 const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-
+                
                 // Set up confirm button
                 const confirmBtn = document.getElementById('confirmActionBtn');
-                const handler = () => {
+                confirmBtn.onclick = () => {
                     confirmCallback();
                     modal.hide();
-                    confirmBtn.removeEventListener('click', handler);
                 };
-
-                confirmBtn.addEventListener('click', handler, { once: true });
+                
                 modal.show();
             }
 
@@ -3810,70 +3787,94 @@
                 const toastTitle = document.getElementById('toastTitle');
                 const toastMessage = document.getElementById('toastMessage');
                 const toastTime = document.getElementById('toastTime');
-
+                
                 // Set toast content
                 toastTitle.textContent = title;
                 toastMessage.textContent = message;
-                toastTime.textContent = this.formatTime(new Date());
-
-                // Set toast color based on type
-                toast.classList.remove('bg-primary', 'bg-success', 'bg-warning', 'bg-danger');
-                switch(type) {
-                    case 'success':
-                        toast.classList.add('bg-success');
-                        break;
-                    case 'warning':
-                        toast.classList.add('bg-warning');
-                        break;
-                    case 'danger':
-                        toast.classList.add('bg-danger');
-                        break;
-                    default:
-                        toast.classList.add('bg-primary');
+                toastTime.textContent = new Date().toLocaleTimeString();
+                
+                // Set toast color
+                const toastHeader = toast.querySelector('.toast-header');
+                toastHeader.className = 'toast-header';
+                
+                if (type === 'success') {
+                    toastHeader.classList.add('bg-success', 'text-white');
+                } else if (type === 'danger') {
+                    toastHeader.classList.add('bg-danger', 'text-white');
+                } else if (type === 'warning') {
+                    toastHeader.classList.add('bg-warning', 'text-dark');
+                } else {
+                    toastHeader.classList.add('bg-primary', 'text-white');
                 }
-
+                
                 // Show toast
                 const bsToast = new bootstrap.Toast(toast);
                 bsToast.show();
             }
 
             addActivity(message) {
-                // Add new activity
-                this.activities.push({
+                const activity = {
                     id: this.generateId(),
                     message: message,
                     timestamp: new Date().toISOString(),
                     user: this.currentUser ? this.currentUser.username : 'System'
-                });
-
+                };
+                
+                this.activities.push(activity);
+                
                 // Keep only last 100 activities
                 if (this.activities.length > 100) {
                     this.activities.shift();
                 }
-
-                // Save data
+                
                 this.saveData();
             }
 
-            generateId() {
-                // Generate a unique ID
-                return Date.now().toString(36) + Math.random().toString(36).substring(2);
+            showLoading(show) {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                loadingOverlay.style.display = show ? 'flex' : 'none';
             }
 
             generateRandomString(length) {
-                // Generate random alphanumeric string
                 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
                 let result = '';
-                
                 for (let i = 0; i < length; i++) {
                     result += chars.charAt(Math.floor(Math.random() * chars.length));
                 }
-                
                 return result;
             }
 
+            generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            encryptData(data, password) {
+                // Simple encryption for demo purposes
+                // In a real app, use a proper encryption library
+                let result = '';
+                for (let i = 0; i < data.length; i++) {
+                    const charCode = data.charCodeAt(i) ^ password.charCodeAt(i % password.length);
+                    result += String.fromCharCode(charCode);
+                }
+                return btoa(result);
+            }
+
+            decryptData(data, password) {
+                // Simple decryption for demo purposes
+                try {
+                    data = atob(data);
+                    let result = '';
+                    for (let i = 0; i < data.length; i++) {
+                        const charCode = data.charCodeAt(i) ^ password.charCodeAt(i % password.length);
+                        result += String.fromCharCode(charCode);
+                    }
+                    return result;
+                } catch (e) {
+                    throw new Error('Invalid password or corrupted data');
+                }
+            }
+
             formatCurrency(amount) {
-                // Format currency based on settings
                 if (this.settings.currency === 'IDR') {
                     return 'Rp ' + amount.toLocaleString('id-ID');
                 } else if (this.settings.currency === 'USD') {
@@ -3883,105 +3884,133 @@
                 } else if (this.settings.currency === 'SGD') {
                     return 'S$' + amount.toLocaleString('en-SG');
                 }
-                
-                return amount.toLocaleString();
+                return amount.toString();
             }
 
             formatDate(dateString) {
-                // Format date based on settings
-                if (!dateString) return '-';
+                if (!dateString) return '';
                 
                 const date = new Date(dateString);
+                const format = this.settings.dateFormat || 'DD-MM-YYYY';
+                
                 const day = date.getDate().toString().padStart(2, '0');
                 const month = (date.getMonth() + 1).toString().padStart(2, '0');
                 const year = date.getFullYear();
                 
-                if (this.settings.dateFormat === 'DD-MM-YYYY') {
+                if (format === 'DD-MM-YYYY') {
                     return `${day}-${month}-${year}`;
-                } else if (this.settings.dateFormat === 'YYYY-MM-DD') {
+                } else if (format === 'YYYY-MM-DD') {
                     return `${year}-${month}-${day}`;
-                } else if (this.settings.dateFormat === 'MM/DD/YYYY') {
+                } else if (format === 'MM/DD/YYYY') {
                     return `${month}/${day}/${year}`;
                 }
                 
                 return date.toLocaleDateString();
             }
 
-            formatTime(date) {
-                // Format time based on settings
-                const hours = date.getHours().toString().padStart(2, '0');
-                const minutes = date.getMinutes().toString().padStart(2, '0');
-                
-                if (this.settings.timeFormat === '12') {
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const hours12 = hours % 12 || 12;
-                    return `${hours12}:${minutes} ${ampm}`;
-                }
-                
-                return `${hours}:${minutes}`;
-            }
-
             formatDateTime(dateTimeString) {
-                // Format date and time
-                if (!dateTimeString) return '-';
+                if (!dateTimeString) return '';
                 
                 const date = new Date(dateTimeString);
-                return `${this.formatDate(dateTimeString)} ${this.formatTime(date)}`;
+                const datePart = this.formatDate(dateTimeString);
+                
+                if (this.settings.timeFormat === '12') {
+                    let hours = date.getHours();
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12; // the hour '0' should be '12'
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    return `${datePart} ${hours}:${minutes} ${ampm}`;
+                } else {
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    return `${datePart} ${hours}:${minutes}`;
+                }
+            }
+
+            setDateFormat() {
+                // Set date picker format based on settings
+                const dateInputs = document.querySelectorAll('input[type="date"]');
+                dateInputs.forEach(input => {
+                    input.type = 'text';
+                    
+                    // Initialize with current date
+                    const today = new Date().toISOString().split('T')[0];
+                    input.value = this.formatDate(today);
+                    
+                    // Add datepicker functionality
+                    // In a real app, you would use a proper datepicker library
+                    input.addEventListener('focus', () => {
+                        input.type = 'date';
+                    });
+                    
+                    input.addEventListener('blur', () => {
+                        if (!input.value) {
+                            input.type = 'text';
+                        }
+                    });
+                });
             }
 
             formatTicketType(type) {
-                // Format ticket type for display
-                switch(type) {
-                    case 'regular': return 'Regular';
-                    case 'vip': return 'VIP';
-                    case 'family': return 'Family Package';
-                    case 'group': return 'Group';
-                    default: return type;
-                }
+                const types = {
+                    'regular': 'Regular',
+                    'vip': 'VIP',
+                    'family': 'Family Package',
+                    'group': 'Group'
+                };
+                return types[type] || type;
             }
 
             formatTicketStatus(status) {
-                // Format ticket status for display
-                switch(status) {
-                    case 'available': return 'Tersedia';
-                    case 'sold': return 'Terjual';
-                    case 'expired': return 'Kedaluwarsa';
-                    default: return status;
-                }
+                const statuses = {
+                    'available': 'Tersedia',
+                    'sold': 'Terjual',
+                    'expired': 'Kedaluwarsa'
+                };
+                return statuses[status] || status;
             }
 
             formatPaymentMethod(method) {
-                // Format payment method for display
-                switch(method) {
-                    case 'cash': return 'Tunai';
-                    case 'debit': return 'Kartu Debit';
-                    case 'credit': return 'Kartu Kredit';
-                    case 'transfer': return 'Transfer Bank';
-                    case 'ewallet': return 'E-Wallet';
-                    default: return method;
-                }
+                const methods = {
+                    'cash': 'Tunai',
+                    'debit': 'Kartu Debit',
+                    'credit': 'Kartu Kredit',
+                    'transfer': 'Transfer Bank',
+                    'ewallet': 'E-Wallet'
+                };
+                return methods[method] || method;
             }
 
             formatUserRole(role) {
-                // Format user role for display
-                switch(role) {
-                    case 'admin': return 'Admin';
-                    case 'cashier': return 'Kasir';
-                    case 'manager': return 'Manager';
-                    default: return role;
-                }
+                const roles = {
+                    'admin': 'Admin',
+                    'cashier': 'Kasir',
+                    'manager': 'Manager'
+                };
+                return roles[role] || role;
             }
 
-            formatReportType(type) {
-                // Format report type for display
-                switch(type) {
-                    case 'daily': return 'Harian';
-                    case 'weekly': return 'Mingguan';
-                    case 'monthly': return 'Bulanan';
-                    case 'yearly': return 'Tahunan';
-                    case 'custom': return 'Custom';
-                    default: return type;
+            formatReportPeriod(type) {
+                const today = new Date();
+                
+                if (type === 'daily') {
+                    return `Hari Ini (${this.formatDate(today.toISOString())})`;
+                } else if (type === 'weekly') {
+                    const startDate = new Date();
+                    startDate.setDate(today.getDate() - 6);
+                    return `Minggu Ini (${this.formatDate(startDate.toISOString())} - ${this.formatDate(today.toISOString())})`;
+                } else if (type === 'monthly') {
+                    const startDate = new Date();
+                    startDate.setMonth(today.getMonth() - 1);
+                    return `Bulan Ini (${this.formatDate(startDate.toISOString())} - ${this.formatDate(today.toISOString())})`;
+                } else if (type === 'yearly') {
+                    const startDate = new Date();
+                    startDate.setFullYear(today.getFullYear() - 1);
+                    return `Tahun Ini (${this.formatDate(startDate.toISOString())} - ${this.formatDate(today.toISOString())})`;
                 }
+                
+                return '';
             }
         }
     </script>
