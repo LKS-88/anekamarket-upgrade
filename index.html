@@ -2355,7 +2355,7 @@
                     
                     // Hide login modal
                     const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-                    loginModal.hide();
+                    if (loginModal) loginModal.hide();
                     
                     // Update UI
                     document.getElementById('currentUsername').textContent = user.username;
@@ -2728,17 +2728,9 @@
                 const originalContent = document.body.innerHTML;
                 document.body.innerHTML = `
                     <style>
-                        @page {
-                            size: F4;
-                            margin: 10mm;
-                        }
-                        .ticket-card {
-                            width: 48%;
-                            display: inline-block;
-                            margin: 5px;
-                            box-sizing: border-box;
-                            page-break-inside: avoid;
-                        }
+                        @page { size: F4; margin: 10mm; }
+                        body { font-family: Arial, sans-serif; }
+                        .ticket-card { width: 48%; display: inline-block; margin: 5px; box-sizing: border-box; page-break-inside: avoid; }
                     </style>
                     <div class="container mt-4">
                         <h2 class="text-center mb-4">Daftar Tiket</h2>
@@ -2808,7 +2800,7 @@
                                         ticket.status === 'sold' ? 'bg-primary' : 'bg-warning'}">
                                         ${ticket.status === 'available' ? 'Tersedia' : 
                                          ticket.status === 'sold' ? 'Terjual' : 'Kedaluwarsa'}
-                                    </span>
+                                                                    </span>
                                 </td>
                                 <td>${this.formatDateTime(ticket.generatedAt)}</td>
                                 <td>${ticket.expiryDate ? this.formatDate(ticket.expiryDate) : '-'}</td>
@@ -2821,29 +2813,61 @@
                             tableBody.appendChild(row);
                         });
 
-                        // Update pagination
-                        this.updatePagination('stockPagination', page, totalPages, (newPage) => {
-                            this.loadTicketStock(newPage, pageSize);
+                        // Render pagination
+                        const pagination = document.getElementById('stockPagination');
+                        pagination.innerHTML = '';
+
+                        if (totalPages > 1) {
+                            // Previous button
+                            const prevLi = document.createElement('li');
+                            prevLi.className = `page-item ${page === 1 ? 'disabled' : ''}`;
+                            prevLi.innerHTML = `
+                                <a class="page-link" href="#" aria-label="Previous" data-page="${page - 1}">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            `;
+                            pagination.appendChild(prevLi);
+
+                            // Page numbers
+                            for (let i = 1; i <= totalPages; i++) {
+                                const pageLi = document.createElement('li');
+                                pageLi.className = `page-item ${i === page ? 'active' : ''}`;
+                                pageLi.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                                pagination.appendChild(pageLi);
+                            }
+
+                            // Next button
+                            const nextLi = document.createElement('li');
+                            nextLi.className = `page-item ${page === totalPages ? 'disabled' : ''}`;
+                            nextLi.innerHTML = `
+                                <a class="page-link" href="#" aria-label="Next" data-page="${page + 1}">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            `;
+                            pagination.appendChild(nextLi);
+                        }
+
+                        // Add event listeners to pagination buttons
+                        document.querySelectorAll('#stockPagination .page-link').forEach(link => {
+                            link.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const pageNum = parseInt(link.getAttribute('data-page'));
+                                if (!isNaN(pageNum)) {
+                                    this.loadTicketStock(pageNum, pageSize);
+                                }
+                            });
                         });
 
-                        // Add event listeners to view buttons
+                        // Add event listeners to view ticket buttons
                         document.querySelectorAll('.view-ticket-btn').forEach(btn => {
-                            btn.addEventListener('click', () => {
+                            btn.addEventListener('click', (e) => {
                                 const ticketId = parseInt(btn.getAttribute('data-id'));
                                 this.viewTicketDetails(ticketId);
                             });
                         });
 
-                        // Update select all checkbox
-                        document.getElementById('selectAllTickets').checked = false;
+                        // Update selected tickets array
                         this.updateSelectedTickets();
-
-                        // Add event listeners to checkboxes
-                        document.querySelectorAll('.ticket-checkbox').forEach(checkbox => {
-                            checkbox.addEventListener('change', () => {
-                                this.updateSelectedTickets();
-                            });
-                        });
                     } catch (error) {
                         console.error('Error loading ticket stock:', error);
                         this.showToast('Error', 'Gagal memuat stok tiket', 'error');
@@ -2853,6 +2877,58 @@
                 }, 50);
             }
 
+            filterTickets(searchTerm) {
+                if (!searchTerm) {
+                    this.loadTicketStock();
+                    return;
+                }
+
+                const filteredTickets = this.tickets.filter(ticket => 
+                    ticket.code.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                const tableBody = document.getElementById('stockTableBody');
+                tableBody.innerHTML = '';
+
+                filteredTickets.forEach(ticket => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <input type="checkbox" class="form-check-input ticket-checkbox" data-id="${ticket.id}">
+                        </td>
+                        <td>${ticket.code}</td>
+                        <td>${ticket.type.charAt(0).toUpperCase() + ticket.type.slice(1)}</td>
+                        <td>${this.formatCurrency(ticket.price)}</td>
+                        <td>
+                            <span class="badge ${ticket.status === 'available' ? 'bg-success' : 
+                                ticket.status === 'sold' ? 'bg-primary' : 'bg-warning'}">
+                                ${ticket.status === 'available' ? 'Tersedia' : 
+                                 ticket.status === 'sold' ? 'Terjual' : 'Kedaluwarsa'}
+                            </span>
+                        </td>
+                        <td>${this.formatDateTime(ticket.generatedAt)}</td>
+                        <td>${ticket.expiryDate ? this.formatDate(ticket.expiryDate) : '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary view-ticket-btn" data-id="${ticket.id}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Add event listeners to view ticket buttons
+                document.querySelectorAll('.view-ticket-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const ticketId = parseInt(btn.getAttribute('data-id'));
+                        this.viewTicketDetails(ticketId);
+                    });
+                });
+
+                // Update pagination display
+                document.getElementById('stockPagination').innerHTML = '';
+            }
+
             updateSelectedTickets() {
                 this.selectedTickets = [];
                 document.querySelectorAll('.ticket-checkbox:checked').forEach(checkbox => {
@@ -2860,28 +2936,136 @@
                 });
             }
 
+            viewTicketDetails(ticketId) {
+                const ticket = this.tickets.find(t => t.id === ticketId);
+                if (!ticket) return;
+
+                const modalContent = document.getElementById('ticketModalContent');
+                modalContent.innerHTML = `
+                    <div class="ticket-card">
+                        <div class="ticket-watermark">${ticket.type.toUpperCase()}</div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">Tiket ${ticket.type.charAt(0).toUpperCase() + ticket.type.slice(1)}</h5>
+                            <span class="badge ${ticket.status === 'available' ? 'bg-success' : 
+                                ticket.status === 'sold' ? 'bg-primary' : 'bg-warning'}">
+                                ${ticket.status === 'available' ? 'Tersedia' : 
+                                 ticket.status === 'sold' ? 'Terjual' : 'Kedaluwarsa'}
+                            </span>
+                        </div>
+                        <div class="ticket-code mb-3">${ticket.code}</div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">Harga</small>
+                                <div>${this.formatCurrency(ticket.price)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Generate Pada</small>
+                                <div>${this.formatDateTime(ticket.generatedAt)}</div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">Kedaluwarsa</small>
+                                <div>${ticket.expiryDate ? this.formatDate(ticket.expiryDate) : 'Tidak ada'}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Status</small>
+                                <div>${ticket.status === 'available' ? 'Tersedia' : 
+                                      ticket.status === 'sold' ? 'Terjual' : 'Kedaluwarsa'}</div>
+                            </div>
+                        </div>
+                        ${ticket.status === 'sold' ? `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">Terjual Pada</small>
+                                <div>${this.formatDateTime(ticket.soldAt)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">ID Transaksi</small>
+                                <div>${ticket.transactionId || '-'}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Set print button event
+                document.getElementById('printTicketBtn').onclick = () => {
+                    this.printTicket(ticket);
+                };
+
+                const modal = new bootstrap.Modal(document.getElementById('viewTicketModal'));
+                modal.show();
+            }
+
+            printTicket(ticket) {
+                const printContent = `
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        .ticket-card { border: 1px solid #000; padding: 20px; max-width: 400px; margin: 0 auto; position: relative; }
+                        .ticket-watermark { position: absolute; opacity: 0.1; font-size: 80px; font-weight: bold; 
+                            transform: rotate(-30deg); top: 30%; left: 10%; z-index: 0; }
+                        .ticket-code { font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold; 
+                            text-align: center; margin: 15px 0; }
+                        .text-center { text-align: center; }
+                        .text-muted { color: #6c757d; }
+                        .badge { display: inline-block; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
+                        .bg-success { background-color: #28a745; color: white; }
+                    </style>
+                    <div class="ticket-card">
+                        <div class="ticket-watermark">${ticket.type.toUpperCase()}</div>
+                        <div class="text-center mb-3">
+                            <h4>${this.settings.venueName || 'Tempat Wisata'}</h4>
+                            <small>${this.settings.venueLocation || ''}</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">Tiket ${ticket.type.charAt(0).toUpperCase() + ticket.type.slice(1)}</h5>
+                            <span class="badge bg-success">${ticket.status === 'available' ? 'Tersedia' : 'Terjual'}</span>
+                        </div>
+                        <div class="ticket-code">${ticket.code}</div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">Harga</small>
+                                <div>${this.formatCurrency(ticket.price)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">Tanggal</small>
+                                <div>${this.formatDate(ticket.generatedAt)}</div>
+                            </div>
+                        </div>
+                        ${ticket.expiryDate ? `
+                        <div class="row">
+                            <div class="col-md-12">
+                                <small class="text-muted">Kedaluwarsa</small>
+                                <div>${this.formatDate(ticket.expiryDate)}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                const originalContent = document.body.innerHTML;
+                document.body.innerHTML = printContent;
+                window.print();
+                document.body.innerHTML = originalContent;
+
+                // Show message
+                this.showToast('Berhasil', 'Tiket berhasil dicetak', 'success');
+            }
+
             addSelectedTicketsToCart() {
                 if (this.selectedTickets.length === 0) {
-                    this.showToast('Peringatan', 'Pilih setidaknya satu tiket', 'warning');
+                    this.showToast('Peringatan', 'Tidak ada tiket yang dipilih', 'warning');
                     return;
                 }
 
-                // Filter available tickets only
-                const availableTickets = this.selectedTickets.filter(id => {
-                    const ticket = this.tickets.find(t => t.id === id);
-                    return ticket && ticket.status === 'available';
-                });
+                let addedCount = 0;
 
-                if (availableTickets.length === 0) {
-                    this.showToast('Peringatan', 'Tidak ada tiket tersedia yang dipilih', 'warning');
-                    return;
-                }
-
-                // Add to cart
-                availableTickets.forEach(id => {
-                    const ticket = this.tickets.find(t => t.id === id);
-                    if (ticket) {
-                        // Check if already in cart
+                this.selectedTickets.forEach(ticketId => {
+                    const ticket = this.tickets.find(t => t.id === ticketId);
+                    
+                    if (ticket && ticket.status === 'available') {
+                        // Check if ticket already in cart
                         if (!this.cart.some(item => item.id === ticket.id)) {
                             this.cart.push({
                                 id: ticket.id,
@@ -2889,72 +3073,167 @@
                                 type: ticket.type,
                                 price: ticket.price
                             });
+                            addedCount++;
                         }
                     }
                 });
 
-                // Update cart display
-                this.updateCart();
-
-                // Show success message
-                this.showToast('Berhasil', `${availableTickets.length} tiket ditambahkan ke keranjang`, 'success');
-
-                // Switch to sales section
-                this.showSection('salesSection');
-            }
-
-            viewTicketDetails(ticketId) {
-                const ticket = this.tickets.find(t => t.id === ticketId);
-                if (!ticket) {
-                    this.showToast('Error', 'Tiket tidak ditemukan', 'error');
-                    return;
+                if (addedCount > 0) {
+                    this.updateCartDisplay();
+                    this.showToast('Berhasil', `${addedCount} tiket ditambahkan ke keranjang`, 'success');
+                } else {
+                    this.showToast('Peringatan', 'Tidak ada tiket yang dapat ditambahkan', 'warning');
                 }
 
-                const modalContent = document.getElementById('ticketModalContent');
-                modalContent.innerHTML = this.createTicketElement(ticket);
-
-                const modal = new bootstrap.Modal(document.getElementById('viewTicketModal'));
-                modal.show();
-
-                // Add event listener to print button
-                document.getElementById('printTicketBtn').addEventListener('click', () => {
-                    this.printTicket(ticket);
+                // Uncheck all checkboxes
+                document.getElementById('selectAllTickets').checked = false;
+                document.querySelectorAll('.ticket-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
                 });
+                this.selectedTickets = [];
             }
 
-            printTicket(ticket) {
-                const printContent = this.createTicketElement(ticket).outerHTML;
-                const originalContent = document.body.innerHTML;
+            exportStock() {
+                const statusFilter = document.getElementById('filterStatus').value;
+                const typeFilter = document.getElementById('filterType').value;
+                const dateFilter = document.getElementById('filterDate').value;
                 
-                document.body.innerHTML = `
-                    <style>
-                        @page { size: auto; margin: 5mm; }
-                        body { font-family: Arial, sans-serif; }
-                        .ticket-card { width: 80mm; margin: 0 auto; }
-                    </style>
-                    ${printContent}
-                `;
+                // Filter tickets
+                let filteredTickets = [...this.tickets];
                 
-                window.print();
-                document.body.innerHTML = originalContent;
+                if (statusFilter !== 'all') {
+                    filteredTickets = filteredTickets.filter(t => t.status === statusFilter);
+                }
                 
-                this.showToast('Berhasil', 'Tiket berhasil dicetak', 'success');
+                if (typeFilter !== 'all') {
+                    filteredTickets = filteredTickets.filter(t => t.type === typeFilter);
+                }
+                
+                if (dateFilter) {
+                    filteredTickets = filteredTickets.filter(t => t.generatedAt.startsWith(dateFilter));
+                }
+
+                // Create CSV content
+                let csvContent = "Kode Tiket,Jenis,Harga,Status,Generate Pada,Kedaluwarsa\n";
+                
+                filteredTickets.forEach(ticket => {
+                    csvContent += `"${ticket.code}","${ticket.type}","${ticket.price}","${ticket.status}",` +
+                                 `"${this.formatDateTime(ticket.generatedAt)}","${ticket.expiryDate ? this.formatDate(ticket.expiryDate) : ''}"\n`;
+                });
+
+                // Create download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `stok_tiket_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Show message
+                this.showToast('Berhasil', `Data stok tiket berhasil diexport (${filteredTickets.length} items)`, 'success');
+
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} exported ticket stock data`);
+            }
+
+            clearStock() {
+                // Filter out sold tickets
+                this.tickets = this.tickets.filter(t => t.status === 'sold');
+                this.saveData();
+
+                // Reload ticket stock
+                this.loadTicketStock();
+
+                // Show message
+                this.showToast('Berhasil', 'Stok tiket yang tersedia berhasil dihapus', 'success');
+
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} cleared available ticket stock`);
+
+                // Update dashboard
+                this.loadDashboardData();
             }
 
             // Sales methods
-            resetCart() {
-                this.cart = [];
-                this.updateCart();
-                document.getElementById('ticketSearchInput').value = '';
-                document.getElementById('ticketSearchResults').style.display = 'none';
+            searchTickets(searchTerm) {
+                const resultsContainer = document.getElementById('ticketSearchResults');
+                resultsContainer.innerHTML = '';
+                
+                if (!searchTerm || searchTerm.length < 2) {
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+                
+                const filteredTickets = this.tickets.filter(ticket => 
+                    ticket.code.toLowerCase().includes(searchTerm.toLowerCase()) && 
+                    ticket.status === 'available'
+                );
+                
+                if (filteredTickets.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="search-result-item text-muted">
+                            Tidak ditemukan tiket dengan kode "${searchTerm}"
+                        </div>
+                    `;
+                    resultsContainer.style.display = 'block';
+                    return;
+                }
+                
+                filteredTickets.forEach(ticket => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                            <span>${ticket.code}</span>
+                            <span>
+                                <span class="badge bg-primary">${ticket.type}</span>
+                                <span>${this.formatCurrency(ticket.price)}</span>
+                            </span>
+                        </div>
+                    `;
+                    
+                    resultItem.addEventListener('click', () => {
+                        this.addTicketToCart(ticket);
+                        document.getElementById('ticketSearchInput').value = '';
+                        resultsContainer.style.display = 'none';
+                    });
+                    
+                    resultsContainer.appendChild(resultItem);
+                });
+                
+                resultsContainer.style.display = 'block';
             }
 
-            updateCart() {
-                const cartBody = document.getElementById('cartTableBody');
-                cartBody.innerHTML = '';
+            addTicketToCart(ticket) {
+                // Check if ticket already in cart
+                if (this.cart.some(item => item.id === ticket.id)) {
+                    this.showToast('Peringatan', 'Tiket sudah ada di keranjang', 'warning');
+                    return;
+                }
+                
+                // Add to cart
+                this.cart.push({
+                    id: ticket.id,
+                    code: ticket.code,
+                    type: ticket.type,
+                    price: ticket.price
+                });
+                
+                // Update cart display
+                this.updateCartDisplay();
+                
+                // Show success message
+                this.showToast('Berhasil', 'Tiket ditambahkan ke keranjang', 'success');
+            }
 
-                let total = 0;
-
+            updateCartDisplay() {
+                const cartTableBody = document.getElementById('cartTableBody');
+                cartTableBody.innerHTML = '';
+                
+                // Add cart items
                 this.cart.forEach(item => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -2967,368 +3246,161 @@
                             </button>
                         </td>
                     `;
-                    cartBody.appendChild(row);
-                    total += item.price;
+                    cartTableBody.appendChild(row);
                 });
-
-                // Update total
+                
+                // Calculate total
+                const total = this.cart.reduce((sum, item) => sum + item.price, 0);
                 document.getElementById('cartTotal').textContent = this.formatCurrency(total);
                 document.getElementById('totalAmount').value = this.formatCurrency(total);
-
+                
                 // Add event listeners to remove buttons
                 document.querySelectorAll('.remove-from-cart-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        e.preventDefault();
                         const ticketId = parseInt(btn.getAttribute('data-id'));
                         this.removeFromCart(ticketId);
                     });
                 });
-
-                // Calculate change
+                
+                // Update change calculation
                 this.calculateChange();
             }
 
             removeFromCart(ticketId) {
                 this.cart = this.cart.filter(item => item.id !== ticketId);
-                this.updateCart();
-            }
-
-            searchTickets(query) {
-                const resultsContainer = document.getElementById('ticketSearchResults');
-                resultsContainer.innerHTML = '';
-                resultsContainer.style.display = 'none';
-
-                if (!query || query.trim() === '') return;
-
-                // Find matching tickets (available only)
-                const matchedTickets = this.tickets.filter(ticket => 
-                    ticket.code.toLowerCase().includes(query.toLowerCase()) && 
-                    ticket.status === 'available'
-                ).slice(0, 10); // Limit to 10 results
-
-                if (matchedTickets.length === 0) {
-                    const noResults = document.createElement('div');
-                    noResults.className = 'search-result-item';
-                    noResults.textContent = 'Tiket tidak ditemukan';
-                    resultsContainer.appendChild(noResults);
-                } else {
-                    matchedTickets.forEach(ticket => {
-                        const resultItem = document.createElement('div');
-                        resultItem.className = 'search-result-item';
-                        resultItem.innerHTML = `
-                            <div class="d-flex justify-content-between">
-                                <span>${ticket.code}</span>
-                                <span class="badge bg-primary">${ticket.type}</span>
-                            </div>
-                            <small class="text-muted">${this.formatCurrency(ticket.price)}</small>
-                        `;
-                        resultItem.addEventListener('click', () => {
-                            this.addToCart(ticket);
-                            document.getElementById('ticketSearchInput').value = '';
-                            resultsContainer.style.display = 'none';
-                        });
-                        resultsContainer.appendChild(resultItem);
-                    });
-                }
-
-                resultsContainer.style.display = matchedTickets.length > 0 ? 'block' : 'none';
-            }
-
-            addToCart(ticket) {
-                // Check if already in cart
-                if (this.cart.some(item => item.id === ticket.id)) {
-                    this.showToast('Peringatan', 'Tiket sudah ada di keranjang', 'warning');
-                    return;
-                }
-
-                this.cart.push({
-                    id: ticket.id,
-                    code: ticket.code,
-                    type: ticket.type,
-                    price: ticket.price
-                });
-
-                this.updateCart();
-                this.showToast('Berhasil', 'Tiket ditambahkan ke keranjang', 'success');
+                this.updateCartDisplay();
+                this.showToast('Berhasil', 'Tiket dihapus dari keranjang', 'success');
             }
 
             calculateChange() {
                 const total = this.cart.reduce((sum, item) => sum + item.price, 0);
                 const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+                
                 const change = amountPaid - total;
-
                 document.getElementById('changeAmount').value = change >= 0 ? this.formatCurrency(change) : this.formatCurrency(0);
+            }
+
+            resetCart() {
+                this.cart = [];
+                this.updateCartDisplay();
+                document.getElementById('paymentForm').reset();
+                this.showToast('Berhasil', 'Transaksi dibatalkan', 'success');
             }
 
             completePayment() {
                 if (this.cart.length === 0) {
-                    this.showToast('Peringatan', 'Keranjang kosong', 'warning');
+                    this.showToast('Peringatan', 'Keranjang belanja kosong', 'warning');
                     return;
                 }
-
+                
                 const paymentMethod = document.getElementById('paymentMethod').value;
-                const customerName = document.getElementById('customerName').value || 'Pelanggan';
+                const customerName = document.getElementById('customerName').value;
                 const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
-                const total = this.cart.reduce((sum, item) => sum + item.price, 0);
-
+                
+                // Calculate total
+                const subtotal = this.cart.reduce((sum, item) => sum + item.price, 0);
+                let total = subtotal;
+                
+                // Apply tax if enabled
+                let taxAmount = 0;
+                if (this.settings.enableTax) {
+                    taxAmount = subtotal * (this.settings.taxRate / 100);
+                    total += taxAmount;
+                }
+                
+                // Check if amount paid is sufficient
                 if (amountPaid < total) {
                     this.showToast('Peringatan', 'Jumlah pembayaran kurang', 'warning');
                     return;
                 }
-
-                // Show loading indicator
-                this.showLoading(true);
-
-                // Use setTimeout to allow UI to update
-                setTimeout(() => {
-                    try {
-                        // Create transaction
-                        const transactionId = this.transactions.length > 0 ? 
-                            Math.max(...this.transactions.map(t => t.id)) + 1 : 1;
-
-                        const transaction = {
-                            id: transactionId,
-                            code: this.generateTransactionCode(),
-                            date: new Date().toISOString(),
-                            userId: this.currentUser.id,
-                            username: this.currentUser.username,
-                            customerName: customerName,
-                            items: [...this.cart],
-                            subtotal: total,
-                            tax: 0,
-                            total: total,
-                            paymentMethod: paymentMethod,
-                            amountPaid: amountPaid,
-                            change: amountPaid - total
-                        };
-
-                        // Apply tax if enabled
-                        if (this.settings.enableTax) {
-                            const taxRate = this.settings.taxRate || 0;
-                            const taxAmount = total * (taxRate / 100);
-                            transaction.tax = taxAmount;
-                            transaction.total = total + taxAmount;
-                        }
-
-                        // Update ticket statuses
-                        this.cart.forEach(cartItem => {
-                            const ticket = this.tickets.find(t => t.id === cartItem.id);
-                            if (ticket) {
-                                ticket.status = 'sold';
-                                ticket.soldAt = new Date().toISOString();
-                                ticket.soldBy = this.currentUser.id;
-                                ticket.transactionId = transactionId;
-                            }
-                        });
-
-                        // Add transaction to history
-                        this.transactions.unshift(transaction);
-
-                        // Save data
-                        this.saveData();
-
-                        // Reset cart
-                        this.resetCart();
-
-                        // Show success message
-                        this.showToast('Berhasil', 'Pembayaran berhasil diproses', 'success');
-
-                        // Show receipt
-                        this.viewTransactionDetails(transactionId);
-
-                        // Add activity log
-                        this.addActivity(`${this.currentUser.fullName} completed transaction #${transaction.code}`);
-
-                        // Update dashboard
-                        this.loadDashboardData();
-                    } catch (error) {
-                        console.error('Error completing payment:', error);
-                        this.showToast('Error', 'Gagal memproses pembayaran', 'error');
-                    } finally {
-                        this.showLoading(false);
+                
+                // Create transaction
+                const transactionId = this.generateTransactionCode();
+                const transaction = {
+                    id: this.transactions.length > 0 ? Math.max(...this.transactions.map(t => t.id)) + 1 : 1,
+                    transactionId: transactionId,
+                    date: new Date().toISOString(),
+                    userId: this.currentUser.id,
+                    username: this.currentUser.username,
+                    customerName: customerName || null,
+                    items: [...this.cart],
+                    subtotal: subtotal,
+                    tax: this.settings.enableTax ? {
+                        name: this.settings.taxName,
+                        rate: this.settings.taxRate,
+                        amount: taxAmount
+                    } : null,
+                    total: total,
+                    paymentMethod: paymentMethod,
+                    amountPaid: amountPaid,
+                    change: amountPaid - total
+                };
+                
+                // Update ticket statuses
+                this.cart.forEach(item => {
+                    const ticketIndex = this.tickets.findIndex(t => t.id === item.id);
+                    if (ticketIndex !== -1) {
+                        this.tickets[ticketIndex].status = 'sold';
+                        this.tickets[ticketIndex].soldAt = new Date().toISOString();
+                        this.tickets[ticketIndex].soldBy = this.currentUser.id;
+                        this.tickets[ticketIndex].transactionId = transactionId;
                     }
-                }, 50);
+                });
+                
+                // Add transaction to history
+                this.transactions.push(transaction);
+                this.saveData();
+                
+                // Show success message
+                this.showToast('Berhasil', `Transaksi ${transactionId} berhasil`, 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} completed transaction ${transactionId}`);
+                
+                // Show receipt
+                this.showTransactionReceipt(transaction);
+                
+                // Reset cart
+                this.resetCart();
+                
+                // Update dashboard and stock
+                this.loadDashboardData();
+                this.loadTicketStock();
             }
 
-            // Transaction methods
-            loadTransactions(page = 1, pageSize = 10) {
-                // Show loading indicator
-                this.showLoading(true);
-
-                // Use setTimeout to allow UI to update
-                setTimeout(() => {
-                    try {
-                        // Populate user dropdown if not already
-                        this.populateUserDropdown('transactionFilterUser');
-
-                        // Get filters
-                        const dateFrom = document.getElementById('transactionFilterDateFrom').value;
-                        const dateTo = document.getElementById('transactionFilterDateTo').value;
-                        const methodFilter = document.getElementById('transactionFilterMethod').value;
-                        const userFilter = document.getElementById('transactionFilterUser').value;
-
-                        // Filter transactions
-                        let filteredTransactions = [...this.transactions];
-
-                        if (dateFrom) {
-                            filteredTransactions = filteredTransactions.filter(t => t.date >= dateFrom + 'T00:00:00');
-                        }
-
-                        if (dateTo) {
-                            filteredTransactions = filteredTransactions.filter(t => t.date <= dateTo + 'T23:59:59');
-                        }
-
-                        if (methodFilter !== 'all') {
-                            filteredTransactions = filteredTransactions.filter(t => t.paymentMethod === methodFilter);
-                        }
-
-                        if (userFilter !== 'all') {
-                            filteredTransactions = filteredTransactions.filter(t => t.userId === parseInt(userFilter));
-                        }
-
-                        // Sort by date (newest first)
-                        filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                        // Pagination
-                        const totalTransactions = filteredTransactions.length;
-                        const totalPages = Math.ceil(totalTransactions / pageSize);
-                        const paginatedTransactions = filteredTransactions.slice(
-                            (page - 1) * pageSize, 
-                            page * pageSize
-                        );
-
-                        // Render transactions table
-                        const tableBody = document.getElementById('transactionsTableBody');
-                        tableBody.innerHTML = '';
-
-                        paginatedTransactions.forEach(transaction => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${transaction.code}</td>
-                                <td>${this.formatDateTime(transaction.date)}</td>
-                                <td>${transaction.username}</td>
-                                <td>${transaction.items.length}</td>
-                                <td>${this.formatCurrency(transaction.total)}</td>
-                                <td>
-                                    <span class="badge ${this.getPaymentMethodBadgeClass(transaction.paymentMethod)}">
-                                        ${this.getPaymentMethodDisplayName(transaction.paymentMethod)}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary view-transaction-btn" 
-                                            data-id="${transaction.id}">
-                                        <i class="fas fa-eye"></i> Lihat
-                                    </button>
-                                </td>
-                            `;
-                            tableBody.appendChild(row);
-                        });
-
-                        // Update pagination
-                        this.updatePagination('transactionsPagination', page, totalPages, (newPage) => {
-                            this.loadTransactions(newPage, pageSize);
-                        });
-
-                        // Add event listeners to view buttons
-                        document.querySelectorAll('.view-transaction-btn').forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                const transactionId = parseInt(btn.getAttribute('data-id'));
-                                this.viewTransactionDetails(transactionId);
-                            });
-                        });
-                    } catch (error) {
-                        console.error('Error loading transactions:', error);
-                        this.showToast('Error', 'Gagal memuat riwayat transaksi', 'error');
-                    } finally {
-                        this.showLoading(false);
-                    }
-                }, 50);
-            }
-
-            getPaymentMethodBadgeClass(method) {
-                switch (method) {
-                    case 'cash': return 'bg-success';
-                    case 'debit': return 'bg-primary';
-                    case 'credit': return 'bg-info';
-                    case 'transfer': return 'bg-warning';
-                    case 'ewallet': return 'bg-secondary';
-                    default: return 'bg-light text-dark';
-                }
-            }
-
-            getPaymentMethodDisplayName(method) {
-                switch (method) {
-                    case 'cash': return 'Tunai';
-                    case 'debit': return 'Debit';
-                    case 'credit': return 'Kredit';
-                    case 'transfer': return 'Transfer';
-                    case 'ewallet': return 'E-Wallet';
-                    default: return method;
-                }
-            }
-
-            viewTransactionDetails(transactionId) {
-                const transaction = this.transactions.find(t => t.id === transactionId);
-                if (!transaction) {
-                    this.showToast('Error', 'Transaksi tidak ditemukan', 'error');
-                    return;
-                }
-
+            showTransactionReceipt(transaction) {
                 const modalContent = document.getElementById('transactionModalContent');
-                modalContent.innerHTML = this.createReceiptHTML(transaction);
-
-                const modal = new bootstrap.Modal(document.getElementById('viewTransactionModal'));
-                modal.show();
-
-                // Add event listener to print button
-                document.getElementById('printTransactionBtn').addEventListener('click', () => {
-                    this.printReceipt(transaction);
-                });
-            }
-
-            createReceiptHTML(transaction) {
-                const venueName = this.settings.venueName || 'TourTicket Pro';
-                const venueLocation = this.settings.venueLocation || '';
-                const logo = this.settings.venueLogo || '';
-                const footerText = this.settings.enableReceiptFooter !== false ? 
-                    (this.settings.receiptFooterText || 'Terima kasih telah berkunjung!') : '';
-
-                let itemsHTML = '';
-                transaction.items.forEach(item => {
-                    itemsHTML += `
-                        <tr>
-                            <td>${item.code}</td>
-                            <td>${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</td>
-                            <td class="text-right">${this.formatCurrency(item.price)}</td>
-                        </tr>
-                    `;
-                });
-
-                return `
+                
+                let receiptHTML = `
                     <div class="receipt">
                         <div class="receipt-header">
-                            ${logo ? `<img src="${logo}" class="receipt-logo mb-2" alt="${venueName}">` : ''}
-                            <div class="receipt-title">${venueName}</div>
-                            <div class="receipt-subtitle">${venueLocation}</div>
-                            <div class="receipt-transaction-id">Transaksi #${transaction.code}</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <div><strong>Tanggal:</strong> ${this.formatDateTime(transaction.date)}</div>
-                            <div><strong>Kasir:</strong> ${transaction.username}</div>
-                            <div><strong>Pelanggan:</strong> ${transaction.customerName}</div>
+                            ${this.settings.venueLogo ? `<img src="${this.settings.venueLogo}" class="receipt-logo mb-2" alt="Logo">` : ''}
+                            <div class="receipt-title">${this.settings.venueName || 'Tempat Wisata'}</div>
+                            <div class="receipt-subtitle">${this.settings.venueLocation || ''}</div>
+                            <div class="receipt-subtitle mb-2">${this.formatDateTime(transaction.date)}</div>
+                            <div class="receipt-transaction-id">Transaksi: ${transaction.transactionId}</div>
                         </div>
                         
                         <table class="receipt-items">
                             <thead>
                                 <tr>
-                                    <th>Kode Tiket</th>
-                                    <th>Jenis</th>
+                                    <th>Item</th>
                                     <th class="text-right">Harga</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${itemsHTML}
+                `;
+                
+                transaction.items.forEach(item => {
+                    receiptHTML += `
+                        <tr>
+                            <td>${item.code} (${item.type})</td>
+                            <td class="text-right">${this.formatCurrency(item.price)}</td>
+                        </tr>
+                    `;
+                });
+                
+                receiptHTML += `
                             </tbody>
                         </table>
                         
@@ -3337,12 +3409,18 @@
                                 <td>Subtotal</td>
                                 <td class="text-right">${this.formatCurrency(transaction.subtotal)}</td>
                             </tr>
-                            ${this.settings.enableTax ? `
-                            <tr>
-                                <td>${this.settings.taxName || 'Pajak'} (${this.settings.taxRate || 0}%)</td>
-                                <td class="text-right">${this.formatCurrency(transaction.tax || 0)}</td>
-                            </tr>
-                            ` : ''}
+                `;
+                
+                if (transaction.tax) {
+                    receiptHTML += `
+                        <tr>
+                            <td>${transaction.tax.name} (${transaction.tax.rate}%)</td>
+                            <td class="text-right">${this.formatCurrency(transaction.tax.amount)}</td>
+                        </tr>
+                    `;
+                }
+                
+                receiptHTML += `
                             <tr class="total-row">
                                 <td>Total</td>
                                 <td class="text-right">${this.formatCurrency(transaction.total)}</td>
@@ -3357,665 +3435,620 @@
                             </tr>
                         </table>
                         
-                        <div class="mb-3">
-                            <div><strong>Metode Pembayaran:</strong> ${this.getPaymentMethodDisplayName(transaction.paymentMethod)}</div>
-                        </div>
-                        
-                        ${footerText ? `
                         <div class="receipt-footer">
-                            ${footerText}
+                            <div>Metode Pembayaran: ${this.getPaymentMethodName(transaction.paymentMethod)}</div>
+                            ${transaction.customerName ? `<div>Pelanggan: ${transaction.customerName}</div>` : ''}
+                            <div>Kasir: ${transaction.username}</div>
+                            ${this.settings.enableReceiptFooter ? `<div class="mt-2">${this.settings.receiptFooterText}</div>` : ''}
                         </div>
-                        ` : ''}
                     </div>
                 `;
+                
+                modalContent.innerHTML = receiptHTML;
+                
+                // Set print button event
+                document.getElementById('printTransactionBtn').onclick = () => {
+                    this.printReceipt(transaction);
+                };
+                
+                const modal = new bootstrap.Modal(document.getElementById('viewTransactionModal'));
+                modal.show();
             }
 
             printReceipt(transaction) {
-                const receiptHTML = this.createReceiptHTML(transaction);
-                const originalContent = document.body.innerHTML;
-                
-                document.body.innerHTML = `
+                let receiptHTML = `
                     <style>
-                        @page { size: auto; margin: 5mm; }
-                        body { font-family: Arial, sans-serif; }
-                        .receipt { width: 80mm; margin: 0 auto; padding: 10px; }
+                        body { font-family: Arial, sans-serif; font-size: 14px; }
+                        .receipt { max-width: 300px; margin: 0 auto; padding: 10px; }
                         .receipt-logo { max-width: 150px; height: auto; }
-                        .receipt-title { font-weight: bold; font-size: 1.2rem; text-align: center; }
-                        .receipt-subtitle { font-size: 0.9rem; text-align: center; color: #666; }
-                        .receipt-transaction-id { font-weight: bold; text-align: center; margin-bottom: 10px; }
-                        .receipt-items { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+                        .receipt-header { text-align: center; margin-bottom: 15px; }
+                        .receipt-title { font-weight: bold; font-size: 1.2rem; margin-bottom: 5px; }
+                        .receipt-subtitle { font-size: 0.9rem; color: #666; }
+                        .receipt-transaction-id { font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; text-align: center; }
+                        .receipt-items { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
                         .receipt-items th { text-align: left; border-bottom: 1px solid #ddd; padding: 5px; }
                         .receipt-items td { padding: 5px; border-bottom: 1px solid #eee; }
                         .text-right { text-align: right; }
-                        .receipt-totals { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+                        .receipt-totals { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
                         .receipt-totals td { padding: 5px; }
                         .total-row { font-weight: bold; border-top: 1px solid #ddd; }
-                        .receipt-footer { text-align: center; margin-top: 10px; font-size: 0.8rem; color: #666; }
+                        .receipt-footer { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #666; border-top: 1px solid #eee; padding-top: 10px; }
                     </style>
-                    ${receiptHTML}
+                    <div class="receipt">
+                        <div class="receipt-header">
+                            ${this.settings.venueLogo ? `<img src="${this.settings.venueLogo}" class="receipt-logo mb-2" alt="Logo">` : ''}
+                            <div class="receipt-title">${this.settings.venueName || 'Tempat Wisata'}</div>
+                            <div class="receipt-subtitle">${this.settings.venueLocation || ''}</div>
+                            <div class="receipt-subtitle mb-2">${this.formatDateTime(transaction.date)}</div>
+                            <div class="receipt-transaction-id">Transaksi: ${transaction.transactionId}</div>
+                        </div>
+                        
+                        <table class="receipt-items">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-right">Harga</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                 `;
                 
+                transaction.items.forEach(item => {
+                    receiptHTML += `
+                        <tr>
+                            <td>${item.code} (${item.type})</td>
+                            <td class="text-right">${this.formatCurrency(item.price)}</td>
+                        </tr>
+                    `;
+                });
+                
+                receiptHTML += `
+                            </tbody>
+                        </table>
+                        
+                        <table class="receipt-totals">
+                            <tr>
+                                <td>Subtotal</td>
+                                <td class="text-right">${this.formatCurrency(transaction.subtotal)}</td>
+                            </tr>
+                `;
+                
+                if (transaction.tax) {
+                    receiptHTML += `
+                        <tr>
+                            <td>${transaction.tax.name} (${transaction.tax.rate}%)</td>
+                            <td class="text-right">${this.formatCurrency(transaction.tax.amount)}</td>
+                        </tr>
+                    `;
+                }
+                
+                receiptHTML += `
+                            <tr class="total-row">
+                                <td>Total</td>
+                                <td class="text-right">${this.formatCurrency(transaction.total)}</td>
+                            </tr>
+                            <tr>
+                                <td>Dibayar</td>
+                                <td class="text-right">${this.formatCurrency(transaction.amountPaid)}</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td>Kembalian</td>
+                                <td class="text-right">${this.formatCurrency(transaction.change)}</td>
+                            </tr>
+                        </table>
+                        
+                        <div class="receipt-footer">
+                            <div>Metode Pembayaran: ${this.getPaymentMethodName(transaction.paymentMethod)}</div>
+                            ${transaction.customerName ? `<div>Pelanggan: ${transaction.customerName}</div>` : ''}
+                            <div>Kasir: ${transaction.username}</div>
+                            ${this.settings.enableReceiptFooter ? `<div class="mt-2">${this.settings.receiptFooterText}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                const originalContent = document.body.innerHTML;
+                document.body.innerHTML = receiptHTML;
                 window.print();
                 document.body.innerHTML = originalContent;
-                
+
+                // Show message
                 this.showToast('Berhasil', 'Struk berhasil dicetak', 'success');
             }
 
-            // User management methods
-            loadUsers() {
-                const tableBody = document.getElementById('usersTableBody');
+            getPaymentMethodName(method) {
+                switch (method) {
+                    case 'cash': return 'Tunai';
+                    case 'debit': return 'Kartu Debit';
+                    case 'credit': return 'Kartu Kredit';
+                    case 'transfer': return 'Transfer Bank';
+                    case 'ewallet': return 'E-Wallet';
+                    default: return method;
+                }
+            }
+
+            // Transactions methods
+            loadTransactions(page = 1, pageSize = 10) {
+                // Show loading indicator
+                this.showLoading(true);
+                
+                // Use setTimeout to allow UI to update
+                setTimeout(() => {
+                    try {
+                        const dateFrom = document.getElementById('transactionFilterDateFrom').value;
+                        const dateTo = document.getElementById('transactionFilterDateTo').value;
+                        const methodFilter = document.getElementById('transactionFilterMethod').value;
+                        const userFilter = document.getElementById('transactionFilterUser').value;
+                        
+                        // Filter transactions
+                        let filteredTransactions = [...this.transactions];
+                        
+                        if (dateFrom) {
+                            filteredTransactions = filteredTransactions.filter(t => t.date >= dateFrom + 'T00:00:00');
+                        }
+                        
+                        if (dateTo) {
+                            filteredTransactions = filteredTransactions.filter(t => t.date <= dateTo + 'T23:59:59');
+                        }
+                        
+                        if (methodFilter !== 'all') {
+                            filteredTransactions = filteredTransactions.filter(t => t.paymentMethod === methodFilter);
+                        }
+                        
+                        if (userFilter !== 'all') {
+                            filteredTransactions = filteredTransactions.filter(t => t.userId === parseInt(userFilter));
+                        }
+                        
+                        // Sort by date (newest first)
+                        filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                        // Pagination
+                        const totalTransactions = filteredTransactions.length;
+                        const totalPages = Math.ceil(totalTransactions / pageSize);
+                        const paginatedTransactions = filteredTransactions.slice((page - 1) * pageSize, page * pageSize);
+
+                        // Render transactions table
+                        const tableBody = document.getElementById('transactionsTableBody');
+                        tableBody.innerHTML = '';
+
+                        paginatedTransactions.forEach(transaction => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${transaction.transactionId}</td>
+                                <td>${this.formatDateTime(transaction.date)}</td>
+                                <td>${transaction.username}</td>
+                                <td>${transaction.items.length}</td>
+                                <td>${this.formatCurrency(transaction.total)}</td>
+                                <td>${this.getPaymentMethodName(transaction.paymentMethod)}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary view-transaction-btn" data-id="${transaction.id}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+
+                        // Render pagination
+                        const pagination = document.getElementById('transactionsPagination');
+                        pagination.innerHTML = '';
+
+                        if (totalPages > 1) {
+                            // Previous button
+                            const prevLi = document.createElement('li');
+                            prevLi.className = `page-item ${page === 1 ? 'disabled' : ''}`;
+                            prevLi.innerHTML = `
+                                <a class="page-link" href="#" aria-label="Previous" data-page="${page - 1}">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            `;
+                            pagination.appendChild(prevLi);
+
+                            // Page numbers
+                            for (let i = 1; i <= totalPages; i++) {
+                                const pageLi = document.createElement('li');
+                                pageLi.className = `page-item ${i === page ? 'active' : ''}`;
+                                pageLi.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                                pagination.appendChild(pageLi);
+                            }
+
+                            // Next button
+                            const nextLi = document.createElement('li');
+                            nextLi.className = `page-item ${page === totalPages ? 'disabled' : ''}`;
+                            nextLi.innerHTML = `
+                                <a class="page-link" href="#" aria-label="Next" data-page="${page + 1}">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            `;
+                            pagination.appendChild(nextLi);
+                        }
+
+                        // Add event listeners to pagination buttons
+                        document.querySelectorAll('#transactionsPagination .page-link').forEach(link => {
+                            link.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const pageNum = parseInt(link.getAttribute('data-page'));
+                                if (!isNaN(pageNum)) {
+                                    this.loadTransactions(pageNum, pageSize);
+                                }
+                            });
+                        });
+
+                        // Add event listeners to view transaction buttons
+                        document.querySelectorAll('.view-transaction-btn').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const transactionId = parseInt(btn.getAttribute('data-id'));
+                                this.viewTransactionDetails(transactionId);
+                            });
+                        });
+
+                        // Populate user dropdown if not already populated
+                        if (document.getElementById('transactionFilterUser').options.length <= 1) {
+                            this.populateUserDropdown('transactionFilterUser');
+                        }
+                    } catch (error) {
+                        console.error('Error loading transactions:', error);
+                        this.showToast('Error', 'Gagal memuat riwayat transaksi', 'error');
+                    } finally {
+                        this.showLoading(false);
+                    }
+                }, 50);
+            }
+
+            filterTransactions(searchTerm) {
+                if (!searchTerm) {
+                    this.loadTransactions();
+                    return;
+                }
+
+                const filteredTransactions = this.transactions.filter(transaction => 
+                    transaction.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (transaction.customerName && transaction.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    transaction.username.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                const tableBody = document.getElementById('transactionsTableBody');
                 tableBody.innerHTML = '';
 
-                this.users.forEach(user => {
+                filteredTransactions.forEach(transaction => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${user.username}</td>
-                        <td>${user.fullName}</td>
-                        <td>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
+                        <td>${transaction.transactionId}</td>
+                        <td>${this.formatDateTime(transaction.date)}</td>
+                        <td>${transaction.username}</td>
+                        <td>${transaction.items.length}</td>
+                        <td>${this.formatCurrency(transaction.total)}</td>
+                        <td>${this.getPaymentMethodName(transaction.paymentMethod)}</td>
                         <td>
-                            <span class="badge ${user.status === 'active' ? 'bg-success' : 'bg-secondary'}">
-                                ${user.status === 'active' ? 'Aktif' : 'Nonaktif'}
-                            </span>
-                        </td>
-                        <td>${user.lastLogin ? this.formatDateTime(user.lastLogin) : '-'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary edit-user-btn" data-id="${user.id}">
-                                <i class="fas fa-edit"></i>
+                            <button class="btn btn-sm btn-outline-primary view-transaction-btn" data-id="${transaction.id}">
+                                <i class="fas fa-eye"></i>
                             </button>
-                            ${user.id !== this.currentUser.id ? `
-                            <button class="btn btn-sm btn-outline-danger delete-user-btn" data-id="${user.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            ` : ''}
                         </td>
                     `;
                     tableBody.appendChild(row);
                 });
 
-                // Add event listeners to edit buttons
-                document.querySelectorAll('.edit-user-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const userId = parseInt(btn.getAttribute('data-id'));
-                        this.editUser(userId);
+                // Add event listeners to view transaction buttons
+                document.querySelectorAll('.view-transaction-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const transactionId = parseInt(btn.getAttribute('data-id'));
+                        this.viewTransactionDetails(transactionId);
                     });
                 });
 
-                // Add event listeners to delete buttons
-                document.querySelectorAll('.delete-user-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const userId = parseInt(btn.getAttribute('data-id'));
-                        this.deleteUser(userId);
-                    });
-                });
+                // Update pagination display
+                document.getElementById('transactionsPagination').innerHTML = '';
             }
 
-            addNewUser() {
-                const username = document.getElementById('newUsername').value;
-                const fullName = document.getElementById('newFullName').value;
-                const role = document.getElementById('newUserRole').value;
-                const password = document.getElementById('newUserPassword').value;
-                const confirmPassword = document.getElementById('confirmUserPassword').value;
+            viewTransactionDetails(transactionId) {
+                const transaction = this.transactions.find(t => t.id === transactionId);
+                if (!transaction) return;
 
-                // Validate
-                if (!username || !fullName || !password || !confirmPassword) {
-                    this.showToast('Gagal', 'Semua field harus diisi', 'error');
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    this.showToast('Gagal', 'Password tidak cocok', 'error');
-                    return;
-                }
-
-                if (password.length < 6) {
-                    this.showToast('Gagal', 'Password minimal 6 karakter', 'error');
-                    return;
-                }
-
-                // Check if username already exists
-                if (this.users.some(u => u.username === username)) {
-                    this.showToast('Gagal', 'Username sudah digunakan', 'error');
-                    return;
-                }
-
-                // Create new user
-                const newUser = {
-                    id: this.users.length > 0 ? Math.max(...this.users.map(u => u.id)) + 1 : 1,
-                    username: username,
-                    fullName: fullName,
-                    password: this.hashPassword(password),
-                    role: role,
-                    status: 'active',
-                    lastLogin: null,
-                    createdAt: new Date().toISOString()
-                };
-
-                // Add to users array
-                this.users.push(newUser);
-                this.saveData();
-
-                // Show success message
-                this.showToast('Berhasil', 'Pengguna baru berhasil ditambahkan', 'success');
-
-                // Hide modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
-                modal.hide();
-
-                // Reload users table
-                this.loadUsers();
-
-                // Add activity log
-                this.addActivity(`${this.currentUser.fullName} added new user: ${username}`);
+                this.showTransactionReceipt(transaction);
             }
 
-            editUser(userId) {
-                const user = this.users.find(u => u.id === userId);
-                if (!user) {
-                    this.showToast('Error', 'Pengguna tidak ditemukan', 'error');
-                    return;
-                }
-
-                // Populate edit form
-                document.getElementById('editUserId').value = user.id;
-                document.getElementById('editUsername').value = user.username;
-                document.getElementById('editFullName').value = user.fullName;
-                document.getElementById('editUserRole').value = user.role;
-                document.getElementById('editUserStatus').value = user.status;
-                document.getElementById('editUserPassword').value = '';
-
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                modal.show();
-            }
-
-            saveEditedUser() {
-                const userId = parseInt(document.getElementById('editUserId').value);
-                const fullName = document.getElementById('editFullName').value;
-                const role = document.getElementById('editUserRole').value;
-                const status = document.getElementById('editUserStatus').value;
-                const newPassword = document.getElementById('editUserPassword').value;
-
-                // Find user
-                const userIndex = this.users.findIndex(u => u.id === userId);
-                if (userIndex === -1) {
-                    this.showToast('Error', 'Pengguna tidak ditemukan', 'error');
-                    return;
-                }
-
-                // Update user
-                this.users[userIndex].fullName = fullName;
-                this.users[userIndex].role = role;
-                this.users[userIndex].status = status;
-
-                // Update password if provided
-                if (newPassword) {
-                    if (newPassword.length < 6) {
-                        this.showToast('Gagal', 'Password minimal 6 karakter', 'error');
-                        return;
-                    }
-                    this.users[userIndex].password = this.hashPassword(newPassword);
-                }
-
-                // Save data
-                this.saveData();
-
-                // Show success message
-                this.showToast('Berhasil', 'Perubahan pengguna berhasil disimpan', 'success');
-
-                // Hide modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
-                modal.hide();
-
-                // Reload users table
-                this.loadUsers();
-
-                // Add activity log
-                this.addActivity(`${this.currentUser.fullName} updated user: ${this.users[userIndex].username}`);
-
-                // If current user was edited, update UI
-                if (userId === this.currentUser.id) {
-                    this.currentUser = this.users[userIndex];
-                    sessionStorage.setItem('loggedInUser', JSON.stringify(this.currentUser));
-                    document.getElementById('currentUsername').textContent = this.currentUser.username;
-                    this.updateUIBasedOnRole();
-                }
-            }
-
-            deleteUser(userId) {
-                if (userId === this.currentUser.id) {
-                    this.showToast('Gagal', 'Tidak dapat menghapus akun sendiri', 'error');
-                    return;
-                }
-
-                this.showConfirmation(
-                    'Hapus Pengguna',
-                    'Apakah Anda yakin ingin menghapus pengguna ini?',
-                    () => {
-                        const userIndex = this.users.findIndex(u => u.id === userId);
-                        if (userIndex !== -1) {
-                            const username = this.users[userIndex].username;
-                            this.users.splice(userIndex, 1);
-                            this.saveData();
-                            this.showToast('Berhasil', 'Pengguna berhasil dihapus', 'success');
-                            this.loadUsers();
-                            this.addActivity(`${this.currentUser.fullName} deleted user: ${username}`);
-                        }
-                    },
-                    true
-                );
-            }
-
-            // Helper methods
-            updatePagination(elementId, currentPage, totalPages, callback) {
-                const pagination = document.getElementById(elementId);
-                pagination.innerHTML = '';
-
-                if (totalPages <= 1) return;
-
-                // Previous button
-                const prevLi = document.createElement('li');
-                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-                prevLi.innerHTML = `<a class="page-link" href="#">&laquo;</a>`;
-                prevLi.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (currentPage > 1) callback(currentPage - 1);
-                });
-                pagination.appendChild(prevLi);
-
-                // Page numbers
-                const maxVisiblePages = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-                if (endPage - startPage + 1 < maxVisiblePages) {
-                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                }
-
-                if (startPage > 1) {
-                    const firstLi = document.createElement('li');
-                    firstLi.className = 'page-item';
-                    firstLi.innerHTML = `<a class="page-link" href="#">1</a>`;
-                    firstLi.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        callback(1);
-                    });
-                    pagination.appendChild(firstLi);
-
-                    if (startPage > 2) {
-                        const ellipsisLi = document.createElement('li');
-                        ellipsisLi.className = 'page-item disabled';
-                        ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
-                        pagination.appendChild(ellipsisLi);
-                    }
-                }
-
-                for (let i = startPage; i <= endPage; i++) {
-                    const pageLi = document.createElement('li');
-                    pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                    pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                    pageLi.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        callback(i);
-                    });
-                    pagination.appendChild(pageLi);
-                }
-
-                if (endPage < totalPages) {
-                    if (endPage < totalPages - 1) {
-                        const ellipsisLi = document.createElement('li');
-                        ellipsisLi.className = 'page-item disabled';
-                        ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
-                        pagination.appendChild(ellipsisLi);
-                    }
-
-                    const lastLi = document.createElement('li');
-                    lastLi.className = 'page-item';
-                    lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
-                    lastLi.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        callback(totalPages);
-                    });
-                    pagination.appendChild(lastLi);
-                }
-
-                // Next button
-                const nextLi = document.createElement('li');
-                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-                nextLi.innerHTML = `<a class="page-link" href="#">&raquo;</a>`;
-                nextLi.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (currentPage < totalPages) callback(currentPage + 1);
-                });
-                pagination.appendChild(nextLi);
-            }
-
-            populateUserDropdown(elementId) {
-                const dropdown = document.getElementById(elementId);
-                if (dropdown.options.length > 1) return; // Already populated
-
-                // Clear existing options except first
-                while (dropdown.options.length > 1) {
-                    dropdown.remove(1);
-                }
-
-                // Add user options
-                this.users.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = `${user.fullName} (${user.username})`;
-                    dropdown.appendChild(option);
-                });
-            }
-
-            // Settings methods
-            saveVenueInfo() {
-                this.settings.venueName = document.getElementById('venueName').value;
-                this.settings.venueLocation = document.getElementById('venueLocation').value;
-                this.settings.venueDescription = document.getElementById('venueDescription').value;
+            exportTransactions() {
+                const dateFrom = document.getElementById('transactionFilterDateFrom').value;
+                const dateTo = document.getElementById('transactionFilterDateTo').value;
+                const methodFilter = document.getElementById('transactionFilterMethod').value;
+                const userFilter = document.getElementById('transactionFilterUser').value;
                 
-                this.saveData();
-                this.showToast('Berhasil', 'Informasi tempat wisata berhasil disimpan', 'success');
-                this.addActivity(`${this.currentUser.fullName} updated venue information`);
-            }
-
-            saveSystemSettings() {
-                this.settings.currency = document.getElementById('currency').value;
-                this.settings.dateFormat = document.getElementById('dateFormat').value;
-                this.settings.timeFormat = document.getElementById('timeFormat').value;
-                this.settings.enableTax = document.getElementById('enableTax').checked;
-                this.settings.taxRate = parseFloat(document.getElementById('taxRate').value);
-                this.settings.taxName = document.getElementById('taxName').value;
-                this.settings.enableReceiptFooter = document.getElementById('enableReceiptFooter').checked;
-                this.settings.receiptFooterText = document.getElementById('receiptFooterText').value;
+                // Filter transactions
+                let filteredTransactions = [...this.transactions];
                 
-                this.saveData();
-                this.setDateFormat();
-                this.showToast('Berhasil', 'Pengaturan sistem berhasil disimpan', 'success');
-                this.addActivity(`${this.currentUser.fullName} updated system settings`);
-            }
-
-            // Backup & Restore methods
-            createBackup() {
-                const data = JSON.parse(localStorage.getItem('ticketSalesData'));
-                const fileName = document.getElementById('backupFileName').value || 'TourTicketPro_Backup';
-                const password = document.getElementById('backupPassword').value;
-                
-                let backupData;
-                if (password) {
-                    // Simple encryption for demo purposes
-                    // In a real application, use proper encryption
-                    backupData = btoa(JSON.stringify(data) + '|' + password);
-                } else {
-                    backupData = JSON.stringify(data);
+                if (dateFrom) {
+                    filteredTransactions = filteredTransactions.filter(t => t.date >= dateFrom + 'T00:00:00');
                 }
                 
-                const blob = new Blob([backupData], { type: 'application/json' });
+                if (dateTo) {
+                    filteredTransactions = filteredTransactions.filter(t => t.date <= dateTo + 'T23:59:59');
+                }
+                
+                if (methodFilter !== 'all') {
+                    filteredTransactions = filteredTransactions.filter(t => t.paymentMethod === methodFilter);
+                }
+                
+                if (userFilter !== 'all') {
+                    filteredTransactions = filteredTransactions.filter(t => t.userId === parseInt(userFilter));
+                }
+
+                // Create CSV content
+                let csvContent = "ID Transaksi,Tanggal,Kasir,Pelanggan,Jumlah Tiket,Subtotal,Pajak,Total,Metode Pembayaran,Dibayar,Kembalian\n";
+                
+                filteredTransactions.forEach(transaction => {
+                    csvContent += `"${transaction.transactionId}","${this.formatDateTime(transaction.date)}","${transaction.username}",` +
+                                 `"${transaction.customerName || ''}","${transaction.items.length}",` +
+                                 `"${transaction.subtotal}","${transaction.tax ? transaction.tax.amount : 0}",` +
+                                 `"${transaction.total}","${this.getPaymentMethodName(transaction.paymentMethod)}",` +
+                                 `"${transaction.amountPaid}","${transaction.change}"\n`;
+                });
+
+                // Create download link
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${fileName}_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                this.showToast('Berhasil', 'Backup data berhasil dibuat', 'success');
-                this.addActivity(`${this.currentUser.fullName} created a backup`);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `transaksi_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Show message
+                this.showToast('Berhasil', `Data transaksi berhasil diexport (${filteredTransactions.length} items)`, 'success');
+
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} exported transactions data`);
             }
 
-            restoreData() {
-                const fileInput = document.getElementById('restoreFile');
-                const password = document.getElementById('restorePassword').value;
-                
-                if (!fileInput.files || fileInput.files.length === 0) {
-                    this.showToast('Gagal', 'Pilih file backup terlebih dahulu', 'error');
-                    return;
-                }
-                
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = (e) => {
-                    try {
-                        let data;
-                        const content = e.target.result;
-                        
-                        if (password) {
-                            // Try to decrypt
-                            try {
-                                const decrypted = atob(content);
-                                const parts = decrypted.split('|');
-                                if (parts.length !== 2 || parts[1] !== password) {
-                                    throw new Error('Password salah');
-                                }
-                                data = JSON.parse(parts[0]);
-                            } catch (error) {
-                                this.showToast('Gagal', 'Password salah atau file corrupt', 'error');
-                                return;
-                            }
-                        } else {
-                            data = JSON.parse(content);
-                        }
-                        
-                        // Validate data structure
-                        if (!data.settings || !data.users || !data.tickets || !data.transactions || !data.activities) {
-                            this.showToast('Gagal', 'File backup tidak valid', 'error');
-                            return;
-                        }
-                        
-                        // Show confirmation
-                        this.showConfirmation(
-                            'Restore Data',
-                            'Apakah Anda yakin ingin restore data? Semua data saat ini akan diganti dengan data dari backup.',
-                            () => {
-                                localStorage.setItem('ticketSalesData', JSON.stringify(data));
-                                this.loadData();
-                                this.showToast('Berhasil', 'Data berhasil direstore', 'success');
-                                this.addActivity(`${this.currentUser.fullName} restored data from backup`);
-                                // Reload the app
-                                setTimeout(() => window.location.reload(), 1000);
-                            },
-                            true
-                        );
-                    } catch (error) {
-                        console.error('Error restoring data:', error);
-                        this.showToast('Gagal', 'Gagal memproses file backup', 'error');
-                    }
-                    } catch (error) {
-                        console.error('Error restoring data:', error);
-                        this.showToast('Gagal', 'Gagal memproses file backup', 'error');
-                    }
-                };
-                
-                reader.onerror = () => {
-                    this.showToast('Gagal', 'Gagal membaca file', 'error');
-                };
-                
-                reader.readAsText(file);
+            clearTransactions() {
+                this.transactions = [];
+                this.saveData();
+
+                // Reload transactions
+                this.loadTransactions();
+
+                // Show message
+                this.showToast('Berhasil', 'Riwayat transaksi berhasil dihapus', 'success');
+
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} cleared all transactions`);
+
+                // Update dashboard
+                this.loadDashboardData();
             }
 
-            resetSystem() {
-                const password = document.getElementById('resetPassword').value;
-                
-                // Verify admin password
-                const adminUser = this.users.find(u => u.role === 'admin');
-                if (!adminUser || this.hashPassword(password) !== adminUser.password) {
-                    this.showToast('Gagal', 'Password admin salah', 'error');
-                    return;
-                }
-                
-                // Reset all data except admin user
-                const initialData = {
-                    settings: {
-                        venueName: 'Tempat Wisata Contoh',
-                        venueLocation: 'Jl. Contoh No. 123, Kota Contoh',
-                        venueDescription: 'Tempat wisata keluarga dengan berbagai wahana menarik',
-                        venueLogo: 'https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png',
-                        currency: 'IDR',
-                        dateFormat: 'DD-MM-YYYY',
-                        timeFormat: '24',
-                        enableTax: false,
-                        taxRate: 10,
-                        taxName: 'PPN',
-                        enableReceiptFooter: true,
-                        receiptFooterText: 'Terima kasih telah berkunjung!'
-                    },
-                    users: [
-                        {
-                            id: 1,
-                            username: 'admin',
-                            password: adminUser.password, // Keep the same password
-                            fullName: 'Administrator',
-                            role: 'admin',
-                            status: 'active',
-                            lastLogin: null,
-                            createdAt: new Date().toISOString()
-                        }
-                    ],
-                    tickets: [],
-                    transactions: [],
-                    activities: []
-                };
-                
-                localStorage.setItem('ticketSalesData', JSON.stringify(initialData));
-                this.showToast('Berhasil', 'Sistem berhasil direset ke pengaturan awal', 'success');
-                this.addActivity(`${this.currentUser.fullName} reset the system`);
-                
-                // Reload the app
-                setTimeout(() => window.location.reload(), 1000);
-            }
-
-            // Report methods
+            // Reports methods
             generateReport() {
                 const reportType = document.getElementById('reportType').value;
-                const date = document.getElementById('reportDate').value;
-                const dateFrom = document.getElementById('reportDateFrom').value;
-                const dateTo = document.getElementById('reportDateTo').value;
+                let dateFrom, dateTo;
+                
+                if (reportType === 'custom') {
+                    dateFrom = document.getElementById('reportDateFrom').value;
+                    dateTo = document.getElementById('reportDateTo').value;
+                    
+                    if (!dateFrom || !dateTo) {
+                        this.showToast('Peringatan', 'Harap pilih rentang tanggal', 'warning');
+                        return;
+                    }
+                } else {
+                    const date = document.getElementById('reportDate').value;
+                    if (!date) {
+                        this.showToast('Peringatan', 'Harap pilih tanggal', 'warning');
+                        return;
+                    }
+                    
+                    switch (reportType) {
+                        case 'daily':
+                            dateFrom = date;
+                            dateTo = date;
+                            break;
+                        case 'weekly':
+                            const startDate = new Date(date);
+                            startDate.setDate(startDate.getDate() - startDate.getDay()); // Start of week (Sunday)
+                            dateFrom = startDate.toISOString().split('T')[0];
+                            
+                            const endDate = new Date(startDate);
+                            endDate.setDate(endDate.getDate() + 6); // End of week (Saturday)
+                            dateTo = endDate.toISOString().split('T')[0];
+                            break;
+                        case 'monthly':
+                            const monthDate = new Date(date);
+                            const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+                            const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+                            
+                            dateFrom = firstDay.toISOString().split('T')[0];
+                            dateTo = lastDay.toISOString().split('T')[0];
+                            break;
+                        case 'yearly':
+                            const year = new Date(date).getFullYear();
+                            dateFrom = `${year}-01-01`;
+                            dateTo = `${year}-12-31`;
+                            break;
+                    }
+                }
+                
                 const ticketType = document.getElementById('reportTicketType').value;
                 const userId = document.getElementById('reportUser').value;
                 const paymentMethod = document.getElementById('reportPaymentMethod').value;
                 
-                // Filter transactions based on report criteria
+                // Filter transactions
                 let filteredTransactions = [...this.transactions];
                 
-                // Date filter
-                if (reportType === 'custom') {
-                    if (dateFrom) {
-                        filteredTransactions = filteredTransactions.filter(t => t.date >= dateFrom + 'T00:00:00');
-                    }
-                    if (dateTo) {
-                        filteredTransactions = filteredTransactions.filter(t => t.date <= dateTo + 'T23:59:59');
-                    }
-                } else {
-                    let startDate, endDate;
-                    const today = new Date();
-                    
-                    switch (reportType) {
-                        case 'daily':
-                            startDate = date ? new Date(date) : new Date();
-                            endDate = new Date(startDate);
-                            endDate.setDate(endDate.getDate() + 1);
-                            break;
-                        case 'weekly':
-                            startDate = new Date(today);
-                            startDate.setDate(startDate.getDate() - startDate.getDay()); // Start of week (Sunday)
-                            endDate = new Date(startDate);
-                            endDate.setDate(endDate.getDate() + 7);
-                            break;
-                        case 'monthly':
-                            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-                            break;
-                        case 'yearly':
-                            startDate = new Date(today.getFullYear(), 0, 1);
-                            endDate = new Date(today.getFullYear() + 1, 0, 1);
-                            break;
-                    }
-                    
-                    filteredTransactions = filteredTransactions.filter(t => {
-                        const transDate = new Date(t.date);
-                        return transDate >= startDate && transDate < endDate;
-                    });
+                if (dateFrom) {
+                    filteredTransactions = filteredTransactions.filter(t => t.date >= dateFrom + 'T00:00:00');
                 }
                 
-                // Ticket type filter
+                if (dateTo) {
+                    filteredTransactions = filteredTransactions.filter(t => t.date <= dateTo + 'T23:59:59');
+                }
+                
                 if (ticketType !== 'all') {
                     filteredTransactions = filteredTransactions.filter(t => 
                         t.items.some(item => item.type === ticketType)
                     );
                 }
                 
-                // User filter
                 if (userId !== 'all') {
-                    filteredTransactions = filteredTransactions.filter(t => 
-                        t.userId === parseInt(userId)
-                    );
+                    filteredTransactions = filteredTransactions.filter(t => t.userId === parseInt(userId));
                 }
                 
-                // Payment method filter
                 if (paymentMethod !== 'all') {
-                    filteredTransactions = filteredTransactions.filter(t => 
-                        t.paymentMethod === paymentMethod)
-                    );
+                    filteredTransactions = filteredTransactions.filter(t => t.paymentMethod === paymentMethod);
                 }
                 
-                // Calculate report summary
+                // Calculate report data
                 const totalTransactions = filteredTransactions.length;
                 const totalTickets = filteredTransactions.reduce((sum, t) => sum + t.items.length, 0);
                 const totalRevenue = filteredTransactions.reduce((sum, t) => sum + t.total, 0);
+                const totalTax = filteredTransactions.reduce((sum, t) => sum + (t.tax ? t.tax.amount : 0), 0);
                 
-                // Group by date for chart
-                const dateGroups = {};
+                // Group by payment method
+                const paymentMethodSummary = {};
                 filteredTransactions.forEach(t => {
-                    const date = t.date.split('T')[0];
-                    if (!dateGroups[date]) {
-                        dateGroups[date] = {
-                            date: date,
+                    if (!paymentMethodSummary[t.paymentMethod]) {
+                        paymentMethodSummary[t.paymentMethod] = {
                             count: 0,
-                            revenue: 0
+                            amount: 0
                         };
                     }
-                    dateGroups[date].count += t.items.length;
-                    dateGroups[date].revenue += t.total;
+                    paymentMethodSummary[t.paymentMethod].count++;
+                    paymentMethodSummary[t.paymentMethod].amount += t.total;
                 });
                 
-                const sortedDates = Object.keys(dateGroups).sort();
-                const chartLabels = sortedDates.map(d => this.formatDate(d));
-                const chartDataCount = sortedDates.map(d => dateGroups[d].count);
-                const chartDataRevenue = sortedDates.map(d => dateGroups[d].revenue);
+                // Group by ticket type
+                const ticketTypeSummary = {};
+                filteredTransactions.forEach(t => {
+                    t.items.forEach(item => {
+                        if (!ticketTypeSummary[item.type]) {
+                            ticketTypeSummary[item.type] = {
+                                count: 0,
+                                amount: 0
+                            };
+                        }
+                        ticketTypeSummary[item.type].count++;
+                        ticketTypeSummary[item.type].amount += item.price;
+                    });
+                });
                 
-                // Display report
-                const reportResults = document.getElementById('reportResults');
-                reportResults.innerHTML = `
+                // Group by user
+                const userSummary = {};
+                filteredTransactions.forEach(t => {
+                    if (!userSummary[t.username]) {
+                        userSummary[t.username] = {
+                            count: 0,
+                            amount: 0
+                        };
+                    }
+                    userSummary[t.username].count++;
+                    userSummary[t.username].amount += t.total;
+                });
+                
+                // Generate report HTML
+                let reportHTML = `
+                    <div class="report-header mb-4">
+                        <h3 class="text-center">Laporan Penjualan Tiket</h3>
+                        <div class="text-center">
+                            ${this.settings.venueName ? `<h4>${this.settings.venueName}</h4>` : ''}
+                            <p>${dateFrom === dateTo ? 
+                                `Tanggal: ${this.formatDate(dateFrom)}` : 
+                                `Periode: ${this.formatDate(dateFrom)} - ${this.formatDate(dateTo)}`}</p>
+                            <p>Dibuat pada: ${this.formatDateTime(new Date().toISOString())}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="report-summary mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Total Transaksi</h5>
+                                        <h3>${totalTransactions}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Total Tiket Terjual</h5>
+                                        <h3>${totalTickets}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Total Pendapatan</h5>
+                                        <h3>${this.formatCurrency(totalRevenue)}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="row mb-4">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5 class="card-title mb-0">Total Transaksi</h5>
+                                    <h5 class="card-title mb-0">Ringkasan Metode Pembayaran</h5>
                                 </div>
                                 <div class="card-body">
-                                    <h3 class="text-center">${totalTransactions}</h3>
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Metode</th>
+                                                <th>Jumlah</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                `;
+                
+                Object.entries(paymentMethodSummary).forEach(([method, data]) => {
+                    reportHTML += `
+                        <tr>
+                            <td>${this.getPaymentMethodName(method)}</td>
+                            <td>${data.count}</td>
+                            <td>${this.formatCurrency(data.amount)}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5 class="card-title mb-0">Total Tiket</h5>
+                                    <h5 class="card-title mb-0">Ringkasan Jenis Tiket</h5>
                                 </div>
                                 <div class="card-body">
-                                    <h3 class="text-center">${totalTickets}</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Total Pendapatan</h5>
-                                </div>
-                                <div class="card-body">
-                                    <h3 class="text-center">${this.formatCurrency(totalRevenue)}</h3>
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Jenis</th>
+                                                <th>Jumlah</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                `;
+                
+                Object.entries(ticketTypeSummary).forEach(([type, data]) => {
+                    reportHTML += `
+                        <tr>
+                            <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                            <td>${data.count}</td>
+                            <td>${this.formatCurrency(data.amount)}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -4023,58 +4056,99 @@
                     
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">Grafik Penjualan</h5>
+                            <h5 class="card-title mb-0">Ringkasan Kasir</h5>
                         </div>
                         <div class="card-body">
-                            <canvas id="reportChart" height="300"></canvas>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Kasir</th>
+                                        <th>Transaksi</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                Object.entries(userSummary).forEach(([username, data]) => {
+                    reportHTML += `
+                        <tr>
+                            <td>${username}</td>
+                            <td>${data.count}</td>
+                            <td>${this.formatCurrency(data.amount)}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">Detail Transaksi</h5>
+                            <h5 class="card-title mb-0">Grafik Penjualan</h5>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>ID Transaksi</th>
-                                            <th>Tanggal</th>
-                                            <th>Kasir</th>
-                                            <th>Jumlah Tiket</th>
-                                            <th>Total</th>
-                                            <th>Metode</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${filteredTransactions.map(t => `
-                                            <tr>
-                                                <td>${t.code}</td>
-                                                <td>${this.formatDateTime(t.date)}</td>
-                                                <td>${t.username}</td>
-                                                <td>${t.items.length}</td>
-                                                <td>${this.formatCurrency(t.total)}</td>
-                                                <td>${this.getPaymentMethodDisplayName(t.paymentMethod)}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <canvas id="reportChart" height="250"></canvas>
                         </div>
                     </div>
                 `;
                 
-                // Render chart
+                // Update report results
+                const reportResults = document.getElementById('reportResults');
+                reportResults.innerHTML = reportHTML;
+                
+                // Create chart
+                this.createReportChart(dateFrom, dateTo, filteredTransactions);
+                
+                // Show message
+                this.showToast('Berhasil', 'Laporan berhasil digenerate', 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} generated a sales report`);
+            }
+
+            createReportChart(dateFrom, dateTo, transactions) {
                 const ctx = document.getElementById('reportChart').getContext('2d');
+                
+                // Group transactions by date
+                const dateMap = {};
+                const currentDate = new Date(dateFrom);
+                const endDate = new Date(dateTo);
+                
+                while (currentDate <= endDate) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    dateMap[dateStr] = {
+                        count: 0,
+                        amount: 0
+                    };
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                transactions.forEach(t => {
+                    const dateStr = t.date.split('T')[0];
+                    if (dateMap[dateStr]) {
+                        dateMap[dateStr].count += t.items.length;
+                        dateMap[dateStr].amount += t.total;
+                    }
+                });
+                
+                // Prepare chart data
+                const labels = Object.keys(dateMap).map(date => this.formatDate(date));
+                const ticketData = Object.values(dateMap).map(data => data.count);
+                const revenueData = Object.values(dateMap).map(data => data.amount);
+                
+                // Create chart
                 this.reportChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: chartLabels,
+                        labels: labels,
                         datasets: [
                             {
                                 label: 'Jumlah Tiket',
-                                data: chartDataCount,
+                                data: ticketData,
                                 backgroundColor: 'rgba(52, 152, 219, 0.7)',
                                 borderColor: 'rgba(52, 152, 219, 1)',
                                 borderWidth: 1,
@@ -4082,7 +4156,7 @@
                             },
                             {
                                 label: 'Pendapatan',
-                                data: chartDataRevenue,
+                                data: revenueData,
                                 backgroundColor: 'rgba(46, 204, 113, 0.7)',
                                 borderColor: 'rgba(46, 204, 113, 1)',
                                 borderWidth: 1,
@@ -4146,62 +4220,565 @@
             }
 
             printReport() {
-                const reportContent = document.getElementById('reportResults').innerHTML;
-                const originalContent = document.body.innerHTML;
+                const printContent = document.getElementById('reportResults').innerHTML;
                 
+                const originalContent = document.body.innerHTML;
                 document.body.innerHTML = `
                     <style>
                         @page { size: A4 landscape; margin: 10mm; }
                         body { font-family: Arial, sans-serif; }
-                        .card { border: none; box-shadow: none; }
-                        .table { width: 100%; }
+                        .card { border: 1px solid #ddd; border-radius: 5px; margin-bottom: 20px; }
+                        .card-header { background-color: #f5f5f5; padding: 10px; border-bottom: 1px solid #ddd; }
+                        .card-body { padding: 15px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+                        .text-center { text-align: center; }
                     </style>
-                    <div class="container mt-4">
-                        <h2 class="text-center mb-4">Laporan Penjualan Tiket</h2>
-                        ${reportContent}
-                    </div>
+                    ${printContent}
                 `;
                 
                 window.print();
                 document.body.innerHTML = originalContent;
-                
+
+                // Show message
                 this.showToast('Berhasil', 'Laporan berhasil dicetak', 'success');
             }
 
             exportReportToPDF() {
                 this.showToast('Info', 'Fitur export PDF akan diimplementasikan', 'info');
-                // In a real implementation, use jsPDF or similar library to generate PDF
+                // In a real implementation, you would use jsPDF or similar library to generate PDF
             }
 
-            // Cleanup method
-            cleanup() {
-                // Destroy all active charts to prevent memory leaks
-                this.activeCharts.forEach(chart => {
-                    if (chart) chart.destroy();
-                });
-                this.activeCharts = [];
+            populateUserDropdown(dropdownId) {
+                const dropdown = document.getElementById(dropdownId);
                 
-                // Remove all event listeners
-                Object.keys(this.eventListeners).forEach(elementId => {
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        element.removeEventListener('change', this.eventListeners[elementId]);
+                // Clear existing options except the first one
+                while (dropdown.options.length > 1) {
+                    dropdown.remove(1);
+                }
+                
+                // Add user options
+                this.users.forEach(user => {
+                    if (user.status === 'active') {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.username;
+                        dropdown.appendChild(option);
                     }
                 });
-                this.eventListeners = {};
+            }
+
+            // User management methods
+            loadUsers() {
+                const tableBody = document.getElementById('usersTableBody');
+                tableBody.innerHTML = '';
+                
+                this.users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.fullName}</td>
+                        <td>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
+                        <td>
+                            <span class="badge ${user.status === 'active' ? 'bg-success' : 'bg-secondary'}">
+                                ${user.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                        </td>
+                        <td>${user.lastLogin ? this.formatDateTime(user.lastLogin) : 'Belum pernah'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary edit-user-btn" data-id="${user.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            ${user.id !== this.currentUser.id ? `
+                            <button class="btn btn-sm btn-outline-danger delete-user-btn" data-id="${user.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            ` : ''}
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Add event listeners to edit buttons
+                document.querySelectorAll('.edit-user-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const userId = parseInt(btn.getAttribute('data-id'));
+                        this.showEditUserModal(userId);
+                    });
+                });
+                
+                // Add event listeners to delete buttons
+                document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const userId = parseInt(btn.getAttribute('data-id'));
+                        this.showDeleteUserConfirmation(userId);
+                    });
+                });
+            }
+
+            filterUsers(searchTerm) {
+                if (!searchTerm) {
+                    this.loadUsers();
+                    return;
+                }
+
+                const filteredUsers = this.users.filter(user => 
+                    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                const tableBody = document.getElementById('usersTableBody');
+                tableBody.innerHTML = '';
+
+                filteredUsers.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.fullName}</td>
+                        <td>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
+                        <td>
+                            <span class="badge ${user.status === 'active' ? 'bg-success' : 'bg-secondary'}">
+                                ${user.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                        </td>
+                        <td>${user.lastLogin ? this.formatDateTime(user.lastLogin) : 'Belum pernah'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary edit-user-btn" data-id="${user.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            ${user.id !== this.currentUser.id ? `
+                            <button class="btn btn-sm btn-outline-danger delete-user-btn" data-id="${user.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            ` : ''}
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Add event listeners to edit buttons
+                document.querySelectorAll('.edit-user-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const userId = parseInt(btn.getAttribute('data-id'));
+                        this.showEditUserModal(userId);
+                    });
+                });
+                
+                // Add event listeners to delete buttons
+                document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const userId = parseInt(btn.getAttribute('data-id'));
+                        this.showDeleteUserConfirmation(userId);
+                    });
+                });
+            }
+
+            addNewUser() {
+                const username = document.getElementById('newUsername').value;
+                const fullName = document.getElementById('newFullName').value;
+                const role = document.getElementById('newUserRole').value;
+                const password = document.getElementById('newUserPassword').value;
+                const confirmPassword = document.getElementById('confirmUserPassword').value;
+                
+                // Validate
+                if (!username || !fullName || !role || !password || !confirmPassword) {
+                    this.showToast('Peringatan', 'Harap isi semua field', 'warning');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    this.showToast('Peringatan', 'Password tidak cocok', 'warning');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    this.showToast('Peringatan', 'Password minimal 6 karakter', 'warning');
+                    return;
+                }
+                
+                // Check if username exists
+                if (this.users.some(u => u.username === username)) {
+                    this.showToast('Peringatan', 'Username sudah digunakan', 'warning');
+                    return;
+                }
+                
+                // Create new user
+                const newUser = {
+                    id: this.users.length > 0 ? Math.max(...this.users.map(u => u.id)) + 1 : 1,
+                    username: username,
+                    password: this.hashPassword(password),
+                    fullName: fullName,
+                    role: role,
+                    status: 'active',
+                    lastLogin: null,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Add to users array
+                this.users.push(newUser);
+                this.saveData();
+                
+                // Show success message
+                this.showToast('Berhasil', 'Pengguna baru berhasil ditambahkan', 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} added new user ${username}`);
+                
+                // Reload users table
+                this.loadUsers();
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+                modal.hide();
+                
+                // Clear form
+                document.getElementById('addUserForm').reset();
+            }
+
+            showEditUserModal(userId) {
+                const user = this.users.find(u => u.id === userId);
+                if (!user) return;
+                
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUsername').value = user.username;
+                document.getElementById('editFullName').value = user.fullName;
+                document.getElementById('editUserRole').value = user.role;
+                document.getElementById('editUserStatus').value = user.status;
+                document.getElementById('editUserPassword').value = '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                modal.show();
+            }
+
+            saveEditedUser() {
+                const userId = parseInt(document.getElementById('editUserId').value);
+                const fullName = document.getElementById('editFullName').value;
+                const role = document.getElementById('editUserRole').value;
+                const status = document.getElementById('editUserStatus').value;
+                const newPassword = document.getElementById('editUserPassword').value;
+                
+                // Validate
+                if (!fullName || !role || !status) {
+                    this.showToast('Peringatan', 'Harap isi semua field', 'warning');
+                    return;
+                }
+                
+                // Find user
+                const userIndex = this.users.findIndex(u => u.id === userId);
+                if (userIndex === -1) return;
+                
+                // Update user
+                this.users[userIndex].fullName = fullName;
+                this.users[userIndex].role = role;
+                this.users[userIndex].status = status;
+                
+                // Update password if provided
+                if (newPassword) {
+                    if (newPassword.length < 6) {
+                        this.showToast('Peringatan', 'Password minimal 6 karakter', 'warning');
+                        return;
+                    }
+                    this.users[userIndex].password = this.hashPassword(newPassword);
+                }
+                
+                this.saveData();
+                
+                // Show success message
+                this.showToast('Berhasil', 'Perubahan pengguna berhasil disimpan', 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} updated user ${this.users[userIndex].username}`);
+                
+                // Reload users table
+                this.loadUsers();
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                modal.hide();
+            }
+
+            showDeleteUserConfirmation(userId) {
+                const user = this.users.find(u => u.id === userId);
+                if (!user) return;
+                
+                this.showConfirmation(
+                    'Hapus Pengguna',
+                    `Apakah Anda yakin ingin menghapus pengguna ${user.username}?`,
+                    () => this.deleteUser(userId)
+                );
+            }
+
+            deleteUser(userId) {
+                // Find user
+                const userIndex = this.users.findIndex(u => u.id === userId);
+                if (userIndex === -1) return;
+                
+                const username = this.users[userIndex].username;
+                
+                // Remove user
+                this.users.splice(userIndex, 1);
+                this.saveData();
+                
+                // Show success message
+                this.showToast('Berhasil', `Pengguna ${username} berhasil dihapus`, 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} deleted user ${username}`);
+                
+                // Reload users table
+                this.loadUsers();
+            }
+
+            // Settings methods
+            saveVenueInfo() {
+                const venueName = document.getElementById('venueName').value;
+                const venueLocation = document.getElementById('venueLocation').value;
+                const venueDescription = document.getElementById('venueDescription').value;
+                const venueLogo = document.getElementById('venueLogo').value;
+                
+                if (!venueName || !venueLocation) {
+                    this.showToast('Peringatan', 'Nama dan lokasi tempat wisata harus diisi', 'warning');
+                    return;
+                }
+                
+                this.settings.venueName = venueName;
+                this.settings.venueLocation = venueLocation;
+                this.settings.venueDescription = venueDescription;
+                this.settings.venueLogo = venueLogo;
+                
+                this.saveData();
+                
+                // Show success message
+                this.showToast('Berhasil', 'Informasi tempat wisata berhasil disimpan', 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} updated venue information`);
+            }
+
+            saveSystemSettings() {
+                const currency = document.getElementById('currency').value;
+                const dateFormat = document.getElementById('dateFormat').value;
+                const timeFormat = document.getElementById('timeFormat').value;
+                const enableTax = document.getElementById('enableTax').checked;
+                const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+                const taxName = document.getElementById('taxName').value;
+                const enableReceiptFooter = document.getElementById('enableReceiptFooter').checked;
+                const receiptFooterText = document.getElementById('receiptFooterText').value;
+                
+                if (enableTax && (!taxName || taxRate <= 0)) {
+                    this.showToast('Peringatan', 'Harap isi nama dan persentase pajak dengan benar', 'warning');
+                    return;
+                }
+                
+                this.settings.currency = currency;
+                this.settings.dateFormat = dateFormat;
+                this.settings.timeFormat = timeFormat;
+                this.settings.enableTax = enableTax;
+                this.settings.taxRate = taxRate;
+                this.settings.taxName = taxName;
+                this.settings.enableReceiptFooter = enableReceiptFooter;
+                this.settings.receiptFooterText = receiptFooterText;
+                
+                this.saveData();
+                this.setDateFormat();
+                
+                // Show success message
+                this.showToast('Berhasil', 'Pengaturan sistem berhasil disimpan', 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} updated system settings`);
+            }
+
+            // Backup & Restore methods
+            createBackup() {
+                const backupName = document.getElementById('backupFileName').value || 'TourTicketPro_Backup';
+                const backupPassword = document.getElementById('backupPassword').value;
+                
+                // Get all data
+                const data = {
+                    settings: this.settings,
+                    users: this.users,
+                    tickets: this.tickets,
+                    transactions: this.transactions,
+                    activities: this.activities,
+                    backupDate: new Date().toISOString(),
+                    backupVersion: '1.0'
+                };
+                
+                // Convert to JSON
+                let backupData = JSON.stringify(data);
+                
+                // Simple encryption if password provided
+                if (backupPassword) {
+                    // In a real application, use proper encryption like AES
+                    backupData = btoa(backupData + '|' + backupPassword);
+                }
+                
+                // Create download link
+                const blob = new Blob([backupData], { type: 'text/plain;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `${backupName}_${new Date().toISOString().split('T')[0]}.ttbackup`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Show message
+                this.showToast('Berhasil', 'Backup data berhasil dibuat', 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} created a backup file`);
+                
+                // Clear password field
+                document.getElementById('backupPassword').value = '';
+            }
+
+            restoreData() {
+                const fileInput = document.getElementById('restoreFile');
+                const password = document.getElementById('restorePassword').value;
+                
+                if (fileInput.files.length === 0) {
+                    this.showToast('Peringatan', 'Harap pilih file backup', 'warning');
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    try {
+                        let backupData = e.target.result;
+                        
+                        // Try to decrypt if password provided
+                        if (password) {
+                            try {
+                                const decrypted = atob(backupData);
+                                const parts = decrypted.split('|');
+                                if (parts.length !== 2 || parts[1] !== password) {
+                                    throw new Error('Password salah');
+                                }
+                                backupData = parts[0];
+                            } catch (error) {
+                                this.showToast('Error', 'Password salah atau file corrupt', 'error');
+                                return;
+                            }
+                        }
+                        
+                        // Parse JSON
+                        const data = JSON.parse(backupData);
+                        
+                        if (!data.settings || !data.users) {
+                            throw new Error('Format file backup tidak valid');
+                        }
+                        
+                        // Show confirmation
+                        this.showConfirmation(
+                            'Restore Data',
+                            'Apakah Anda yakin ingin restore data? Semua data saat ini akan diganti dengan data dari backup.',
+                            () => {
+                                // Restore data
+                                this.settings = data.settings;
+                                this.users = data.users;
+                                this.tickets = data.tickets || [];
+                                this.transactions = data.transactions || [];
+                                this.activities = data.activities || [];
+                                
+                                this.saveData();
+                                
+                                // Update UI
+                                this.initUI();
+                                
+                                // Show success message
+                                this.showToast('Berhasil', 'Data berhasil direstore', 'success');
+                                
+                                // Add activity log
+                                this.addActivity(`${this.currentUser.fullName} restored data from backup`);
+                                
+                                // Clear file input
+                                fileInput.value = '';
+                                document.getElementById('restorePassword').value = '';
+                                
+                                // Reload dashboard
+                                this.loadDashboardData();
+                            },
+                            true
+                        );
+                    } catch (error) {
+                        console.error('Error restoring backup:', error);
+                        this.showToast('Error', 'Gagal memproses file backup', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            }
+
+            resetSystem() {
+                const password = document.getElementById('resetPassword').value;
+                
+                // Verify admin password
+                const adminUser = this.users.find(u => u.role === 'admin' && u.status === 'active');
+                if (!adminUser || this.hashPassword(password) !== adminUser.password) {
+                    this.showToast('Error', 'Password admin salah', 'error');
+                    return;
+                }
+                
+                // Reset all data except admin user
+                const initialData = {
+                    settings: {
+                        venueName: 'Tempat Wisata Contoh',
+                        venueLocation: 'Jl. Contoh No. 123, Kota Contoh',
+                        venueDescription: 'Tempat wisata keluarga dengan berbagai wahana menarik',
+                        venueLogo: 'https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png',
+                        currency: 'IDR',
+                        dateFormat: 'DD-MM-YYYY',
+                        timeFormat: '24',
+                        enableTax: false,
+                        taxRate: 10,
+                        taxName: 'PPN',
+                        enableReceiptFooter: true,
+                        receiptFooterText: 'Terima kasih telah berkunjung!'
+                    },
+                    users: [
+                        {
+                            id: adminUser.id,
+                            username: adminUser.username,
+                            password: adminUser.password,
+                            fullName: adminUser.fullName,
+                            role: 'admin',
+                            status: 'active',
+                            lastLogin: adminUser.lastLogin,
+                            createdAt: adminUser.createdAt
+                        }
+                    ],
+                    tickets: [],
+                    transactions: [],
+                    activities: []
+                };
+                
+                // Save reset data
+                localStorage.setItem('ticketSalesData', JSON.stringify(initialData));
+                
+                // Reload data
+                this.loadData();
+                
+                // Update UI
+                this.initUI();
+                
+                // Show success message
+                this.showToast('Berhasil', 'Sistem berhasil direset ke pengaturan awal', 'success');
+                
+                // Add activity log
+                this.addActivity(`${this.currentUser.fullName} reset the system to factory settings`);
+                
+                // Clear password field
+                document.getElementById('resetPassword').value = '';
+                
+                // Reload dashboard
+                this.loadDashboardData();
             }
         }
-
-        // Initialize the app when window loads
-        window.onload = function() {
-            const app = new TicketSalesApp();
-            app.init();
-            
-            // Cleanup when page is unloaded
-            window.addEventListener('beforeunload', () => {
-                app.cleanup();
-            });
-        };
     </script>
 </body>
 </html>
