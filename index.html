@@ -317,6 +317,7 @@
             .form-container {
                 box-shadow: none;
                 padding: 0;
+                max-width: 100%;
             }
             
             button {
@@ -333,6 +334,17 @@
             
             .header-text p {
                 font-size: 11px;
+            }
+            
+            /* Prevent elements from breaking across pages */
+            .article, .party, .signature-area {
+                page-break-inside: avoid;
+            }
+            
+            /* Ensure content fits within page */
+            .form-container > * {
+                max-width: 100%;
+                overflow: hidden;
             }
         }
     </style>
@@ -414,7 +426,7 @@
         <div id="agreement-document">
             <div class="header">
                 <div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/LenteraKarya/daftar-member-jualan-kita/main/logo-lks.png" alt="Logo LKS" class="logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjUwIiB2aWV3Qm94PSIwIDAgMTAwIDUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNTAiIGZpbGw9IiMwMDY2Y2MiLz48dGV4dCB4PSI4IiB5PSIyOCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSI+TEtTIExPR088L3RleHQ+PC9zdmc+'">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjUwIiB2aWV3Qm94PSIwIDAgMTAwIDUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNTAiIGZpbGw9IiMwMDY2Y2MiLz48dGV4dCB4PSI4IiB5PSIyOCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSI+TEtTIExPR088L3RleHQ+PC9zdmc+" alt="Logo LKS" class="logo">
                 </div>
                 <div class="header-text">
                     <h2>LENTERA KARYA SITUBONDO</h2>
