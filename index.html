@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surat Perjanjian Layanan LKS 2025</title>
-    <!-- Mengganti CDN QRCode dengan versi yang lebih andal -->
-    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <style>
         /* Reset CSS */
         * {
@@ -40,26 +39,30 @@
             margin-bottom: 25px;
             border-bottom: 2px solid #0066cc;
             padding-bottom: 15px;
-            flex-wrap: wrap;
         }
         
         .logo {
             width: 120px;
             height: auto;
             margin-right: 20px;
-            margin-bottom: 10px;
+        }
+        
+        .header-text {
+            flex: 1;
         }
         
         .header-text h2 {
             color: #0066cc;
             font-size: 22px;
             margin-bottom: 5px;
+            text-align: center;
         }
         
         .header-text p {
             font-size: 13px;
             margin: 3px 0;
             color: #000;
+            text-align: center;
         }
         
         /* Document Title Styles */
@@ -95,6 +98,14 @@
             color: #000;
         }
         
+        .party-info {
+            margin-left: 20px;
+        }
+        
+        .party-info p {
+            margin-bottom: 5px;
+        }
+        
         /* Article Styles */
         .article {
             margin-bottom: 25px;
@@ -111,13 +122,11 @@
             margin-top: 50px;
             display: flex;
             justify-content: space-between;
-            flex-wrap: wrap;
         }
         
         .signature-box {
             width: 45%;
             text-align: center;
-            margin-bottom: 20px;
         }
         
         .signature-info {
@@ -218,6 +227,15 @@
             display: none;
         }
         
+        /* Form Input Display Styles */
+        .form-input {
+            display: inline-block;
+            min-width: 250px;
+            border-bottom: 1px dotted #000;
+            padding: 0 5px;
+            margin-left: 10px;
+        }
+        
         /* Print Styles */
         @media print {
             @page {
@@ -248,32 +266,6 @@
             
             * {
                 color: #000 !important;
-            }
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .logo {
-                margin-right: 0;
-                margin-bottom: 15px;
-            }
-            
-            .signature-box {
-                width: 100%;
-                margin-bottom: 30px;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
             }
         }
     </style>
@@ -340,17 +332,17 @@
             </div>
             
             <div class="button-group">
-                <button id="generate-btn">Generate Surat Perjanjian</button>
-                <button class="print" id="print-btn">Cetak Dokumen</button>
-                <button class="download" id="download-btn">Download PDF</button>
-                <button class="whatsapp" id="whatsapp-btn">Kirim via WhatsApp</button>
+                <button onclick="validateAndGenerate()">Generate Surat Perjanjian</button>
+                <button onclick="window.print()" class="print">Cetak Dokumen</button>
+                <button onclick="downloadDocument()" class="download">Download PDF</button>
+                <button onclick="sendViaWhatsApp()" class="whatsapp">Kirim via WhatsApp</button>
             </div>
         </div>
         
         <!-- Agreement Document -->
         <div id="agreement-document">
             <div class="header">
-                <img src="https://raw.githubusercontent.com/LenteraKarya/daftar-member-jualan-kita/main/logo-lks.png" alt="Logo LKS" class="logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjYwIiB2aWV3Qm94PSIwIDAgMTIwIDYwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNjAiIGZpbGw9IiMwMDY2Y2MiLz48dGV4dCB4PSIxNiIgeT0iMzUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiI+TEVOVEVSQSBLQVJZQTwvdGV4dD48L3N2Zz4='">
+                <img src="https://raw.githubusercontent.com/LenteraKarya/daftar-member-jualan-kita/main/logo-lks.png" alt="Logo LKS" class="logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjYwIiB2aWV3Qm94PSIwIDAgMTIwIDYwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNjAiIGZpbGw9IiMwMDY2Y2MiLz48dGV4dCB4PSIxMCIgeT0iMzUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiPkxLTM8L3RleHQ+PC9zdmc+'">
                 <div class="header-text">
                     <h2>LENTERA KARYA SITUBONDO</h2>
                     <p>Desa Wringin Anom, Kecamatan Panarukan, Kabupaten Situbondo, Jawa Timur</p>
@@ -372,20 +364,24 @@
                 
                 <div class="party">
                     <div class="party-title">PIHAK PERTAMA:</div>
-                    <p>Nama Lengkap: <strong>MUHAMMAD SALAM</strong></p>
-                    <p>Jabatan: <strong>Founder Lentera Karya Situbondo</strong></p>
-                    <p>Alamat: Desa Wringin Anom, Kecamatan Panarukan, Kabupaten Situbondo, Jawa Timur</p>
+                    <div class="party-info">
+                        <p>Nama Lengkap: <strong>MUHAMMAD SALAM</strong></p>
+                        <p>Jabatan: <strong>Founder Lentera Karya Situbondo</strong></p>
+                        <p>Alamat: Desa Wringin Anom, Kecamatan Panarukan, Kabupaten Situbondo, Jawa Timur</p>
+                    </div>
                 </div>
                 
                 <div class="party">
                     <div class="party-title">PIHAK KEDUA (Pemohon / Pengguna Layanan):</div>
-                    <p>Nama Pemohon : <span id="display_nama_pemohon" class="form-input">..............................</span></p>
-                    <p>NIK : <span id="display_nik" class="form-input">..............................</span></p>
-                    <p>Alamat : <span id="display_alamat" class="form-input">..............................</span></p>
-                    <p>Nomor Telepon : <span id="display_nomor_telepon" class="form-input">..............................</span></p>
-                    <p>No. ID Pendaftaran : <span id="display_id_pendaftaran" class="form-input">..............................</span></p>
-                    <p>Nama UMKM : <span id="display_nama_umkm" class="form-input">..............................</span></p>
-                    <p>Kategori Layanan : <span id="display_kategori_layanan" class="form-input">..............................</span></p>
+                    <div class="party-info">
+                        <p>Nama Pemohon : <span id="display_nama_pemohon" class="form-input">..............................</span></p>
+                        <p>NIK : <span id="display_nik" class="form-input">..............................</span></p>
+                        <p>Alamat : <span id="display_alamat" class="form-input">..............................</span></p>
+                        <p>Nomor Telepon : <span id="display_nomor_telepon" class="form-input">..............................</span></p>
+                        <p>No. ID Pendaftaran : <span id="display_id_pendaftaran" class="form-input">..............................</span></p>
+                        <p>Nama UMKM : <span id="display_nama_umkm" class="form-input">..............................</span></p>
+                        <p>Kategori Layanan : <span id="display_kategori_layanan" class="form-input">..............................</span></p>
+                    </div>
                 </div>
             </div>
             
@@ -483,32 +479,6 @@
     </div>
 
     <script>
-        // Inisialisasi event listeners setelah DOM selesai dimuat
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auto generate ID ketika field diisi
-            const fieldsToListen = ['nama_pemohon', 'nik', 'alamat', 'nomor_telepon', 'tanggal_pendaftaran'];
-            fieldsToListen.forEach(fieldId => {
-                document.getElementById(fieldId).addEventListener('input', autoGenerateID);
-            });
-            
-            // Force uppercase untuk field tertentu
-            document.getElementById('nama_pemohon').addEventListener('input', function() {
-                this.value = this.value.toUpperCase();
-            });
-            
-            document.getElementById('nama_umkm').addEventListener('input', function() {
-                this.value = this.value.toUpperCase();
-            });
-            
-            // Event listeners untuk tombol
-            document.getElementById('generate-btn').addEventListener('click', validateAndGenerate);
-            document.getElementById('print-btn').addEventListener('click', function() {
-                window.print();
-            });
-            document.getElementById('download-btn').addEventListener('click', downloadDocument);
-            document.getElementById('whatsapp-btn').addEventListener('click', sendViaWhatsApp);
-        });
-
         // Generate random ID function
         function generateRandomID() {
             const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -531,6 +501,13 @@
                 document.getElementById('id_pendaftaran').value = generateRandomID();
             }
         }
+
+        // Add event listeners for auto-generate ID
+        document.getElementById('nama_pemohon').addEventListener('input', autoGenerateID);
+        document.getElementById('nik').addEventListener('input', autoGenerateID);
+        document.getElementById('alamat').addEventListener('input', autoGenerateID);
+        document.getElementById('nomor_telepon').addEventListener('input', autoGenerateID);
+        document.getElementById('tanggal_pendaftaran').addEventListener('change', autoGenerateID);
 
         // Validate form before generating agreement
         function validateAndGenerate() {
@@ -604,11 +581,6 @@
                 alert('Surat perjanjian telah di-generate. Silakan cetak, download, atau kirim via WhatsApp.');
             } else {
                 alert('Silakan periksa kembali form Anda. Ada data yang belum valid.');
-                // Scroll ke field pertama yang error
-                const firstError = document.querySelector('.error-message[style="display: block"]');
-                if (firstError) {
-                    firstError.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
             }
         }
 
@@ -626,6 +598,10 @@
             // Format date
             const formattedDate = formatDate(tanggalPendaftaran);
             const fullDate = formatFullDate(tanggalPendaftaran);
+            
+            // Generate nomor surat
+            const nomorSurat = generateNomorSurat(idPendaftaran);
+            document.getElementById('nomor_surat_display').textContent = nomorSurat;
             
             // Display values in the agreement
             document.getElementById('display_nama_pemohon').textContent = namaPemohon || "..............................";
@@ -645,27 +621,28 @@
             generateQRCode('qrcode_pihak_pertama', 
                          `PERUSAHAAN:LENTERA KARYA|PENANDATANGAN:MUHAMMAD SALAM|JABATAN:FOUNDER|TGL:07/07/2025`);
         }
+        
+        function generateNomorSurat(idPendaftaran) {
+            if (!idPendaftaran) return "......../......../SP3LA-LKS/VII/2025";
+            
+            // Extract number part from ID
+            const numberPart = idPendaftaran.split('-')[1] || "0000";
+            return `${numberPart}/SP3LA-LKS/VII/2025`;
+        }
 
         function generateQRCode(elementId, data) {
             const element = document.getElementById(elementId);
             element.innerHTML = ''; // Clear previous QR code
             
-            if (data && typeof QRCode !== 'undefined') {
-                try {
-                    new QRCode(element, {
-                        text: data,
-                        width: 100,
-                        height: 100,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                } catch (error) {
-                    console.error('Error generating QR code:', error);
-                    element.innerHTML = '<p style="font-size:10px;">QR Error</p>';
-                }
-            } else {
-                element.innerHTML = '<p style="font-size:10px;">QR Unavailable</p>';
+            if (data) {
+                new QRCode(element, {
+                    text: data,
+                    width: 100,
+                    height: 100,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
             }
         }
         
@@ -684,6 +661,15 @@
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
             return `Tanggal ${date.toLocaleDateString('id-ID', options)}`;
         }
+
+        // Force uppercase for specific fields
+        document.getElementById('nama_pemohon').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+        
+        document.getElementById('nama_umkm').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
 
         // Download PDF function
         function downloadDocument() {
