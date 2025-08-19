@@ -6,6 +6,7 @@
     <title>Surat Perjanjian Layanan LKS 2025</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         /* Reset CSS */
         * {
@@ -16,32 +17,34 @@
         
         /* Body Styles */
         body {
-            font-family: 'Times New Roman', serif;
+            font-family: 'Source Sans Pro', sans-serif;
             line-height: 1.6;
-            color: #000;
-            background-color: #f9f9f9;
+            color: #333;
+            background-color: #f5f5f5;
             padding: 20px;
         }
         
         /* Container Styles */
         .form-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background-color: white;
-            padding: 30px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
             position: relative;
-            border: 1px solid #ccc;
+            border: 1px solid #e0e0e0;
+            background-image: linear-gradient(to bottom, rgba(255,255,255,0.98), rgba(255,255,255,0.92)), 
+                              url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L100,100 M100,0 L0,100' stroke='%23f0f0f0' stroke-width='1'/%3E%3C/svg%3E");
         }
         
         /* Premium Border Effect */
         .form-container::before {
             content: "";
             position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            bottom: 10px;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
             border: 2px solid #c9ad6a;
             pointer-events: none;
             z-index: 1;
@@ -60,17 +63,18 @@
             top: 40%;
             left: 20%;
             white-space: nowrap;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Playfair Display', serif;
             text-transform: uppercase;
+            letter-spacing: 4px;
         }
         
         /* Header Styles - VERSI PREMIUM */
         .header {
             text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
             position: relative;
-            border-bottom: 3px double #0066cc;
+            border-bottom: 3px double #1a3d7c;
         }
         
         .logo-container {
@@ -80,109 +84,137 @@
         .logo-placeholder {
             width: 100px;
             height: 100px;
-            border: 2px solid #0066cc;
+            border: 2px solid #1a3d7c;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
+            margin: 0 auto 15px;
             font-weight: bold;
-            color: #0066cc;
+            color: #1a3d7c;
             background-color: #f0f8ff;
+            font-size: 24px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         
         .company-name {
-            color: #0066cc;
-            font-size: 24px;
+            color: #1a3d7c;
+            font-size: 28px;
             font-weight: bold;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
+            font-family: 'Playfair Display', serif;
         }
         
         .company-tagline {
-            font-size: 14px;
+            font-size: 16px;
             font-style: italic;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             color: #555;
         }
         
         .company-address {
-            font-size: 14px;
-            margin-bottom: 5px;
-            color: #000;
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #444;
         }
         
         .contact-info {
-            font-size: 13px;
-            margin: 8px 0;
-            color: #000;
+            font-size: 14px;
+            margin: 10px 0;
+            color: #444;
         }
         
         .contact-info span {
             display: inline-block;
-            margin: 0 5px;
+            margin: 0 8px;
         }
         
         .header-line {
             height: 2px;
-            background: linear-gradient(to right, transparent, #0066cc, transparent);
-            margin: 10px 0;
+            background: linear-gradient(to right, transparent, #1a3d7c, transparent);
+            margin: 15px 0;
         }
         
         /* Document Title Styles */
         .document-title {
             text-align: center;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
-            text-decoration: underline;
-            margin: 25px 0;
+            margin: 30px 0;
             color: #000;
-            font-family: 'Times New Roman', serif;
+            font-family: 'Playfair Display', serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
         }
         
         .document-number {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             font-style: normal;
             color: #000;
             font-weight: bold;
+            font-size: 16px;
         }
         
         /* Parties Styles */
         .parties {
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
         
         .party {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #1a3d7c;
         }
         
         .party-title {
             font-weight: bold;
-            text-decoration: underline;
-            margin-bottom: 10px;
-            color: #000;
-            font-size: 16px;
+            margin-bottom: 15px;
+            color: #1a3d7c;
+            font-size: 18px;
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .party p {
+            margin-bottom: 8px;
+            padding-left: 10px;
         }
         
         /* Article Styles */
         .article {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             position: relative;
             z-index: 2;
         }
         
         .article-title {
             font-weight: bold;
+            margin-bottom: 12px;
+            color: #1a3d7c;
+            font-size: 18px;
+            font-family: 'Playfair Display', serif;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .article p, .article ul {
             margin-bottom: 10px;
-            color: #000;
-            font-size: 16px;
+            text-align: justify;
+        }
+        
+        .article ul {
+            margin-left: 30px;
         }
         
         /* Signature Area Styles */
         .signature-area {
-            margin-top: 50px;
+            margin-top: 60px;
             display: flex;
             justify-content: space-between;
             position: relative;
@@ -192,50 +224,57 @@
         .signature-box {
             width: 45%;
             text-align: center;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 5px;
         }
         
         .signature-info {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             color: #000;
+            font-weight: 500;
         }
         
         .qrcode-container {
-            margin: 15px auto;
-            width: 100px;
-            height: 100px;
+            margin: 20px auto;
+            width: 120px;
+            height: 120px;
             border: 1px solid #ddd;
-            padding: 5px;
+            padding: 8px;
             background: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         
         .signature-name {
-            margin-top: 15px;
+            margin-top: 20px;
             font-weight: bold;
             display: inline-block;
             min-width: 200px;
             border-top: 1px solid #333;
-            padding-top: 5px;
+            padding-top: 10px;
             color: #000;
         }
         
         /* Form Styles */
         .no-print {
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: 40px;
+            padding: 25px;
             background-color: #f5f5f5;
-            border-radius: 5px;
+            border-radius: 8px;
             position: relative;
             z-index: 2;
+            border: 1px solid #ddd;
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 600;
             color: #444;
         }
         
@@ -244,10 +283,20 @@
         input[type="tel"],
         select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="tel"]:focus,
+        select:focus {
+            border-color: #1a3d7c;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 61, 124, 0.2);
         }
         
         input.uppercase {
@@ -256,43 +305,58 @@
         
         .button-group {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 25px;
         }
         
         button {
-            background-color: #0066cc;
+            background-color: #1a3d7c;
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 14px 25px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
             flex: 1;
             min-width: 200px;
+            font-weight: 600;
         }
         
         button:hover {
-            background-color: #0055aa;
+            background-color: #153265;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         button.print {
-            background-color: #4CAF50;
+            background-color: #2e7d32;
+        }
+        
+        button.print:hover {
+            background-color: #245a28;
         }
         
         button.download {
-            background-color: #9C27B0;
+            background-color: #7b1fa2;
+        }
+        
+        button.download:hover {
+            background-color: #641a87;
         }
         
         button.whatsapp {
             background-color: #25D366;
         }
         
+        button.whatsapp:hover {
+            background-color: #1da851;
+        }
+        
         .error-message {
             color: #d9534f;
-            font-size: 12px;
+            font-size: 13px;
             margin-top: 5px;
             display: none;
         }
@@ -305,8 +369,9 @@
         .loading {
             display: none;
             text-align: center;
-            padding: 10px;
-            color: #0066cc;
+            padding: 15px;
+            color: #1a3d7c;
+            font-weight: 600;
         }
         
         /* Security Pattern */
@@ -319,17 +384,31 @@
             pointer-events: none;
             z-index: 0;
             opacity: 0.03;
-            background-image: repeating-linear-gradient(45deg, #000, #000 1px, transparent 1px, transparent 10px);
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        /* Form Input Display in Document */
+        .form-input {
+            font-weight: 600;
+            color: #1a3d7c;
+            border-bottom: 1px dotted #999;
+            padding: 0 5px 2px;
+            min-width: 50px;
+            display: inline-block;
         }
         
         /* Responsive Styles */
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
+            .form-container {
+                padding: 25px;
+            }
+            
             .header {
                 text-align: center;
             }
             
             .company-name {
-                font-size: 18px;
+                font-size: 22px;
             }
             
             .contact-info span {
@@ -339,7 +418,7 @@
             
             .signature-area {
                 flex-direction: column;
-                gap: 30px;
+                gap: 40px;
             }
             
             .signature-box {
@@ -355,9 +434,13 @@
             }
             
             .watermark {
-                font-size: 70px;
+                font-size: 80px;
                 top: 30%;
                 left: 5%;
+            }
+            
+            .document-title {
+                font-size: 18px;
             }
         }
         
@@ -374,6 +457,7 @@
                 color: #000 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                font-size: 14px;
             }
             
             .no-print {
@@ -385,6 +469,7 @@
                 padding: 0;
                 max-width: 100%;
                 border: none;
+                background-image: none;
             }
             
             .form-container::before {
@@ -401,10 +486,11 @@
             
             .header {
                 flex-wrap: nowrap;
+                border-bottom: 3px double #000 !important;
             }
             
             .contact-info {
-                font-size: 11px;
+                font-size: 12px;
             }
             
             .watermark {
@@ -413,6 +499,21 @@
             
             .security-pattern {
                 opacity: 0.03;
+            }
+            
+            .party {
+                background-color: transparent !important;
+                border-left: 4px solid #000 !important;
+            }
+            
+            .signature-box {
+                border: 1px solid #000 !important;
+                background-color: transparent !important;
+            }
+            
+            .document-title {
+                border: 1px solid #000 !important;
+                background-color: transparent !important;
             }
             
             /* Prevent elements from breaking across pages */
@@ -424,6 +525,26 @@
             .form-container > * {
                 max-width: 100%;
                 overflow: hidden;
+            }
+            
+            .article-title {
+                color: #000 !important;
+                border-bottom: 1px solid #000 !important;
+            }
+            
+            .party-title {
+                color: #000 !important;
+            }
+            
+            .form-input {
+                color: #000 !important;
+                border-bottom: 1px dotted #000 !important;
+            }
+            
+            .qrcode-container {
+                border: 1px solid #000 !important;
+                background: white !important;
+                box-shadow: none !important;
             }
         }
     </style>
@@ -438,8 +559,8 @@
         
         <!-- Form Input Section -->
         <div class="no-print">
-            <h1 style="color: #0066cc; text-align: center; margin-bottom: 20px;">Formulir Perjanjian Layanan LKS 2025</h1>
-            <p style="text-align: center; margin-bottom: 20px; color: #000;">Silakan isi formulir berikut untuk mendaftar sebagai pengguna layanan:</p>
+            <h1 style="color: #1a3d7c; text-align: center; margin-bottom: 25px; font-family: 'Playfair Display', serif;">Formulir Perjanjian Layanan LKS 2025</h1>
+            <p style="text-align: center; margin-bottom: 25px; color: #000;">Silakan isi formulir berikut untuk mendaftar sebagai pengguna layanan:</p>
             
             <div class="form-group">
                 <label for="nama_pemohon">Nama Pemohon:</label>
@@ -473,7 +594,7 @@
             
             <div class="form-group">
                 <label for="id_pendaftaran">No. ID Pendaftaran:</label>
-                <input type="text" id="id_pendaftaran" name="id_pendaftaran" readonly style="background-color: #f0f0f0;">
+                <input type="text" id="id_pendaftaran" name="id_pendaftaran" readonly style="background-color: #f0f0f0; font-weight: bold;">
             </div>
             
             <div class="form-group">
@@ -564,7 +685,7 @@
             <div class="article">
                 <div class="article-title">PASAL 2 - RUANG LINGKUP LAYANAN</div>
                 <p>1. PIHAK PERTAMA menyediakan akses aplikasi yang mencakup, namun tidak terbatas pada:</p>
-                <ul style="margin-left: 20px;">
+                <ul>
                     <li>Aplikasi Kasir & Aplikasi Ojek Online</li>
                     <li>Aplikasi UMKM</li>
                     <li>Layanan Sewa Hotel & Layanan Wisata</li>
@@ -589,7 +710,7 @@
                 <p>2. Bertanggung jawab penuh atas legalitas, mutu, keamanan, dan keabsahan barang/jasa/layanan.</p>
                 <p>3. Berkewajiban memastikan seluruh aktivitas usaha tidak melanggar ketentuan hukum.</p>
                 <p>4. Dilarang memperdagangkan barang/jasa terlarang, termasuk:</p>
-                <ul style="margin-left: 20px;">
+                <ul>
                     <li>Narkotika, psikotropika, obat terlarang</li>
                     <li>Senjata api, senjata tajam, bahan peledak</li>
                     <li>Minuman keras dan barang lain yang dilarang peraturan perundang-undangan</li>
@@ -656,6 +777,7 @@
             const formattedDate = today.toISOString().substr(0, 10);
             document.getElementById('tanggal_pendaftaran').value = formattedDate;
             autoGenerateID();
+            setupValidation();
         });
 
         // Generate random ID function
@@ -804,14 +926,24 @@
             element.innerHTML = ''; // Clear previous QR code
             
             if (data) {
-                QRCode.toCanvas(element, data, {
+                // Create canvas for QR code
+                const canvas = document.createElement('canvas');
+                
+                QRCode.toCanvas(canvas, data, {
                     width: 100,
-                    height: 100,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    margin: 1
+                    margin: 1,
+                    color: {
+                        dark: "#000000",
+                        light: "#ffffff"
+                    }
                 }, function(error) {
-                    if (error) console.error(error);
+                    if (error) {
+                        console.error(error);
+                        // Fallback if QR code generation fails
+                        element.innerHTML = '<div style="text-align:center;padding:10px;color:#666;">QR Code Error</div>';
+                    } else {
+                        element.appendChild(canvas);
+                    }
                 });
             }
         }
@@ -829,7 +961,7 @@
             if (!dateString) return '';
             const date = new Date(dateString);
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            return `Tanggal ${date.toLocaleDateString('id-ID', options)}`;
+            return date.toLocaleDateString('id-ID', options);
         }
         
         function getHariTanggal(dateString) {
@@ -875,9 +1007,11 @@
             if (!document.getElementById('display_nama_pemohon').textContent || 
                 document.getElementById('display_nama_pemohon').textContent === "..............................") {
                 validateAndGenerate();
+                // Give time for QR codes to generate
+                setTimeout(window.print, 500);
+            } else {
+                window.print();
             }
-            
-            window.print();
         }
 
         // Download PDF function
@@ -894,10 +1028,10 @@
             // Use html2pdf library
             const element = document.getElementById('agreement-document');
             const opt = {
-                margin: 10,
+                margin: 15,
                 filename: 'surat_perjanjian_lks.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true, logging: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
@@ -905,6 +1039,10 @@
             html2pdf().set(opt).from(element).save().then(() => {
                 // Hide loading indicator when done
                 document.getElementById('loading-indicator').style.display = 'none';
+            }).catch(err => {
+                console.error('Error generating PDF:', err);
+                document.getElementById('loading-indicator').style.display = 'none';
+                alert('Terjadi kesalahan saat membuat PDF. Silakan coba lagi.');
             });
         }
 
@@ -927,9 +1065,6 @@
             // Open in new tab
             window.open(whatsappUrl, '_blank');
         }
-
-        // Setup validation on page load
-        setupValidation();
     </script>
 </body>
 </html>
