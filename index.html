@@ -33,31 +33,57 @@
             position: relative;
         }
         
-        /* Header Styles */
+        /* Header Styles - PERBAIKAN */
         .header {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             margin-bottom: 25px;
             border-bottom: 2px solid #0066cc;
             padding-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
         }
         
         .logo {
-            width: 120px;
+            width: 100px;
             height: auto;
-            margin-right: 20px;
+            margin-right: 15px;
+        }
+        
+        .header-text {
+            flex: 1;
+            min-width: 300px;
         }
         
         .header-text h2 {
             color: #0066cc;
-            font-size: 22px;
-            margin-bottom: 5px;
+            font-size: 20px;
+            margin-bottom: 8px;
+            line-height: 1.2;
         }
         
         .header-text p {
-            font-size: 13px;
+            font-size: 12px;
             margin: 3px 0;
             color: #000;
+            line-height: 1.4;
+        }
+        
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .contact-info span {
+            white-space: nowrap;
         }
         
         /* Document Title Styles */
@@ -226,6 +252,49 @@
             color: #0066cc;
         }
         
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo-container {
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+            
+            .header-text {
+                min-width: unset;
+            }
+            
+            .header-text h2 {
+                font-size: 18px;
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .signature-area {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .signature-box {
+                width: 100%;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+        
         /* Print Styles */
         @media print {
             @page {
@@ -256,6 +325,14 @@
             
             * {
                 color: #000 !important;
+            }
+            
+            .header {
+                flex-wrap: nowrap;
+            }
+            
+            .header-text p {
+                font-size: 11px;
             }
         }
     </style>
@@ -336,12 +413,17 @@
         <!-- Agreement Document -->
         <div id="agreement-document">
             <div class="header">
-                <img src="https://raw.githubusercontent.com/LenteraKarya/daftar-member-jualan-kita/main/logo-lks.png" alt="Logo LKS" class="logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjYwIiB2aWV3Qm94PSIwIDAgMTIwIDYwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNjAiIGZpbGw9IiMwMDY2Y2MiLz48dGV4dCB4PSIxMCIgeT0iMzUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiPkxLUyBMT0dPPC90ZXh0Pjwvc3ZnPg=='">
+                <div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/LenteraKarya/daftar-member-jualan-kita/main/logo-lks.png" alt="Logo LKS" class="logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjUwIiB2aWV3Qm94PSIwIDAgMTAwIDUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNTAiIGZpbGw9IiMwMDY2Y2MiLz48dGV4dCB4PSI4IiB5PSIyOCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSI+TEtTIExPR088L3RleHQ+PC9zdmc+'">
+                </div>
                 <div class="header-text">
                     <h2>LENTERA KARYA SITUBONDO</h2>
                     <p>Desa Wringin Anom, Kecamatan Panarukan, Kabupaten Situbondo, Jawa Timur</p>
-                    <p>Email: lenterakaryasitubondo@gmail.com | Telp: +62 878-6561-4222</p>
-                    <p>Website: https://s.id/jualankita</p>
+                    <div class="contact-info">
+                        <span>Email: lenterakaryasitubondo@gmail.com</span>
+                        <span>Telp: +62 878-6561-4222</span>
+                        <span>Website: https://s.id/jualankita</span>
+                    </div>
                 </div>
             </div>
             
