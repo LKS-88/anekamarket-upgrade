@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surat Perjanjian Layanan LKS 2025</title>
-    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Reset CSS */
         * {
@@ -17,7 +18,7 @@
         body {
             font-family: 'Arial', sans-serif;
             line-height: 1.6;
-            color: #000; /* Warna font hitam untuk kejelasan */
+            color: #000;
             background-color: #f9f9f9;
             padding: 20px;
         }
@@ -56,7 +57,7 @@
         .header-text p {
             font-size: 13px;
             margin: 3px 0;
-            color: #000; /* Pastikan warna teks hitam */
+            color: #000;
         }
         
         /* Document Title Styles */
@@ -72,7 +73,7 @@
         .document-number {
             text-align: center;
             margin-bottom: 30px;
-            font-style: normal; /* Tidak miring */
+            font-style: normal;
             color: #000;
         }
         
@@ -213,6 +214,18 @@
             display: none;
         }
         
+        .input-error {
+            border-color: #d9534f;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #0066cc;
+        }
+        
         /* Print Styles */
         @media print {
             @page {
@@ -222,8 +235,8 @@
             
             body {
                 padding: 0;
-                background-image: none; /* Hapus watermark */
-                color: #000 !important; /* Pastikan warna hitam saat cetak */
+                background-image: none;
+                color: #000 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -241,7 +254,6 @@
                 display: none;
             }
             
-            /* Pastikan semua teks hitam saat dicetak */
             * {
                 color: #000 !important;
             }
@@ -309,9 +321,13 @@
                 <div id="kategori_layanan_error" class="error-message">Kategori harus dipilih</div>
             </div>
             
+            <div class="loading" id="loading-indicator">
+                Membuat dokumen, harap tunggu...
+            </div>
+            
             <div class="button-group">
                 <button onclick="validateAndGenerate()">Generate Surat Perjanjian</button>
-                <button onclick="window.print()" class="print">Cetak Dokumen</button>
+                <button onclick="printDocument()" class="print">Cetak Dokumen</button>
                 <button onclick="downloadDocument()" class="download">Download PDF</button>
                 <button onclick="sendViaWhatsApp()" class="whatsapp">Kirim via WhatsApp</button>
             </div>
@@ -320,7 +336,7 @@
         <!-- Agreement Document -->
         <div id="agreement-document">
             <div class="header">
-                <img src="https://raw.githubusercontent.com/LenteraKarya/daftar-member-jualan-kita/main/logo-lks.png" alt="Logo LKS" class="logo">
+                <img src="https://raw.githubusercontent.com/LenteraKarya/daftar-member-jualan-kita/main/logo-lks.png" alt="Logo LKS" class="logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjYwIiB2aWV3Qm94PSIwIDAgMTIwIDYwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNjAiIGZpbGw9IiMwMDY2Y2MiLz48dGV4dCB4PSIxMCIgeT0iMzUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiPkxLUyBMT0dPPC90ZXh0Pjwvc3ZnPg=='">
                 <div class="header-text">
                     <h2>LENTERA KARYA SITUBONDO</h2>
                     <p>Desa Wringin Anom, Kecamatan Panarukan, Kabupaten Situbondo, Jawa Timur</p>
@@ -338,7 +354,7 @@
             </div>
             
             <div class="parties">
-                <p>Pada hari ini, Senin Tanggal 07 Bulan Juli Tahun 2025. Bertempat di Situbondo, kami yang bertanda tangan di bawah ini:</p>
+                <p>Pada hari ini, <span id="display_hari_tanggal">Senin Tanggal 07 Bulan Juli Tahun 2025</span>. Bertempat di Situbondo, kami yang bertanda tangan di bawah ini:</p>
                 
                 <div class="party">
                     <div class="party-title">PIHAK PERTAMA:</div>
@@ -453,6 +469,14 @@
     </div>
 
     <script>
+        // Inisialisasi tanggal hari ini sebagai default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedDate = today.toISOString().substr(0, 10);
+            document.getElementById('tanggal_pendaftaran').value = formattedDate;
+            autoGenerateID();
+        });
+
         // Generate random ID function
         function generateRandomID() {
             const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -483,72 +507,68 @@
         document.getElementById('nomor_telepon').addEventListener('input', autoGenerateID);
         document.getElementById('tanggal_pendaftaran').addEventListener('change', autoGenerateID);
 
+        // Validasi input secara real-time
+        function setupValidation() {
+            const inputs = document.querySelectorAll('input[required], select[required]');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    validateField(this);
+                });
+            });
+        }
+
+        // Validasi per field
+        function validateField(field) {
+            const errorElement = document.getElementById(field.id + '_error');
+            
+            if (!field.value) {
+                showError(field, errorElement, 'Field harus diisi');
+                return false;
+            }
+            
+            // Validasi spesifik berdasarkan tipe field
+            if (field.id === 'nik' && !/^\d{16}$/.test(field.value)) {
+                showError(field, errorElement, 'NIK harus 16 digit angka');
+                return false;
+            }
+            
+            if (field.id === 'nomor_telepon' && !/^08\d{10,11}$/.test(field.value)) {
+                showError(field, errorElement, 'Nomor harus diawali 08 dan 12-13 digit');
+                return false;
+            }
+            
+            // Jika validasi berhasil
+            hideError(field, errorElement);
+            return true;
+        }
+
+        function showError(field, errorElement, message) {
+            field.classList.add('input-error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function hideError(field, errorElement) {
+            field.classList.remove('input-error');
+            errorElement.style.display = 'none';
+        }
+
         // Validate form before generating agreement
         function validateAndGenerate() {
             let isValid = true;
             
-            // Validate Nama Pemohon
-            const namaPemohon = document.getElementById('nama_pemohon').value;
-            if (!namaPemohon) {
-                document.getElementById('nama_pemohon_error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('nama_pemohon_error').style.display = 'none';
-            }
+            // Validate all required fields
+            const requiredFields = [
+                'nama_pemohon', 'nik', 'alamat', 'nomor_telepon', 
+                'tanggal_pendaftaran', 'nama_umkm', 'kategori_layanan'
+            ];
             
-            // Validate NIK
-            const nik = document.getElementById('nik').value;
-            if (!nik || !/^\d{16}$/.test(nik)) {
-                document.getElementById('nik_error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('nik_error').style.display = 'none';
-            }
-            
-            // Validate Alamat
-            const alamat = document.getElementById('alamat').value;
-            if (!alamat) {
-                document.getElementById('alamat_error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('alamat_error').style.display = 'none';
-            }
-            
-            // Validate Nomor Telepon
-            const nomorTelepon = document.getElementById('nomor_telepon').value;
-            if (!nomorTelepon || !/^08\d{10,11}$/.test(nomorTelepon)) {
-                document.getElementById('nomor_telepon_error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('nomor_telepon_error').style.display = 'none';
-            }
-            
-            // Validate Tanggal Pendaftaran
-            const tanggalPendaftaran = document.getElementById('tanggal_pendaftaran').value;
-            if (!tanggalPendaftaran) {
-                document.getElementById('tanggal_pendaftaran_error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('tanggal_pendaftaran_error').style.display = 'none';
-            }
-            
-            // Validate Nama UMKM
-            const namaUmkm = document.getElementById('nama_umkm').value;
-            if (!namaUmkm) {
-                document.getElementById('nama_umkm_error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('nama_umkm_error').style.display = 'none';
-            }
-            
-            // Validate Kategori Layanan
-            const kategoriLayanan = document.getElementById('kategori_layanan').value;
-            if (!kategoriLayanan) {
-                document.getElementById('kategori_layanan_error').style.display = 'block';
-                isValid = false;
-            } else {
-                document.getElementById('kategori_layanan_error').style.display = 'none';
-            }
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!validateField(field)) {
+                    isValid = false;
+                }
+            });
             
             if (isValid) {
                 generateAgreement();
@@ -572,17 +592,23 @@
             // Format date
             const formattedDate = formatDate(tanggalPendaftaran);
             const fullDate = formatFullDate(tanggalPendaftaran);
+            const hariTanggal = getHariTanggal(tanggalPendaftaran);
+            
+            // Generate nomor surat
+            const nomorSurat = generateNomorSurat(idPendaftaran);
             
             // Display values in the agreement
-            document.getElementById('display_nama_pemohon').textContent = namaPemohon || "..............................";
-            document.getElementById('display_nik').textContent = nik || "..............................";
-            document.getElementById('display_alamat').textContent = alamat || "..............................";
-            document.getElementById('display_nomor_telepon').textContent = nomorTelepon || "..............................";
-            document.getElementById('display_id_pendaftaran').textContent = idPendaftaran || "..............................";
-            document.getElementById('display_nama_umkm').textContent = namaUmkm || "..............................";
-            document.getElementById('display_kategori_layanan').textContent = kategoriLayanan || "..............................";
-            document.getElementById('display_tanggal_pendaftaran_full').textContent = fullDate || "..............................";
-            document.getElementById('display_nama_pemohon_sign').textContent = namaPemohon || "..............................";
+            document.getElementById('display_nama_pemohon').textContent = namaPemohon;
+            document.getElementById('display_nik').textContent = nik;
+            document.getElementById('display_alamat').textContent = alamat;
+            document.getElementById('display_nomor_telepon').textContent = nomorTelepon;
+            document.getElementById('display_id_pendaftaran').textContent = idPendaftaran;
+            document.getElementById('display_nama_umkm').textContent = namaUmkm;
+            document.getElementById('display_kategori_layanan').textContent = kategoriLayanan;
+            document.getElementById('display_tanggal_pendaftaran_full').textContent = fullDate;
+            document.getElementById('display_nama_pemohon_sign').textContent = namaPemohon;
+            document.getElementById('display_hari_tanggal').textContent = hariTanggal;
+            document.getElementById('nomor_surat_display').textContent = nomorSurat;
             
             // Generate QR Codes
             generateQRCode('qrcode_pihak_kedua', 
@@ -597,13 +623,14 @@
             element.innerHTML = ''; // Clear previous QR code
             
             if (data) {
-                new QRCode(element, {
-                    text: data,
+                QRCode.toCanvas(element, data, {
                     width: 100,
                     height: 100,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
+                    margin: 1
+                }, function(error) {
+                    if (error) console.error(error);
                 });
             }
         }
@@ -623,6 +650,34 @@
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
             return `Tanggal ${date.toLocaleDateString('id-ID', options)}`;
         }
+        
+        function getHariTanggal(dateString) {
+            if (!dateString) return 'Senin Tanggal 07 Bulan Juli Tahun 2025';
+            const date = new Date(dateString);
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const dayName = days[date.getDay()];
+            const day = date.getDate();
+            const monthName = months[date.getMonth()];
+            const year = date.getFullYear();
+            
+            return `${dayName} Tanggal ${day} Bulan ${monthName} Tahun ${year}`;
+        }
+        
+        function generateNomorSurat(idPendaftaran) {
+            if (!idPendaftaran) return '......../......../SP3LA-LKS/VII/2025';
+            
+            const date = new Date();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            
+            // Ambil bagian unik dari ID Pendaftaran
+            const idParts = idPendaftaran.split('-');
+            const uniqueId = idParts.length > 1 ? idParts[1] : idPendaftaran.substr(-6);
+            
+            return `${uniqueId}/SP3LA-LKS/${month}/${year}`;
+        }
 
         // Force uppercase for specific fields
         document.getElementById('nama_pemohon').addEventListener('input', function() {
@@ -633,21 +688,52 @@
             this.value = this.value.toUpperCase();
         });
 
+        // Print function
+        function printDocument() {
+            // First generate the agreement if not already done
+            if (!document.getElementById('display_nama_pemohon').textContent || 
+                document.getElementById('display_nama_pemohon').textContent === "..............................") {
+                validateAndGenerate();
+            }
+            
+            window.print();
+        }
+
         // Download PDF function
         function downloadDocument() {
-            // First generate the agreement if not already done
-            validateAndGenerate();
+            // Show loading indicator
+            document.getElementById('loading-indicator').style.display = 'block';
             
-            // Use html2pdf library (you need to include it in your project)
-            // For simplicity, we'll use window.print() as fallback
-            alert('Fitur download akan menyimpan dokumen sebagai PDF. Pastikan Anda telah meng-generate dokumen terlebih dahulu.');
-            window.print();
+            // First generate the agreement if not already done
+            if (!document.getElementById('display_nama_pemohon').textContent || 
+                document.getElementById('display_nama_pemohon').textContent === "..............................") {
+                validateAndGenerate();
+            }
+            
+            // Use html2pdf library
+            const element = document.getElementById('agreement-document');
+            const opt = {
+                margin: 10,
+                filename: 'surat_perjanjian_lks.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Generate and download PDF
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Hide loading indicator when done
+                document.getElementById('loading-indicator').style.display = 'none';
+            });
         }
 
         // Send via WhatsApp function
         function sendViaWhatsApp() {
             // First generate the agreement if not already done
-            validateAndGenerate();
+            if (!document.getElementById('display_nama_pemohon').textContent || 
+                document.getElementById('display_nama_pemohon').textContent === "..............................") {
+                validateAndGenerate();
+            }
             
             const namaPemohon = document.getElementById('nama_pemohon').value || 'Nama Pemohon';
             const idPendaftaran = document.getElementById('id_pendaftaran').value || 'ID Pendaftaran';
@@ -660,6 +746,9 @@
             // Open in new tab
             window.open(whatsappUrl, '_blank');
         }
+
+        // Setup validation on page load
+        setupValidation();
     </script>
 </body>
 </html>
