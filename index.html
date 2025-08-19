@@ -18,10 +18,11 @@
         /* Body Styles */
         body {
             font-family: 'Source Sans Pro', sans-serif;
-            line-height: 1.6;
+            line-height: 1.5;
             color: #333;
             background-color: #f5f5f5;
             padding: 20px;
+            font-size: 14px;
         }
         
         /* Container Styles */
@@ -29,7 +30,7 @@
             max-width: 900px;
             margin: 0 auto;
             background-color: white;
-            padding: 40px;
+            padding: 30px;
             box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
             position: relative;
             border: 1px solid #e0e0e0;
@@ -41,10 +42,10 @@
         .form-container::before {
             content: "";
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
             border: 2px solid #c9ad6a;
             pointer-events: none;
             z-index: 1;
@@ -54,167 +55,162 @@
         .watermark {
             position: absolute;
             opacity: 0.03;
-            font-size: 120px;
+            font-size: 100px;
             font-weight: bold;
             color: #000;
             transform: rotate(-45deg);
             pointer-events: none;
             z-index: 0;
             top: 40%;
-            left: 20%;
+            left: 15%;
             white-space: nowrap;
             font-family: 'Playfair Display', serif;
             text-transform: uppercase;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
         }
         
         /* Header Styles - VERSI PREMIUM */
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             position: relative;
             border-bottom: 3px double #1a3d7c;
         }
         
         .logo-container {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
-        .logo-placeholder {
-            width: 100px;
-            height: 100px;
-            border: 2px solid #1a3d7c;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            font-weight: bold;
-            color: #1a3d7c;
-            background-color: #f0f8ff;
-            font-size: 24px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        .logo-img {
+            height: 80px;
+            width: auto;
+            margin-bottom: 10px;
         }
         
         .company-name {
             color: #1a3d7c;
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             font-family: 'Playfair Display', serif;
         }
         
         .company-tagline {
-            font-size: 16px;
+            font-size: 14px;
             font-style: italic;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             color: #555;
         }
         
         .company-address {
-            font-size: 15px;
-            margin-bottom: 8px;
+            font-size: 13px;
+            margin-bottom: 5px;
             color: #444;
         }
         
         .contact-info {
-            font-size: 14px;
-            margin: 10px 0;
+            font-size: 12px;
+            margin: 5px 0;
             color: #444;
         }
         
         .contact-info span {
             display: inline-block;
-            margin: 0 8px;
+            margin: 0 5px;
         }
         
         .header-line {
-            height: 2px;
+            height: 1px;
             background: linear-gradient(to right, transparent, #1a3d7c, transparent);
-            margin: 15px 0;
+            margin: 10px 0;
         }
         
         /* Document Title Styles */
         .document-title {
             text-align: center;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: bold;
-            margin: 30px 0;
+            margin: 20px 0;
             color: #000;
             font-family: 'Playfair Display', serif;
             text-transform: uppercase;
             letter-spacing: 1px;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ddd;
             background-color: #f9f9f9;
         }
         
         .document-number {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             font-style: normal;
             color: #000;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
         }
         
         /* Parties Styles */
         .parties {
-            margin-bottom: 35px;
+            margin-bottom: 25px;
         }
         
         .party {
-            margin-bottom: 25px;
-            padding: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
             background-color: #f9f9f9;
             border-left: 4px solid #1a3d7c;
         }
         
         .party-title {
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             color: #1a3d7c;
-            font-size: 18px;
+            font-size: 16px;
             font-family: 'Playfair Display', serif;
         }
         
         .party p {
-            margin-bottom: 8px;
-            padding-left: 10px;
+            margin-bottom: 6px;
+            padding-left: 8px;
+            font-size: 13px;
         }
         
         /* Article Styles */
         .article {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             position: relative;
             z-index: 2;
         }
         
         .article-title {
             font-weight: bold;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             color: #1a3d7c;
-            font-size: 18px;
+            font-size: 16px;
             font-family: 'Playfair Display', serif;
-            padding-bottom: 5px;
+            padding-bottom: 3px;
             border-bottom: 1px solid #e0e0e0;
         }
         
         .article p, .article ul {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-align: justify;
+            font-size: 13px;
         }
         
         .article ul {
-            margin-left: 30px;
+            margin-left: 20px;
         }
         
         /* Signature Area Styles */
         .signature-area {
-            margin-top: 60px;
+            margin-top: 40px;
             display: flex;
             justify-content: space-between;
             position: relative;
@@ -224,42 +220,44 @@
         .signature-box {
             width: 45%;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             border: 1px solid #ddd;
             background-color: #f9f9f9;
             border-radius: 5px;
         }
         
         .signature-info {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #000;
             font-weight: 500;
+            font-size: 13px;
         }
         
         .qrcode-container {
-            margin: 20px auto;
-            width: 120px;
-            height: 120px;
+            margin: 15px auto;
+            width: 100px;
+            height: 100px;
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 5px;
             background: white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
         }
         
         .signature-name {
-            margin-top: 20px;
+            margin-top: 15px;
             font-weight: bold;
             display: inline-block;
-            min-width: 200px;
+            min-width: 180px;
             border-top: 1px solid #333;
-            padding-top: 10px;
+            padding-top: 8px;
             color: #000;
+            font-size: 13px;
         }
         
         /* Form Styles */
         .no-print {
-            margin-bottom: 40px;
-            padding: 25px;
+            margin-bottom: 30px;
+            padding: 20px;
             background-color: #f5f5f5;
             border-radius: 8px;
             position: relative;
@@ -268,14 +266,15 @@
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
             color: #444;
+            font-size: 14px;
         }
         
         input[type="text"],
@@ -283,10 +282,10 @@
         input[type="tel"],
         select {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 15px;
+            font-size: 14px;
             transition: border-color 0.3s;
         }
         
@@ -305,22 +304,22 @@
         
         .button-group {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
-            margin-top: 25px;
+            margin-top: 20px;
         }
         
         button {
             background-color: #1a3d7c;
             color: white;
             border: none;
-            padding: 14px 25px;
+            padding: 12px 20px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.3s;
             flex: 1;
-            min-width: 200px;
+            min-width: 180px;
             font-weight: 600;
         }
         
@@ -356,8 +355,8 @@
         
         .error-message {
             color: #d9534f;
-            font-size: 13px;
-            margin-top: 5px;
+            font-size: 12px;
+            margin-top: 4px;
             display: none;
         }
         
@@ -369,9 +368,10 @@
         .loading {
             display: none;
             text-align: center;
-            padding: 15px;
+            padding: 12px;
             color: #1a3d7c;
             font-weight: 600;
+            font-size: 14px;
         }
         
         /* Security Pattern */
@@ -392,15 +392,16 @@
             font-weight: 600;
             color: #1a3d7c;
             border-bottom: 1px dotted #999;
-            padding: 0 5px 2px;
-            min-width: 50px;
+            padding: 0 4px 2px;
+            min-width: 40px;
             display: inline-block;
+            font-size: 13px;
         }
         
         /* Responsive Styles */
         @media (max-width: 900px) {
             .form-container {
-                padding: 25px;
+                padding: 20px;
             }
             
             .header {
@@ -408,17 +409,17 @@
             }
             
             .company-name {
-                font-size: 22px;
+                font-size: 20px;
             }
             
             .contact-info span {
                 display: block;
-                margin: 5px 0;
+                margin: 4px 0;
             }
             
             .signature-area {
                 flex-direction: column;
-                gap: 40px;
+                gap: 30px;
             }
             
             .signature-box {
@@ -434,13 +435,13 @@
             }
             
             .watermark {
-                font-size: 80px;
+                font-size: 70px;
                 top: 30%;
                 left: 5%;
             }
             
             .document-title {
-                font-size: 18px;
+                font-size: 16px;
             }
         }
         
@@ -448,7 +449,7 @@
         @media print {
             @page {
                 size: A4;
-                margin: 15mm;
+                margin: 10mm;
             }
             
             body {
@@ -457,7 +458,8 @@
                 color: #000 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                font-size: 14px;
+                font-size: 12px;
+                line-height: 1.4;
             }
             
             .no-print {
@@ -470,6 +472,7 @@
                 max-width: 100%;
                 border: none;
                 background-image: none;
+                margin: 0;
             }
             
             .form-container::before {
@@ -487,14 +490,17 @@
             .header {
                 flex-wrap: nowrap;
                 border-bottom: 3px double #000 !important;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
             }
             
             .contact-info {
-                font-size: 12px;
+                font-size: 11px;
             }
             
             .watermark {
                 opacity: 0.05;
+                font-size: 90px;
             }
             
             .security-pattern {
@@ -504,16 +510,22 @@
             .party {
                 background-color: transparent !important;
                 border-left: 4px solid #000 !important;
+                padding: 10px;
+                margin-bottom: 12px;
             }
             
             .signature-box {
                 border: 1px solid #000 !important;
                 background-color: transparent !important;
+                padding: 10px;
             }
             
             .document-title {
                 border: 1px solid #000 !important;
                 background-color: transparent !important;
+                padding: 6px;
+                margin: 15px 0;
+                font-size: 16px;
             }
             
             /* Prevent elements from breaking across pages */
@@ -530,21 +542,39 @@
             .article-title {
                 color: #000 !important;
                 border-bottom: 1px solid #000 !important;
+                font-size: 14px;
             }
             
             .party-title {
                 color: #000 !important;
+                font-size: 14px;
             }
             
             .form-input {
                 color: #000 !important;
                 border-bottom: 1px dotted #000 !important;
+                font-size: 12px;
             }
             
             .qrcode-container {
                 border: 1px solid #000 !important;
                 background: white !important;
                 box-shadow: none !important;
+                width: 90px;
+                height: 90px;
+            }
+            
+            .article p, .article ul {
+                font-size: 12px;
+                margin-bottom: 6px;
+            }
+            
+            .party p {
+                font-size: 12px;
+            }
+            
+            .signature-info, .signature-name {
+                font-size: 12px;
             }
         }
     </style>
@@ -559,8 +589,8 @@
         
         <!-- Form Input Section -->
         <div class="no-print">
-            <h1 style="color: #1a3d7c; text-align: center; margin-bottom: 25px; font-family: 'Playfair Display', serif;">Formulir Perjanjian Layanan LKS 2025</h1>
-            <p style="text-align: center; margin-bottom: 25px; color: #000;">Silakan isi formulir berikut untuk mendaftar sebagai pengguna layanan:</p>
+            <h1 style="color: #1a3d7c; text-align: center; margin-bottom: 20px; font-family: 'Playfair Display', serif; font-size: 22px;">Formulir Perjanjian Layanan LKS 2025</h1>
+            <p style="text-align: center; margin-bottom: 20px; color: #000; font-size: 14px;">Silakan isi formulir berikut untuk mendaftar sebagai pengguna layanan:</p>
             
             <div class="form-group">
                 <label for="nama_pemohon">Nama Pemohon:</label>
@@ -632,7 +662,7 @@
         <div id="agreement-document">
             <div class="header">
                 <div class="logo-container">
-                    <div class="logo-placeholder">LKS</div>
+                    <img src="https://raw.githubusercontent.com/LKS-88/anekamarket/refs/heads/main/Logo-Anekamarketku.png" alt="Logo Lentera Karya Situbondo" class="logo-img">
                 </div>
                 <div class="company-name">LENTERA KARYA SITUBONDO</div>
                 <div class="company-tagline">Inovasi dan Teknologi untuk UMKM</div>
@@ -656,7 +686,7 @@
             </div>
             
             <div class="parties">
-                <p>Pada hari ini, <span id="display_hari_tanggal">Senin Tanggal 07 Bulan Juli Tahun 2025</span>. Bertempat di Situbondo, kami yang bertanda tangan di bawah ini:</p>
+                <p style="font-size: 13px;">Pada hari ini, <span id="display_hari_tanggal">Senin Tanggal 07 Bulan Juli Tahun 2025</span>. Bertempat di Situbondo, kami yang bertanda tangan di bawah ini:</p>
                 
                 <div class="party">
                     <div class="party-title">PIHAK PERTAMA:</div>
@@ -930,7 +960,7 @@
                 const canvas = document.createElement('canvas');
                 
                 QRCode.toCanvas(canvas, data, {
-                    width: 100,
+                    width: 90,
                     margin: 1,
                     color: {
                         dark: "#000000",
@@ -940,7 +970,7 @@
                     if (error) {
                         console.error(error);
                         // Fallback if QR code generation fails
-                        element.innerHTML = '<div style="text-align:center;padding:10px;color:#666;">QR Code Error</div>';
+                        element.innerHTML = '<div style="text-align:center;padding:10px;color:#666;font-size:11px;">QR Code Error</div>';
                     } else {
                         element.appendChild(canvas);
                     }
@@ -1028,7 +1058,7 @@
             // Use html2pdf library
             const element = document.getElementById('agreement-document');
             const opt = {
-                margin: 15,
+                margin: 10,
                 filename: 'surat_perjanjian_lks.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, logging: true },
